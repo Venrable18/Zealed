@@ -1,0 +1,27 @@
+# Private planning notes (not part of the repo)
+zealed-build-plan.md
+
+# Dependencies and build output
+node_modules
+dist
+dist-ssr
+coverage
+*.local
+
+# Playwright
+test-results
+playwright-report
+blob-report
+playwright/.cache
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Editor and OS files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.sw?
