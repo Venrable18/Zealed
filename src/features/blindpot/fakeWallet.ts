@@ -1,4 +1,5 @@
 import { encodeChunk, splitMessage } from '../../zmp/index.ts'
+import type { ContributorWalletPort, SendPieceResult } from './contributorWallet.ts'
 import type { PotWalletPort } from './walletPort.ts'
 
 /**
@@ -58,5 +59,24 @@ export class FakeWallet implements PotWalletPort {
     if (this.failNext === 'withdraw') return Promise.reject(new Error('boom'))
     this.withdrawn = true
     return Promise.resolve({ txid: 'tx-1' })
+  }
+}
+
+/** TEST DOUBLE for the guest side. Records every piece it is asked to send. */
+export class FakeContributorWallet implements ContributorWalletPort {
+  spendable = 1_000_000_000n
+  readonly sent: { address: string; zat: bigint; memo: Uint8Array | undefined }[] = []
+  /** Results to return in order, before falling back to success. */
+  script: SendPieceResult[] = []
+
+  spendableZat(): Promise<bigint> {
+    return Promise.resolve(this.spendable)
+  }
+
+  sendPiece(args: { address: string; zat: bigint; memo?: Uint8Array }): Promise<SendPieceResult> {
+    const scripted = this.script.shift()
+    if (scripted !== undefined) return Promise.resolve(scripted)
+    this.sent.push({ address: args.address, zat: args.zat, memo: args.memo })
+    return Promise.resolve({ ok: true, txid: `tx-${String(this.sent.length)}` })
   }
 }

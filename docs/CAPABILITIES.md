@@ -154,3 +154,17 @@ The wallet work (Phase 3, using the WebZjs tooling) must provide it. Status: **p
 | `piecesAsOf(accountId, atMs)`  | Count of received notes at or before a time.                                    |
 | `memosAsOf(accountId, atMs)`   | Raw 512-byte memos for received notes (tooling goal: raw memo access).          |
 | `withdrawAll(accountId)`       | A send from the pot account to the main account.                                |
+
+## Wallet interface the guest side needs (Phase 7)
+
+Guests use `ContributorWalletPort` (`src/features/blindpot/contributorWallet.ts`). Status:
+**pending**.
+
+| Method                               | Needs from WebZjs                                                                      |
+| ------------------------------------ | -------------------------------------------------------------------------------------- |
+| `spendableZat()`                     | Spendable balance, excluding change that is not yet spendable.                         |
+| `sendPiece({ address, zat, memo? })` | One shielded transaction to one address with an optional 512-byte arbitrary-data memo. |
+| result `not-spendable-yet`           | A way to tell "change not yet spendable" from other failures.                          |
+| result `insufficient-funds`          | A way to tell "not enough funds" from other failures.                                  |
+
+Unfinished gifts also need encrypted storage (`ContributionStore`) to resume after a reload.

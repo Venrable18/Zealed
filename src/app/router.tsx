@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router'
 import { RootLayout } from './RootLayout.tsx'
 import { BlindPot } from './routes/BlindPot.tsx'
+import { Give } from './routes/Give.tsx'
 import { Components } from './routes/Components.tsx'
 import { Dashboard } from './routes/Dashboard.tsx'
 import { FeaturePage } from './routes/FeaturePage.tsx'
@@ -17,6 +18,7 @@ export const router = createBrowserRouter([
       { index: true, element: <Home /> },
       { path: 'legacy', element: <FeaturePage path="/legacy" /> },
       { path: 'blind-pot', element: <BlindPot /> },
+      { path: 'blind-pot/give', element: <Give /> },
       { path: 'blind-pot/:id', element: <PotPage /> },
       { path: 'unsigned', element: <FeaturePage path="/unsigned" /> },
       { path: 'dashboard', element: <Dashboard /> },

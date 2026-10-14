@@ -206,3 +206,66 @@ wallet appear only as a batched total and wishes) is **not met and cannot be tes
 - Privacy strength cut-offs (6 and 24 pieces) are a heuristic; see `strength.ts`.
 - Added dev dependencies: `jsdom`, `@testing-library/react`, `@testing-library/dom`. Test
   timeout raised to 20 s in `vite.config.ts` (the Phase 4 fuzz tests timed out under load).
+
+## Phase 7: Blind Pot, contributor side (2026-10-14): PARTIAL, sending blocked on the wallet
+
+Same approach as Phase 6: everything that does not need a wallet is built and tested; sending
+goes through `ContributorWalletPort`. The phase's "done when" (three contributors fund a pot and
+the host sees only the batched total and shuffled wishes) is **not met and cannot be tested yet**.
+
+**Built** (`src/features/blindpot/`, route `/blind-pot/give`)
+
+- **Splitter** (`splitter.ts`): greedy split into the 1-2-5 pieces, at most 6. Amounts that do
+  not fit are rounded to the **nearest** total that does (ties round down), and the screen shows
+  the exact amount sent. Gifts are capped at 60 ZEC (6 x 10), and under 0.001 ZEC is refused.
+- **Wish piece**: with a wish, one 0.001 piece is reserved for it, so the rest is rounded to fit
+  five pieces. A 0.5 gift with a wish therefore becomes 0.501 (shown to the guest before sending).
+  The wish piece's position in the sending order is shuffled.
+- **Wish memo** (`wishMemo.ts`): a ZMP `WISH` message in one memo. Wishes the host would drop
+  (over 140 characters, too many bytes once emoji are counted, control or bidi characters) are
+  refused up front with a message.
+- **Send queue** (`queue.ts`): one transaction per piece, strictly one at a time and in order,
+  the first at once and each later one after a random extra delay (demo timers 2 to 10 s, standard
+  1 to 5 min). Not-spendable-yet is retried after 30 s without counting as a failure; running out
+  of funds pauses with a Continue button; other failures retry up to 3 times, then Try again.
+  Pieces already sent are kept.
+- **Gift screen** (`GiftFlow.tsx`): amount and wish, exact-amount preview, a confirmation, a
+  balance check, progress ("3 of 6 pieces sent"), a keep-the-page-open notice, and a receipt
+  showing only the guest's own gift. A pot past its last day takes no gifts.
+- **Link page**: reads the pot from the URL fragment; a broken, missing or oversized link shows
+  "This link does not look right"; pot names render as plain text.
+
+**Verified locally**
+
+- `lint`, `format:check`, `typecheck`, `build` pass. 141 unit and screen tests and 110
+  Playwright tests (dev and production build) pass, including axe checks at 360px in both themes.
+- The splitter is checked against an **exhaustive brute-force** search of every reachable total
+  (400 random amounts, with and without a wish), plus 3,000 seeded property checks (standard
+  pieces only, exact sums, at most 6 pieces, exactly one wish carrier).
+- Queue and screen tests use `FakeContributorWallet`, a **test double** that app code never
+  imports. They prove: separate sends per piece, the memo only on the 0.001 piece and decodable
+  by the host, retry/blocked/failed paths, and a private receipt.
+- With no wallet the page says so and sends nothing. The pot data is never sent to the server.
+
+**Not done / blocked**
+
+- Sending: no real transaction has been made. Needs the wallet and the WebZjs tooling (memo
+  send, spendable-balance and change-note timing).
+- **Resuming after a reload**: the queue is saved through `ContributionStore`, but only an
+  in-memory store exists, because the queue holds the address, amounts and wish and must be
+  stored encrypted (Phase 3). The screen therefore tells guests to keep the page open and does
+  not promise resuming.
+- **Onboarding shortcut** (create a wallet and get faucet funds inside the flow): needs the
+  wallet. Not started.
+- Whether the real wallet reports "not spendable yet" separately from other failures, and
+  whether a 25 s NU7 block time makes the 1 to 5 minute delays long enough or too long.
+- Fees: the balance check compares against the gift only; each piece also pays a ZIP 317 fee.
+  The screen says "plus a small fee" but cannot show it until the wallet can propose a payment.
+
+**Notes**
+
+- The fixed piece sizes make equal gifts split identically. That is intended (section 3.2), but
+  it means the set of pieces reveals the amount to anyone who can see them all together; the
+  privacy comes from separate transactions, timing and the host never seeing individual notes.
+- The production bundle is now over Vite's 500 kB warning size. Not a failure; revisit when the
+  WebZjs bundle is added.
