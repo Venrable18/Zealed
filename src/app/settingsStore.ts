@@ -2,9 +2,13 @@ import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { parseDemoParam } from '../config/demo.ts'
 
+export type ThemePreference = 'system' | 'light' | 'dark'
+
 interface SettingsState {
   demoMode: boolean
   setDemoMode: (demoMode: boolean) => void
+  theme: ThemePreference
+  setTheme: (theme: ThemePreference) => void
 }
 
 /**
@@ -18,11 +22,15 @@ export const useSettings = create<SettingsState>()(
       setDemoMode: (demoMode) => {
         set({ demoMode })
       },
+      theme: 'system',
+      setTheme: (theme) => {
+        set({ theme })
+      },
     }),
     {
       name: 'zealed:settings',
       storage: createJSONStorage(() => localStorage),
-      partialize: ({ demoMode }) => ({ demoMode }),
+      partialize: ({ demoMode, theme }) => ({ demoMode, theme }),
     },
   ),
 )

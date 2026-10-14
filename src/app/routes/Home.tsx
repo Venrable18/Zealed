@@ -1,10 +1,40 @@
+import { Link } from 'react-router'
+import { FEATURES } from '../features.tsx'
+
 export function Home() {
   return (
-    <section className="py-16">
-      <h1 className="text-4xl font-semibold tracking-tight">Zealed</h1>
-      <p className="mt-3 text-lg text-stone-600 dark:text-stone-400">
-        Private money and messages for the moments that matter.
+    <div className="py-10 sm:py-14">
+      <h1 className="font-display text-4xl tracking-tight sm:text-5xl">Zealed</h1>
+      <p className="mt-3 max-w-prose text-lg text-muted">
+        Private money and messages for the moments that matter, built on Zcash shielded payments.
+        Everything runs in your browser.
       </p>
-    </section>
+
+      <ul className="mt-10 grid gap-4 sm:grid-cols-3">
+        {FEATURES.map(({ path, title, tagline, Icon }) => (
+          <li key={path}>
+            <Link
+              to={path}
+              className="group flex h-full flex-col gap-3 rounded-card border border-line bg-surface p-5 transition-colors hover:border-seal"
+            >
+              <span className="flex size-11 items-center justify-center rounded-full bg-seal-soft text-seal">
+                <Icon />
+              </span>
+              <h2 className="text-xl group-hover:underline group-hover:underline-offset-4">
+                {title}
+              </h2>
+              <p className="text-sm text-muted">{tagline}</p>
+            </Link>
+          </li>
+        ))}
+      </ul>
+
+      <p className="mt-8 text-sm text-muted">
+        Testnet only. Nothing here uses real money.{' '}
+        <Link to="/dashboard" className="underline underline-offset-4">
+          Your dashboard
+        </Link>
+      </p>
+    </div>
   )
 }

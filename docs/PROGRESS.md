@@ -107,3 +107,51 @@ overhead.
 - Chunks are not authenticated: anyone can send a chunk for any message ID. Sensitive payloads
   must be AES-GCM encrypted above this layer. On disagreement the first chunk received wins.
 - Per-type size caps (wish 140 chars, letter 2 KB) are not enforced here; features enforce them.
+
+## Phase 5: App shell and design system (2026-10-14)
+
+Built without the wallet, so it is not blocked by Phase 2. Feature pages are honest
+placeholders ("Not available yet"); nothing here sends, stores or fakes a transaction.
+
+**Built**
+
+- **Tokens** (`src/index.css`): semantic colors (page, surface, ink, muted, seal, good, warn,
+  bad, focus) as CSS variables mapped into Tailwind 4 with `@theme inline`. Light and dark
+  themes follow the device by default; Settings can force either (`data-theme` on `<html>`,
+  saved with the other non-sensitive settings). Fonts are self-hosted (Inter, Fraunces).
+- **Layout and routes**: skip link, header, main navigation, home with the three feature cards
+  (from one list in `src/app/features.tsx`), Legacy, Blind Pot, Unsigned, Dashboard, Settings
+  (theme, demo mode, about), and a component gallery at `/components`.
+- **Shared components** (`src/components/`): Button, TextInput, TextArea, AmountInput (ZEC),
+  FeePreview, ConfirmDialog (native `<dialog>`), QrDisplay, QrScanner, CountdownTimer,
+  EmptyState, toasts (`toastStore` + `ToastViewport`).
+- **Logic** (`src/lib/`): `parseZec` / `formatZec` (bigint, 8 decimals, supply cap) and the
+  countdown math, with unit tests.
+
+**Verified locally**
+
+- `lint`, `format:check`, `typecheck`, `build` pass; unit tests 74 passing.
+- Playwright: 76 passing (dev server and production build). New coverage: every route renders
+  with no console errors or CSP violations (so fonts load under the CSP); navigation and
+  current-page marking; theme switching and persistence; no sideways scroll at 360px on every
+  route; axe-core WCAG 2.x A/AA including color contrast, every route in light and dark at
+  360px; amount input errors and total; dialog focus, Escape and confirm; toast behaviour;
+  countdown ticking; QR drawn; scanner opens a (fake) camera and its tracks end on cancel.
+- Screenshots checked by eye at desktop and 360px, light and dark.
+
+**Not verified**
+
+- Scanning a real QR code. The fake camera test proves the camera opens and closes, not that
+  `jsqr` decodes a code. Needs a manual check on a phone, or a test image fed to the decoder.
+- Firefox and Safari (Chromium only, as before).
+- `FeePreview` shows a fee it is given; the real ZIP 317 fee will come from the wallet.
+- Axe checks automated rules only. A manual screen-reader pass has not been done.
+
+**Notes**
+
+- Added dependencies: `qrcode`, `jsqr`, `@fontsource-variable/inter`,
+  `@fontsource-variable/fraunces`; dev: `@types/qrcode`, `@axe-core/playwright`. See
+  `CAPABILITIES.md`.
+- `no-non-null-assertion` stays on for app code (off in tests only, from Phase 4).
+- The component gallery ships in production builds on purpose, so judges can see the design
+  system. Remove the route if that is not wanted.
