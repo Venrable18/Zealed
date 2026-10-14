@@ -37,5 +37,12 @@ export default defineConfig([
       'no-console': 'off',
     },
   },
+  {
+    // Test fixtures index arrays they just built; `!` there is clearer than a runtime check.
+    files: ['tests/**', 'src/**/*.test.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-non-null-assertion': 'off',
+    },
+  },
   prettier,
 ])

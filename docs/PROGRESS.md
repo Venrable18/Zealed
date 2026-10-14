@@ -38,3 +38,72 @@
   the WebZjs source (see `CAPABILITIES.md`).
 - No fallback light-wallet endpoint yet (ChainSafe's proxy now redirects to a native gRPC
   server). Added in Phase 2/15.
+
+## Phase 2: WebZjs capability audit (2026-10-07): STOPPED AT GATE
+
+**Done**
+
+- Found where WebZjs lives now. `@chainsafe/webzjs-wallet` is not on npm. ChainSafe's repo
+  is superseded by ZcashCommunityGrants/WebZjs (red.dev handover, NU6.3/Ironwood).
+- Verified the primary endpoint over gRPC-web and decoded `GetLightdInfo`: testnet height
+  4,475,856, consensus branch `77190ad9` (NU7, activated 2026-10-04 at 4,465,026).
+- Read both WebZjs codebases against the Zealed requirements.
+
+**Gate: failed, two blockers** (details and options in `CAPABILITIES.md`):
+
+1. No WebZjs build supports testnet's current consensus (NU7). Orchard is also closed to new
+   value since NU6.3, so the older ChainSafe code is unusable.
+2. Neither fork can send a memo or several outputs in one transaction, and the history API
+   drops non-text memos.
+
+**Correction:** a first pass earlier today said "Ironwood" was not a known pool and
+recommended forking ChainSafe. Both were wrong. Ironwood is the NU6.3 shielded pool, and any
+fork must start from ZCG's code.
+
+**Not done:** WASM build, sync, wallet create/restore, faucet funding, live send/receive.
+No Zealed code changed in this phase. Waiting for the human to choose a fallback.
+
+## Phase 4: Zealed Memo Protocol (2026-10-14)
+
+Built out of order: Phase 2 is still stopped at its gate, so Phase 3 (wallet core) is blocked.
+Phase 4 needs no wallet or network, so it was built and tested on its own.
+
+**Built** (`src/zmp/`)
+
+- `types.ts`: wire layout, constants, the eight message types.
+- `codec.ts`: `encodeChunk` (throws on invalid input) and `decodeMemo` (never throws; returns
+  `chunk`, `not-zmp` or `malformed` with a reason). Decoding is strict, so each chunk has one
+  valid encoding.
+- `chunking.ts`: `splitMessage`, `newMessageId`.
+- `reassembler.ts`: collects chunks by message ID in any order; handles duplicates, conflicting
+  duplicates and header mismatches; memory is bounded (64 partial messages, 256 remembered
+  deliveries); each message is delivered once.
+- `inbox.ts`: `createInbox(handlers)` decodes raw memo bytes, reassembles, and routes by type.
+  Non-ZMP memos are ignored. Outcomes carry no memo content.
+- `zmp.test.ts`: 32 tests, including seeded fuzz runs: 300 random round-trips in random chunk
+  order, 5,000 random memos, 2,000 corrupted valid memos, 3,000 random memos through the inbox.
+
+**Change from the plan (section 3.1)**: the header has a 2-byte payload length (header is 26
+bytes, so 486 payload bytes per memo). Without it a payload ending in zeros cannot be told from
+padding. Cap: 16 chunks (7,776 bytes) per message, above the 2 KB feature caps plus AES-GCM
+overhead.
+
+**Verified locally**
+
+- ZIP 302 checked against zips.z.cash: first byte `0xFF` is arbitrary data; text is `0x00`
+  to `0xF4`, empty is `0xF6` plus zeros, `0xF5` and `0xF7` to `0xFE` are reserved.
+- `lint`, `format:check`, `typecheck`, `test` (47 passing) and `build` all pass.
+- ESLint now allows `!` in test files only.
+
+**Not verified**
+
+- The Phase 4 "done when": a 2 KB payload reassembled on a receiving wallet **on testnet**.
+  This needs memo sending, which is blocked on the WebZjs tooling. Unit tests cover 2 KB across
+  chunks only in memory.
+- Playwright e2e was not rerun (no app code changed).
+
+**Known limits**
+
+- Chunks are not authenticated: anyone can send a chunk for any message ID. Sensitive payloads
+  must be AES-GCM encrypted above this layer. On disagreement the first chunk received wins.
+- Per-type size caps (wish 140 chars, letter 2 KB) are not enforced here; features enforce them.
