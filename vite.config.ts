@@ -37,6 +37,8 @@ export default defineConfig(({ command, isPreview }) => {
     },
     test: {
       include: ['src/**/*.test.{ts,tsx}'],
+      // The seeded fuzz tests are heavier than a normal unit test and run alongside others.
+      testTimeout: 20_000,
     },
   }
 })

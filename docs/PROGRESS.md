@@ -155,3 +155,54 @@ placeholders ("Not available yet"); nothing here sends, stores or fakes a transa
 - `no-non-null-assertion` stays on for app code (off in tests only, from Phase 4).
 - The component gallery ships in production builds on purpose, so judges can see the design
   system. Remove the route if that is not wanted.
+
+## Phase 6: Blind Pot, host side (2026-10-14): PARTIAL, wallet parts blocked
+
+Built everything that does not need a wallet, against an interface the wallet must provide
+(`PotWalletPort`, see `CAPABILITIES.md`). The phase's "done when" (payments sent from another
+wallet appear only as a batched total and wishes) is **not met and cannot be tested yet**.
+
+**Built** (`src/features/blindpot/`, routes `/blind-pot` and `/blind-pot/:id`)
+
+- **Create pot**: name, cover emoji, event date, last day for gifts, with plain-language
+  validation (`pot.ts`, `CreatePotForm`). The refresh interval comes from the timers (60 minutes,
+  60 seconds in demo mode) and is fixed per pot.
+- **Share**: pot link with the data in the URL **fragment** (`shareLink.ts`), strict decoder for
+  untrusted links, link and QR (`SharePot`). A separate ZIP 321 QR for other wallets, labelled
+  "weaker privacy". ZIP 321 grammar checked against zips.z.cash.
+- **Host view**: total as of the last **batch boundary**, privacy strength band, wishes, a
+  countdown to the next update, and Close pot (`hostView.ts`, `HostViewPanel`).
+  - The wallet is read **as of the boundary**, not now, so the same answer shows however often the
+    host looks within a batch, and later gifts stay hidden until the next boundary.
+  - Wishes come from ZMP `WISH` memos, validated (140 characters, no control or bidi-override
+    characters), shuffled deterministically per batch, shown with no times or amounts.
+  - The wallet interface returns aggregates and bare memos only, so no screen can list payments.
+- **Pot list/store**: in memory only (`potStore.ts`), lost on reload. Not written to
+  localStorage because pot names and dates are private. Wallet storage (Phase 3) will persist.
+
+**Verified locally**
+
+- `lint`, `format:check`, `typecheck`, `build` pass. 112 unit and screen tests, 92 Playwright
+  tests (dev and production build) pass, including axe checks on the new pages at 360px.
+- Tests use `FakeWallet`, a **test double** in `fakeWallet.ts` that app code never imports. They
+  prove the boundary rule, shuffling, wish validation, hostile-link rejection, close and failure
+  paths, and that the host view exposes only `totalZat`, `strength`, `wishes` and two times.
+- With no wallet the app says so ("The wallet is still being built") and refuses to create a pot.
+  Nothing is faked in the shipped app.
+
+**Not done / blocked on the wallet (Phase 3 and the WebZjs tooling)**
+
+- Creating the pot's account and address; reading real balance, piece counts and memos as of a
+  chain time; withdrawing to the main account.
+- Whether WebZjs gives each pot its own account (otherwise a wallet per pot).
+- Real address validation (links only check the address shape).
+- Booking the "as of" time against chain block times (NU7 blocks are 25 s) rather than the
+  device clock.
+- The contribution page the link opens (`/blind-pot/give`) is Phase 7; the link points to it
+  now but it shows "Page not found".
+
+**Notes**
+
+- Privacy strength cut-offs (6 and 24 pieces) are a heuristic; see `strength.ts`.
+- Added dev dependencies: `jsdom`, `@testing-library/react`, `@testing-library/dom`. Test
+  timeout raised to 20 s in `vite.config.ts` (the Phase 4 fuzz tests timed out under load).

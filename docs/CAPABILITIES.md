@@ -141,3 +141,16 @@ paying a ZIP-317 fee.
 WASM and thread-pool init, sync in a worker, new/restore wallet, unified address and faucet
 funding, balance, multiple accounts, fresh addresses, viewing-key export, block heights and
 times. Toolchains available: Rust stable, `nightly-2025-06-15` (ZCG's pin), wasm-pack, just.
+
+## Wallet interface Blind Pot needs (Phase 6)
+
+Blind Pot talks to the wallet only through `PotWalletPort` (`src/features/blindpot/walletPort.ts`).
+The wallet work (Phase 3, using the WebZjs tooling) must provide it. Status: **pending**.
+
+| Method                         | Needs from WebZjs                                                               |
+| ------------------------------ | ------------------------------------------------------------------------------- |
+| `createPotAccount(label)`      | A new account and its unified address (or a new wallet if multi-account fails). |
+| `balanceAsOf(accountId, atMs)` | Sum of notes mined at or before a time. Needs block times, not just heights.    |
+| `piecesAsOf(accountId, atMs)`  | Count of received notes at or before a time.                                    |
+| `memosAsOf(accountId, atMs)`   | Raw 512-byte memos for received notes (tooling goal: raw memo access).          |
+| `withdrawAll(accountId)`       | A send from the pot account to the main account.                                |
