@@ -49,7 +49,7 @@ test.describe('navigation', () => {
   })
 
   test('feature pages say plainly that they are not available yet', async ({ page }) => {
-    await page.goto('/legacy')
+    await page.goto('/unsigned')
     await expect(page.getByText('Not available yet')).toBeVisible()
   })
 

@@ -170,3 +170,16 @@ Guests use `ContributorWalletPort` (`src/features/blindpot/contributorWallet.ts`
 | result `insufficient-funds`          | A way to tell "not enough funds" from other failures.                                  |
 
 Unfinished gifts also need encrypted storage (`ContributionStore`) to resume after a reload.
+
+## Wallet interface Legacy needs (Phase 9)
+
+Legacy uses `LegacyWalletPort` (`src/features/legacy/walletPort.ts`). Status: **pending**.
+
+| Method                                 | Needs from WebZjs                                                                    |
+| -------------------------------------- | ------------------------------------------------------------------------------------ |
+| `estimateFee({ memoCount, fundsZat })` | A proposal to read the ZIP 317 fee for several memo outputs, and for a funding send. |
+| `createGiftWallet()`                   | A new throwaway wallet with its seed phrase and a receiving address.                 |
+| `fundGiftWallet(address, zat)`         | A send to that address.                                                              |
+| `sendMemos({ to, memos })`             | One transaction with several 512-byte arbitrary-data memo outputs (tooling goal).    |
+| `receivedMemos()`                      | Raw memos for received notes (tooling goal: raw memo access).                        |
+| `sweepGiftWallet(seed)`                | Restore from seed, sync, and send everything to the main account.                    |

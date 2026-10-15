@@ -327,3 +327,65 @@ round trip against the live drand network.
 
 **Not done (later phases)**: any UI, sending bundles or shares as memos, guardians' app logic
 (alerts, nudges, release), and key storage. Those need the wallet (Phases 3 and 9 to 10).
+
+## Phase 9: Legacy Mode A, open on a date (2026-10-16): PARTIAL, wallet parts blocked
+
+Everything that does not need a wallet is built, using the real Phase 8 crypto, and tested end to
+end. Anything touching money or delivery goes through `LegacyWalletPort`. The phase's "done when"
+(in demo mode, a letter and funds sealed 30 seconds ahead open on the recipient's side and the
+funds are swept) is **not met with a real wallet**; it is covered by a test with a test-double
+wallet and recorded beacons.
+
+**Built** (`src/features/legacy/`, route `/legacy`, loaded on demand)
+
+- **Compose** (`ComposeLetter`, `validate.ts`): recipient address, letter (up to 2,048 **bytes**,
+  with a live count), optional gift, unlock date and time. In demo mode the time starts 30 s
+  ahead, otherwise about a year. Unlock must be 15 s to 50 years ahead. The fee is shown before
+  anything happens, and a confirmation names the recipient, the date, the gift and the fee.
+- **Seal and send** (`seal.ts`): creates the gift wallet, puts its seed inside the encrypted
+  letter, timelocks the key, splits the bundle into `SEALED_BUNDLE` memos. **The gift is funded
+  before the letter is delivered**, so a recipient cannot open a letter whose funds are missing.
+  If delivery fails after funding, the item keeps the memos and the seed so it can be retried and
+  the funds recovered; both are dropped once delivery succeeds.
+- **Recipient inbox** (`inbox.ts`, `InboxList`): finds sealed letters in received memos (once each;
+  ignores other messages, other types and guardian bundles), shows "Sealed until ..." with a
+  countdown, and a disabled Open button until the time. At the time it fetches the drand round,
+  decrypts, and shows the letter as plain text. If there is a gift, one tap sweeps it.
+- **Sender view** (`SentList`): lists letters as "Sent" or "Not delivered" (with Retry). It never
+  claims "opened", and says Zealed cannot know that.
+- Every failure has its own plain message: drand unreachable (can retry), damaged letter, nothing
+  to sweep, not ready, wallet error. Failure messages carry no secrets.
+
+**Verified**
+
+- `lint`, `format:check`, `typecheck`, `build`. 217 unit and screen tests and 132 Playwright tests
+  pass (dev and production build), including axe at 360px in both themes.
+- Logic tests run the **real crypto** (AES, tlock) against the recorded drand beacons from Phase 8:
+  funding happens before sending; nothing on the wire contains the letter or seed; a letter does
+  not open early even when the network could answer; a different round's beacon cannot open it;
+  invalid input never touches the wallet; each failure path (gift wallet, sealing, funding,
+  delivery, retry, sweep) behaves as documented; and the 30-second demo scenario.
+- A hostile letter (`<img onerror>`) renders as plain text.
+- The new page makes no network calls of its own and sends none of the letter's content.
+
+**Not done / blocked on the wallet (Phase 3 and the WebZjs tooling)**
+
+- Everything in `LegacyWalletPort`: fee estimate, creating the gift wallet, funding it, sending
+  several memos in one transaction, reading received memos, restoring the gift wallet from its seed
+  and sweeping it. With no wallet the page says so and does nothing.
+- Real address validation (only the shape is checked).
+- Persistence: sent items and the inbox are in memory only. Sent items can hold a gift seed, so
+  they must go to encrypted storage (Phase 3), never plaintext.
+- A live run with a real drand round and a real wallet.
+
+**Notes**
+
+- Added `src/test/nodeGlobals.ts` (test-only). jsdom lacks `crypto.subtle` and has its own
+  `Uint8Array`, which makes tlock-js reject bytes; real browsers do not have either problem, and
+  the Chromium test from Phase 8 proves the same flows there.
+- The Legacy page is lazy-loaded: tlock-js adds about 275 kB (96 kB gzip), so only people who open
+  Legacy download it. The main bundle is unchanged.
+- The fee preview estimates memo count from the letter size plus about 1.5 KB of sealing overhead;
+  the real count comes from the wallet's proposal.
+- If the recipient never opens the letter, the sender cannot reclaim the gift (they do not keep
+  the seed after delivery). That is by design for this mode, but the UI should say so; not yet.

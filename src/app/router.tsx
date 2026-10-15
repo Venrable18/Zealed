@@ -16,7 +16,11 @@ export const router = createBrowserRouter([
     element: <RootLayout />,
     children: [
       { index: true, element: <Home /> },
-      { path: 'legacy', element: <FeaturePage path="/legacy" /> },
+      {
+        path: 'legacy',
+        // Loaded on demand: it pulls in the timelock and encryption libraries (about 275 kB).
+        lazy: async () => ({ Component: (await import('./routes/Legacy.tsx')).Legacy }),
+      },
       { path: 'blind-pot', element: <BlindPot /> },
       { path: 'blind-pot/give', element: <Give /> },
       { path: 'blind-pot/:id', element: <PotPage /> },
