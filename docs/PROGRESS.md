@@ -269,3 +269,61 @@ the host sees only the batched total and shuffled wishes) is **not met and canno
   privacy comes from separate transactions, timing and the host never seeing individual notes.
 - The production bundle is now over Vite's 500 kB warning size. Not a failure; revisit when the
   WebZjs bundle is added.
+
+## Phase 8: Legacy crypto foundations (2026-10-15)
+
+Needs no wallet, so it is built and verified in full, including the plan's "done when": a tlock
+round trip against the live drand network.
+
+**Built** (`src/crypto/`)
+
+- `aes.ts`: AES-256-GCM through WebCrypto. Random 96-bit IV per message (a fresh key per bundle),
+  optional associated data, a key commitment (SHA-256 with a domain label).
+- `tlock.ts`: lock a key to a drand quicknet round and open it once the round is published.
+  Date to round uses the **first round at or after** the chosen time, so it never opens early.
+  Demo-mode delays work (30 s is 10 rounds). Wraps `tlock-js`, which verifies every beacon.
+- `shamir.ts`: split and combine with 2 to 5 shares, threshold 2 up to the total. Each share is
+  wrapped with threshold and total so **too few shares is refused** (the library alone would
+  silently return a wrong key).
+- `sign.ts`: Ed25519 check-ins and revokes with separate domain tags, a monotonic counter, and
+  a `CheckInTracker` for guardians that refuses invalid, wrong-bundle, replayed and future-dated
+  check-ins, and is unchanged by a rejected one.
+- `bundle.ts`: versioned binary format. Mode A (timelock) and Mode B (guardians, with the share
+  policy and a key commitment). The header is authenticated, so a ciphertext cannot be moved into
+  another bundle. Decoders return null on bad input and never throw. `sealTimelocked`,
+  `openTimelocked`, `sealForGuardians`, `openWithShares` tie it together.
+- Errors are `CryptoError` with a fixed code and no secret-bearing text.
+
+**Verified**
+
+- `lint`, `format:check`, `typecheck`, `build`, `npm audit` (0 vulnerabilities). 178 unit tests
+  and 112 Playwright tests pass; the 2 live tests are opt-in.
+- **Live drand** (`npm run test:live`, about 30 s): locks a key 10 s ahead, confirms the device
+  clock refuses early, confirms the **network itself refuses an unpublished round**, waits, then
+  opens it; also seals and opens a whole Mode A bundle. Only `https://api.drand.sh` was contacted.
+- **Offline timelock tests** use two real, public past quicknet beacons recorded in
+  `fixtures/quicknet-beacons.json` (fetched 2026-10-15). They cover: opens at the round, early
+  and unpublished rounds fail, and a beacon from a different round cannot open a key.
+- **Failure cases**: wrong key, any flipped byte, wrong associated data, wrong key size, too few
+  shares, repeated or mismatched shares, shares from another bundle, forged and replayed
+  check-ins, a check-in used as a revoke, tampered header, ciphertext or policy.
+- **Seeded fuzz**: 3,000 rounds of random and corrupted bundles, policies and check-ins never
+  throw.
+- **Browser**: the same flows were bundled with Vite and run in Chromium under the app's CSP
+  (dev and production build), with no console errors.
+
+**Notes and limits**
+
+- Mode B policy: the heir sees the owner's check-in public key and the share policy; it contains
+  no secrets, only a key commitment.
+- The date-to-round clock check uses the device clock; the real gate is cryptographic. A device
+  with a wrong clock may see "not yet" late or try early and fail with `unlock-failed`.
+- JavaScript cannot reliably erase keys from memory; private keys and content keys live only as
+  long as the code holds them. Callers must not log or persist them unencrypted.
+- The timelock fixture client (`testClient.ts`) and `browserCheck.entry.ts` are test-only and
+  never imported by the app.
+- Corrected an earlier note: `tlock-js` installs `drand-client` 1.2.5, not 1.4.2.
+- The seed phrase goes inside the sealed content; Phase 9 builds the gift wallet and its use.
+
+**Not done (later phases)**: any UI, sending bundles or shares as memos, guardians' app logic
+(alerts, nudges, release), and key storage. Those need the wallet (Phases 3 and 9 to 10).
