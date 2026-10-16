@@ -9,6 +9,8 @@ export type SweepResult =
  * an implementation. Anything that throws is treated as a failure and reported without details.
  */
 export interface LegacyWalletPort {
+  /** This wallet's own receiving address, given to guardians so they can send reminders. */
+  ownAddress(): Promise<string>
   /** Total network fee for a send of `memoCount` memos, plus funding a gift wallet if `fundsZat` is set. */
   estimateFee(args: { memoCount: number; fundsZat: bigint | null }): Promise<bigint>
   /** A brand-new throwaway wallet to hold the gift. Its seed phrase goes inside the sealed letter. */

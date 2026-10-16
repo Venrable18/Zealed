@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import { getTimers } from '../../config/demo.ts'
 import { LetterIcon } from '../../components/Icons.tsx'
 import { ComposeLetter } from '../../features/legacy/ComposeLetter.tsx'
@@ -30,6 +31,12 @@ export function Legacy() {
           in the form to see how it works.
         </p>
       )}
+
+      <p>
+        <Link to="/legacy/silent" className="underline underline-offset-4">
+          Or seal a letter that opens only if you go silent, with guardians
+        </Link>
+      </p>
 
       <section className="space-y-4">
         <h2 className="text-xl">Seal a letter</h2>

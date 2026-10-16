@@ -4,6 +4,7 @@ import { expect, test, type Page } from '@playwright/test'
 const ROUTES = [
   { path: '/', heading: 'Zealed' },
   { path: '/legacy', heading: 'Legacy' },
+  { path: '/legacy/silent', heading: 'If I go silent' },
   { path: '/blind-pot', heading: 'Blind Pot' },
   { path: '/unsigned', heading: 'Unsigned' },
   { path: '/dashboard', heading: 'Dashboard' },

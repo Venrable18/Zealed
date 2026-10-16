@@ -53,5 +53,68 @@ beyond what Zcash and Tor already address.
 
 ## Feature analysis
 
-To be completed: Blind Pot (Phases 6–7), Legacy (Phases 8–10), Unsigned (Phases 11–12),
-full review in Phase 14.
+Blind Pot (Phases 6–7) and Unsigned (Phases 11–12) are still to be written; full review in
+Phase 14. Legacy Mode B is below.
+
+### Legacy Mode B: open if I go silent (Phase 10)
+
+**Design.** The letter is encrypted with a fresh AES-256-GCM key and delivered to the heir. The
+key is split with Shamir into `n` shares (2 to 5, threshold `t`), one per guardian. Guardians
+also get a policy (heir address, periods, a commitment to the key, the owner's Ed25519 check-in
+public key) and a first check-in. The owner proves they are alive with signed check-ins. After
+the check-in period plus the grace period without one, each guardian's app sends its share to the
+heir; with `t` shares the heir rebuilds the key and opens the letter.
+
+**What each party can and cannot do**
+
+| Party                    | Holds                    | Can                                          | Cannot                                                     |
+| ------------------------ | ------------------------ | -------------------------------------------- | ---------------------------------------------------------- |
+| Heir, alone              | The encrypted letter     | See that a letter exists                     | Read it, or learn anything about the key                   |
+| One guardian             | One share, the policy    | Remind the owner, release early (see limits) | Read the letter; open it alone                             |
+| Fewer than `t` guardians | Their shares             | Nothing useful                               | Rebuild the key (the math gives no information below `t`)  |
+| Heir plus `t` guardians  | Letter and enough shares | Open the letter at any time                  | (This is the collusion limit below)                        |
+| Outsider                 | Nothing                  | Send junk memos to anyone                    | Forge a check-in or revoke (needs the owner's private key) |
+| Chain observer           | Encrypted shielded memos | See that transactions happened               | Read memos, amounts or who sent them                       |
+
+**Controls and where they are tested**
+
+- Check-ins and revokes are signed (Ed25519, separate domain tags), carry a counter that must
+  always rise, and a timestamp that may not be in the future. Forged, replayed, old-counter,
+  wrong-bundle and future-dated check-ins are rejected; a rejected one changes nothing.
+  (`src/crypto/crypto.test.ts`, `src/features/legacy/silent/silent.test.ts`.)
+- A revoke makes guardians erase their shares; a forged revoke is ignored; a late check-in does
+  not undo a revoke.
+- Shares are wrapped with their threshold and total, so too few shares is an explicit error. The
+  heir checks the rebuilt key against a commitment, and tries every group of `t` shares, so a
+  bogus share sent by an outsider cannot block the letter while enough real shares exist.
+- A guardian's share is erased from the device after it is released or revoked.
+- The ciphertext header is authenticated, so a letter cannot be moved into another bundle.
+
+**Known limitations (also stated in the app)**
+
+1. **Collusion.** The heir and `t` guardians together can open the letter at any time. Choose
+   guardians who will not act together, and a threshold that fits.
+2. **Guardians act only when they open Zealed.** Browsers cannot run it in the background. If too
+   few guardians open the app, release is late, not lost: it happens the next time they open it.
+   With fewer than `t` guardians available, the heir can never open the letter. The owner should
+   pick guardians who will open the app and a threshold that leaves room for some being offline.
+3. **Release cannot be undone.** Once a guardian sends a share it is with the heir. A later
+   check-in or revoke cannot recall it. Revoke before release if the owner is alive.
+4. **The owner's check-in key.** It lives only on the owner's device. If it is lost the owner
+   cannot check in or revoke; guardians will eventually release. Back up the wallet seed and
+   store the key only in encrypted storage (Phase 3). The key must never be logged or sent.
+5. **Clocks.** Deadlines use the owner's signed check-in time (never later than the guardian's
+   own clock, and rejected if more than 10 minutes ahead) and each guardian's own clock. A wrong
+   clock on the owner's device makes check-ins look older or newer; a wrong clock on a guardian's
+   device makes their release early or late.
+6. **Metadata.** Guardians learn the heir's address and the owner's address (needed to send
+   reminders and releases), and that a letter exists. Guardians and the heir see the check-in
+   schedule. Zcash hides senders, so a reminder to the owner does not reveal who sent it.
+7. **Unauthenticated inbound messages.** Anyone with an address can send it a memo. Junk shares,
+   check-ins or reminders are rejected or counted but never act on their own; the worst effect of
+   junk is noise.
+8. **Sent items hold secrets.** The owner record contains the check-in private key; guardian
+   records contain key shares; the heir's list contains shares. They are in memory only until
+   encrypted storage exists, and must never go to plaintext storage.
+9. **The gift.** A gift is held by a throwaway wallet whose seed is inside the letter, so it
+   follows the same rules as the letter. The owner cannot reclaim it after delivery.

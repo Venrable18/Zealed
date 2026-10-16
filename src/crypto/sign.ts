@@ -121,15 +121,27 @@ export type CheckInResult = { ok: true; checkIn: CheckIn } | { ok: false; reason
  * check-in cannot be replayed), and its timestamp is not in the future.
  */
 export class CheckInTracker {
-  private lastCounter = -1
-  private lastTimestampMs = 0
+  private lastCounter: number
+  private lastTimestampMs: number
 
   private readonly publicKey: Uint8Array
   private readonly bundleId: Uint8Array
 
-  constructor(publicKey: Uint8Array, bundleId: Uint8Array) {
+  /** `state` restores a tracker that was saved earlier, so replays stay refused across visits. */
+  constructor(
+    publicKey: Uint8Array,
+    bundleId: Uint8Array,
+    state?: { counter: number; timestampMs: number },
+  ) {
     this.publicKey = publicKey
     this.bundleId = bundleId
+    this.lastCounter = state?.counter ?? -1
+    this.lastTimestampMs = state?.timestampMs ?? 0
+  }
+
+  /** What to save so the tracker can be restored: the highest accepted counter and its time. */
+  get state(): { counter: number; timestampMs: number } {
+    return { counter: this.lastCounter, timestampMs: this.lastTimestampMs }
   }
 
   accept(data: Uint8Array, nowMs: number): CheckInResult {

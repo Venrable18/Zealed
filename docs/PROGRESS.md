@@ -389,3 +389,65 @@ wallet and recorded beacons.
   the real count comes from the wallet's proposal.
 - If the recipient never opens the letter, the sender cannot reclaim the gift (they do not keep
   the seed after delivery). That is by design for this mode, but the UI should say so; not yet.
+
+## Phase 10: Legacy Mode B, open if I go silent (2026-10-16): PARTIAL, wallet parts blocked
+
+Everything that does not need a wallet is built and tested end to end with the real crypto. Sending
+and receiving go through `LegacyWalletPort` (one added method: `ownAddress`). The phase's "done when"
+is covered by a test with test-double wallets (see below), not with a real wallet and chain.
+
+**Built** (`src/features/legacy/silent/`, route `/legacy/silent`, loaded on demand)
+
+- **Messages** (`messages.ts`): `SHARE` (policy + share + owner address, checked to agree with
+  itself), `SHARE_RELEASE`, `NUDGE`; strict decoders that never throw. `CHECKIN` and `REVOKE` carry
+  the signed payloads from Phase 8.
+- **Owner** (`owner.ts`): setup (validate, seal, fund, deliver the letter to the heir and a share +
+  policy + first check-in to each guardian), one-tap check-in, revoke, retry of unsent messages,
+  reminder counting. Everything unsent is kept so it can be retried; the gift seed is kept only
+  until everything is delivered.
+- **Guardian** (`guardian.ts`): records per letter, status OK / overdue / releasing / released /
+  revoked, check-in verification (signature, bundle, rising counter, not future-dated), revoke
+  handling, reminders only while overdue, release only after the grace period, share erased after
+  release or revoke. Memos are applied in a fixed order, so results do not depend on arrival order.
+- **Heir** (`heir.ts`): collects shares per letter ("1 of 2 shares"), tries every group of `t`
+  shares so a bogus share cannot block opening, then opens and sweeps the gift.
+- **Screens**: setup form (heir, 2 to 5 guardians, threshold, check-in and grace periods in friendly
+  units, letter, optional gift, confirmation), owner cards (next check-in countdown, overdue alert,
+  Check in, Revoke with confirmation, reminder count, Retry), guardian cards (status, countdown,
+  Remind, Release with confirmation, automatic release in demo mode), heir cards (progress, Open,
+  sweep), and a Check for messages button. The Legacy page links to it.
+- **Crypto additions**: `inspectShare` (read a share's header) and a restorable `CheckInTracker`
+  state, so replays stay refused across visits.
+- `docs/THREAT_MODEL.md` now has the Mode B analysis: who can do what, the controls and where they
+  are tested, and nine known limitations including collusion and "guardians act when they open the
+  app".
+
+**Verified**
+
+- `lint`, `format:check`, `typecheck`, `build`. 269 unit and screen tests (plus 2 opt-in live tests) and 156 Playwright tests
+  pass (dev and production build), including axe at 360px in both themes.
+- **Demo scenario** (`silent.test.ts`): owner checks in once then stops; one second before `P + G`
+  nothing is released; after it, two guardians release; the heir opens the letter and claims the
+  funds. A forged check-in at the last minute is rejected and changes nothing. A second test shows
+  no release while the owner keeps checking in.
+- Forged, replayed, old-counter, wrong-bundle and future-dated check-ins; forged and late revokes;
+  releases before the grace period; shares for other letters; bogus shares mixed with real ones;
+  any 2 of 3 guardians opening the letter; one guardian never being enough; malformed messages
+  (3,000-round seeded fuzz); partial delivery and retry.
+- Screens against several fake wallets on one fake network acting as owner, guardians and heir.
+
+**Not done / blocked**
+
+- A real wallet and chain: sending several memos per transaction, reading received memos, the gift
+  wallet, `ownAddress`. See `CAPABILITIES.md`.
+- Persistence: everything is in memory. The owner's check-in private key, guardians' shares and the
+  heir's shares must go only to encrypted storage (Phase 3).
+- A live run with real wallets and real timers.
+- Background operation is impossible in a browser; guardians must open the app (documented).
+- No UI yet to edit a letter in place: revising is revoke then seal a new one, as planned.
+
+**Notes**
+
+- Reminders and releases are built fresh each time (new message ID), so a second reminder counts.
+- When a guardian first receives a share, the owner's first check-in arrives with it, so the clock
+  starts from setup.

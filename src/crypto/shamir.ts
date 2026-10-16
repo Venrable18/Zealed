@@ -62,3 +62,20 @@ export async function combineShares(envelopes: Uint8Array[]): Promise<Uint8Array
     throw new CryptoError('bad-share')
   }
 }
+
+export interface ShareInfo {
+  threshold: number
+  total: number
+  /** The share's x-coordinate, unique within one split. */
+  index: number
+}
+
+/** Reads a share's header without combining anything. Returns null if it is not a valid envelope. */
+export function inspectShare(envelope: Uint8Array): ShareInfo | null {
+  if (envelope.length <= HEADER + 1 || envelope[0] !== VERSION) return null
+  const threshold = envelope[1] ?? 0
+  const total = envelope[2] ?? 0
+  const index = envelope[envelope.length - 1] ?? 0
+  if (threshold < 2 || total < threshold || total > GUARDIANS_MAX) return null
+  return { threshold, total, index }
+}
