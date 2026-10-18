@@ -49,11 +49,6 @@ test.describe('navigation', () => {
     }
   })
 
-  test('feature pages say plainly that they are not available yet', async ({ page }) => {
-    await page.goto('/unsigned')
-    await expect(page.getByText('Not available yet')).toBeVisible()
-  })
-
   test('the skip link is the first focusable item and jumps to the content', async ({ page }) => {
     await page.goto('/')
     await page.keyboard.press('Tab')

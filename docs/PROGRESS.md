@@ -451,3 +451,57 @@ is covered by a test with test-double wallets (see below), not with a real walle
 - Reminders and releases are built fresh each time (new message ID), so a second reminder counts.
 - When a guardian first receives a share, the owner's first check-in arrives with it, so the clock
   starts from setup.
+
+## Phase 11: Unsigned, recipient side (2026-10-18): PARTIAL, wallet parts blocked
+
+Everything that does not need a wallet is built and tested; the wallet is reached through
+`UnsignedWalletPort`. The phase's "done when" (a message sent from another wallet appears correctly
+reassembled in the inbox and an underpaid message is filtered) is covered by a test with a
+test-double wallet; it has not been run with a real wallet and chain.
+
+**Built** (`src/features/unsigned/`, route `/unsigned`)
+
+- **Contact card** (`card.ts`, `CreateCardForm`): display name (60 characters, one line), bio (280),
+  minimum payment (0.001 to 100 ZEC), replies on or off; plain-language errors; the card gets a
+  fresh address from the wallet.
+- **Share** (`cardLink.ts`, `ShareCard`): link `/u#<card>` with everything in the URL fragment, a QR
+  code, copy button; a strict decoder for untrusted links. The sender page (`/u`) is Phase 12.
+- **Message format** (`format.ts`): version, flags, optional reply-to address, optional 32-byte
+  commitment (for Phase 12's stretch receipt), then the text. At most 2,048 bytes, no control or
+  bidi characters, exactly one valid encoding; strict decoder that never throws.
+- **Inbox** (`inbox.ts`, `InboxPanel`): reassembles `UNSIGNED_MSG`, shows amount and block time,
+  newest first, stable ids across rescans, underpaid messages in a closed "Below minimum" folder.
+  **Each payment pays for one message**: extra messages in the same payment count as unpaid.
+- **Earnings**: total paid through the card, messages that met the minimum, and what the hidden
+  folder holds (included in the total).
+- **Reply** (`service.ts`, `ReplyBox`): only where the sender left an address and the card allows
+  replies; up to 2 KB; sent as a message with no reply address of its own.
+- `docs/THREAT_MODEL.md` has a recipient-side section with six known limitations.
+
+**Verified**
+
+- `lint`, `format:check`, `typecheck`, `build`, `npm audit` (0). 307 unit and screen tests (plus 2
+  opt-in live tests) and 168 Playwright tests pass (dev and production build), including axe at
+  360px in both themes.
+- Logic: a 2 KB message split across many memos reassembles with its amount and time; underpaid,
+  exactly-minimum and one-zatoshi-short cases; bundled messages; non-Zealed, other-type, malformed
+  and unsafe memos ignored; link and message decoders reject hostile input and never throw (4,000
+  seeded fuzz rounds); card and reply validation; failure paths.
+- Screens, with the test wallet: errors, share view, inbox, hidden folder (closed by default),
+  earnings, reply flow and its errors, replies off, wallet missing or failing, text shown as text.
+
+**Not done / blocked on the wallet (Phase 3 and the WebZjs tooling)**
+
+- `newAddress()`, `receivedTransactions(address)` (amount, block time and memos per transaction),
+  `estimateFee`, `sendMemos`. See `CAPABILITIES.md`.
+- Persistence: card and messages are in memory only; they must go to encrypted storage.
+- A live run with a real wallet, real block times and real fees.
+
+**Notes**
+
+- Removed the unused "not available yet" placeholder page (`FeaturePage`) and its browser test now
+  that all three features have real pages.
+- Added `src/zmp/memos.ts` (`toMemos`) and `src/lib/base64url.ts` as shared helpers.
+- The card link points to `/u`, which shows "Page not found" until Phase 12, as the Blind Pot link
+  did until Phase 7.
+- The main bundle grew from 519 kB to 534 kB (Unsigned is not lazy-loaded; it is small).

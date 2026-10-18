@@ -53,7 +53,7 @@ beyond what Zcash and Tor already address.
 
 ## Feature analysis
 
-Blind Pot (Phases 6–7) and Unsigned (Phases 11–12) are still to be written; full review in
+Blind Pot (Phases 6–7) and the Unsigned sender side (Phase 12) are still to be written; full review in
 Phase 14. Legacy Mode B is below.
 
 ### Legacy Mode B: open if I go silent (Phase 10)
@@ -118,3 +118,39 @@ heir; with `t` shares the heir rebuilds the key and opens the letter.
    encrypted storage exists, and must never go to plaintext storage.
 9. **The gift.** A gift is held by a throwaway wallet whose seed is inside the letter, so it
    follows the same rules as the letter. The owner cannot reclaim it after delivery.
+
+### Unsigned: recipient side (Phase 11)
+
+**Design.** The recipient makes a contact card (name, bio, minimum payment, replies on or off) with
+its own receiving address. The card is shared as a link with the data in the URL fragment, so no
+server sees it. Senders pay with a message in the memos; the inbox reassembles messages and
+filters by what was paid.
+
+**Controls**
+
+- **Spam is priced out.** Each message must pay the minimum (never below 0.001 ZEC); less goes to
+  a hidden folder. **Each payment pays for one message**: if a payment carries several, only the
+  first counts as paid, so one minimum payment cannot carry a batch past the filter.
+- **No sender identity is ever available.** The wallet returns amount, block time and memos
+  only. The app has no sender field to show.
+- **Untrusted text is rendered as text**, never markup. Names, bios and messages reject control and
+  bidirectional-override characters; messages are capped at 2,048 bytes.
+- Cards and messages are decoded strictly; malformed or hostile links, memos and payloads are
+  ignored, never throw, and are fuzz-tested.
+
+**Known limitations**
+
+1. **A card link cannot be turned off.** Anyone with it can pay to its address. "Replace card"
+   starts a new address; the old one still receives, and the app says so.
+2. **The minimum is a convention, not a rule.** Senders can still send underpaid messages; the
+   recipient just never sees them unless they open the hidden folder. They still cost the sender
+   a fee, but not the minimum.
+3. **A reply reveals the recipient's reply timing** to whoever holds the sender's reply address
+   (the sender), and the sender chooses that address, so a careless sender could give an address
+   linked to themselves. Zealed cannot prevent that; the sender screen (Phase 12) warns.
+4. **Earnings count only payments that carried a Zealed message.** Plain payments to the card
+   address are not counted.
+5. **Everything is in memory** until encrypted storage exists (Phase 3): messages and the card
+   vanish on reload.
+6. **Payments are linkable by amount and time** to anyone who can see both sides; shielded
+   transactions hide this on chain, but a sender and recipient who compare notes can match them.

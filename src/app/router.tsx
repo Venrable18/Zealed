@@ -4,10 +4,10 @@ import { BlindPot } from './routes/BlindPot.tsx'
 import { Give } from './routes/Give.tsx'
 import { Components } from './routes/Components.tsx'
 import { Dashboard } from './routes/Dashboard.tsx'
-import { FeaturePage } from './routes/FeaturePage.tsx'
 import { Home } from './routes/Home.tsx'
 import { NotFound } from './routes/NotFound.tsx'
 import { PotPage } from './routes/PotPage.tsx'
+import { Unsigned } from './routes/Unsigned.tsx'
 import { Settings } from './routes/Settings.tsx'
 
 export const router = createBrowserRouter([
@@ -28,7 +28,7 @@ export const router = createBrowserRouter([
       { path: 'blind-pot', element: <BlindPot /> },
       { path: 'blind-pot/give', element: <Give /> },
       { path: 'blind-pot/:id', element: <PotPage /> },
-      { path: 'unsigned', element: <FeaturePage path="/unsigned" /> },
+      { path: 'unsigned', element: <Unsigned /> },
       { path: 'dashboard', element: <Dashboard /> },
       { path: 'settings', element: <Settings /> },
       { path: 'components', element: <Components /> },

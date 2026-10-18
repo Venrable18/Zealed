@@ -1,6 +1,7 @@
 export { decodeMemo, encodeChunk } from './codec'
 export type { DecodeResult, MalformedReason } from './codec'
 export { newMessageId, splitMessage } from './chunking'
+export { toMemos } from './memos.ts'
 export { createInbox } from './inbox'
 export type { IngestOutcome, MessageHandler, MessageHandlers } from './inbox'
 export { Reassembler } from './reassembler'

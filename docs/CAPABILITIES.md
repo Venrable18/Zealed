@@ -184,3 +184,17 @@ Legacy uses `LegacyWalletPort` (`src/features/legacy/walletPort.ts`). Status: **
 | `sendMemos({ to, memos })`             | One transaction with several 512-byte arbitrary-data memo outputs (tooling goal).           |
 | `receivedMemos()`                      | Raw memos for received notes (tooling goal: raw memo access).                               |
 | `sweepGiftWallet(seed)`                | Restore from seed, sync, and send everything to the main account.                           |
+
+## Wallet interface Unsigned needs (Phase 11)
+
+Unsigned uses `UnsignedWalletPort` (`src/features/unsigned/walletPort.ts`). Status: **pending**.
+
+| Method                          | Needs from WebZjs                                                                      |
+| ------------------------------- | -------------------------------------------------------------------------------------- |
+| `newAddress()`                  | A fresh diversified receiving address for each card.                                   |
+| `receivedTransactions(address)` | Per transaction at that address: txid, **block time**, total value, and the raw memos. |
+| `estimateFee({ memoCount })`    | A proposal to read the ZIP 317 fee for several memo outputs.                           |
+| `sendMemos({ to, memos })`      | One transaction with several 512-byte arbitrary-data memo outputs (tooling goal).      |
+
+The inbox needs amounts and block times per transaction, not just memos, so the history API must
+expose them alongside raw memos.
