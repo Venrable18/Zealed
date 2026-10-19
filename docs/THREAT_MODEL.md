@@ -53,7 +53,7 @@ beyond what Zcash and Tor already address.
 
 ## Feature analysis
 
-Blind Pot (Phases 6–7) is still to be written; full review in
+The Phase 14 review below summarises every feature; full review in
 Phase 14. Legacy Mode B is below.
 
 ### Legacy Mode B: open if I go silent (Phase 10)
@@ -235,3 +235,56 @@ has no per-payment, per-gift, per-message or per-address field.
 3. Auto-lock and seed export are settings and screens only until the wallet exists (Phase 3).
 4. The attempt limit is held in the page, so reloading resets it; the wallet's own passphrase hashing
    (Phase 3) is the real defence against guessing.
+
+### Blind Pot (Phases 6 and 7)
+
+**Design.** The host makes a pot with its own receiving address and shares a link (data in the URL
+fragment). A guest's gift is split into standard 1-2-5 pieces (at most 6), each sent as its own
+transaction, one at a time with a random extra delay, in shuffled order. A wish rides with a 0.001
+piece. The host sees only a total as of the last batch boundary (hourly; 60 seconds in demo mode),
+a privacy-strength band and shuffled wishes. Guests who pay from another wallet use a ZIP 321 request
+and are warned it gives weaker privacy.
+
+**Controls**
+
+- The wallet interface the host screens use returns aggregates and bare memos only (no per-payment
+  field), and the dashboard adds none. The host screen is checked by a browser scenario with three
+  guests: it shows only the batched total and the wish, and none of the single gift amounts.
+- The total is read **as of the last batch boundary**, so it is the same however often the host looks
+  and a gift that arrives later is not visible until the next boundary.
+- Each piece is its own transaction in a standard size, spread out in time; the scenario checks nine
+  separate transactions, all standard sizes, spread over several seconds, with the wish on exactly
+  one 0.001 piece.
+- Wishes are validated (140 characters, one memo, no control characters), shuffled per batch and shown
+  with no time or amount.
+
+**Known limitations**
+
+1. **The host's wallet can see every incoming note.** Standard sizes, timing and batching make single
+   gifts hard to pick out; they cannot hide them from someone who reads the wallet itself.
+2. **Few gifts means weak privacy.** With fewer than about six pieces one guest could account for the
+   whole total. The strength band says so.
+3. **A contributor must keep the page open** while pieces go out. The queue is in memory until
+   encrypted storage exists, so closing it stops the gift (pieces already sent are kept).
+4. **A guest who pays from another wallet is not split** and can be told apart.
+5. **A gift is rounded to standard sizes**, shown to the guest before sending; with a wish it may go
+   up by 0.001 ZEC.
+6. **Timing across guests can correlate** if one person sends many gifts from several wallets at once.
+
+## Phase 14 review: what each feature protects, and its limits
+
+| Feature                       | Protects against                                                                                           | Does not protect against                                                                                                             |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **Blind Pot**                 | The host learning who gave what or how much; an observer linking a guest's pieces.                         | A host reading the wallet directly; very few gifts; a guest paying from another wallet.                                              |
+| **Legacy A** (open on a date) | Anyone, including the sender and the recipient, opening the letter early; a server reading it.             | The recipient losing the letter; drand being unreachable (it waits, it does not fail); the sender reclaiming the gift.               |
+| **Legacy B** (if I go silent) | Early opening by the heir alone or by fewer than the threshold of guardians; forged check-ins and revokes. | The heir plus enough guardians colluding; guardians who never open the app; the owner losing the check-in key; release being undone. |
+| **Unsigned**                  | The recipient learning who sent a message; spam (priced out); forged receipts.                             | Content that identifies the sender; a sender's own device or network; a recipient denying receipt.                                   |
+| **Dashboard and settings**    | Any network leak from the dashboard; tampered saved settings; an unlisted server.                          | Someone with the unlocked device; a screenshot or recorder.                                                                          |
+
+**What the multi-actor scenarios proved** (simulated chain, real screens and real crypto, run in real
+time in separate browser contexts): Blind Pot with a host and three guests; Legacy A (offline, and
+against the real drand network); Legacy B with an owner, three guardians (one offline), a heir, a
+forged check-in and a forged revoke; Unsigned with a recipient and a sender; and the error paths
+(not enough money, running out partway, change not yet spendable, drand unreachable, junk memos).
+**What they did not prove:** anything about the real wallet, real transactions, real block times or
+real fees. Those need the WebZjs tooling and the wallet (Phase 3).

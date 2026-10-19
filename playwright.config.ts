@@ -17,10 +17,21 @@ export default defineConfig({
   projects: [
     {
       name: 'dev',
+      testIgnore: '**/scenarios/**',
       use: { ...devices['Desktop Chrome'], baseURL: `http://localhost:${String(DEV_PORT)}` },
     },
     {
       name: 'preview',
+      testIgnore: '**/scenarios/**',
+      use: { ...devices['Desktop Chrome'], baseURL: `http://localhost:${String(PREVIEW_PORT)}` },
+    },
+    {
+      // Multi-actor scenarios: several browser contexts (host, guests, guardians, heir) on a simulated
+      // chain, against the production build. They run in real time (demo-mode timers), so they are
+      // slow and kept apart from the quick checks. Run with `npm run test:scenarios`.
+      name: 'scenarios',
+      testMatch: '**/scenarios/**/*.spec.ts',
+      timeout: 420_000,
       use: { ...devices['Desktop Chrome'], baseURL: `http://localhost:${String(PREVIEW_PORT)}` },
     },
   ],

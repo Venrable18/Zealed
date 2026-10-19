@@ -625,3 +625,80 @@ server health check and the wipe are fully real and verified.
 - `resetAllStores` also clears the in-memory contribution queue (added `clearAll` to the memory
   store).
 - Settings that are saved: demo mode, theme, server, auto-lock. Nothing private is among them.
+
+## Phase 14: Hardening and end-to-end testing (2026-10-19): PARTIAL, real-wallet parts blocked
+
+The multi-actor scenarios, the privacy checklist, the error-handling checks and the responsiveness
+checks are done against a **simulated chain**. Nothing here runs on testnet: the app has no wallet
+yet. The plan's "done when" (all scenarios pass twice in a row, privacy checklist complete) is met
+for everything that can be tested without the wallet; the items that need it are listed below.
+
+**Built**
+
+- **Test-only simulation** (never shipped; checked that none of it is in `dist/` or imported by the
+  app): `src/test/simChain.ts` (wallets, addresses, payments with memos, real-clock block times,
+  a flat fee, a gift-wallet sweep, two failure modes: running out of money and change that is not
+  spendable yet), `src/test/simClient.ts` (one wallet object that satisfies every wallet interface
+  the app defines), `src/test/harness.entry.tsx` (mounts the **real, unchanged app** with that
+  wallet) and `tests/e2e/sim/harness.ts` (builds the harness with Vite and gives each actor its own
+  browser context, so storage and memory are separate).
+- **Scenarios** (`tests/e2e/scenarios/`, `npm run test:scenarios`, Playwright project `scenarios`,
+  production build, real-time demo timers, run in CI in its own job):
+  - **Blind Pot**: a host and three guests; nine separate standard-size transactions spread over
+    time, the wish on exactly one 0.001 piece; the host sees only the batched total (0.85) and the
+    wish, and none of the single gift amounts; then closes the pot.
+  - **Legacy Mode A**: seals with a gift (funded before delivery); the recipient cannot open early;
+    with drand unreachable the app says so and lets the person retry; **against the real drand
+    network** (`LIVE_DRAND=1`) a letter sealed 30 seconds ahead opens and the gift is swept.
+  - **Legacy Mode B**: an owner, three guardians (one goes offline), a heir; the owner checks in once
+    and stops; a forged check-in just before the deadline does not move it; guardians go overdue then
+    release by themselves in demo mode; the heir opens the letter and claims the funds. A second run:
+    a forged check-in and forged revoke change nothing, the real owner revokes, every guardian erases
+    its share, and nothing can be opened. Junk and malformed memos are sent to every actor.
+  - **Unsigned**: a recipient publishes a card; an anonymous sender pays, writes, asks for a reply and
+    keeps a receipt; the recipient reads it, an underpaid message goes to the hidden folder, junk is
+    ignored, the recipient replies, the sender finds the reply, and the receipt verifies (and a
+    changed message does not).
+  - **Errors**: not enough money is refused up front; a gift that runs out partway pauses and
+    continues after the guest adds funds with nothing lost or repeated; change that is not spendable
+    yet is waited for with no error shown.
+- **Strict final check for every actor** (`assertClean`): only the app's own origin (plus drand where
+  allowed) was contacted, **no console message of any kind**, **no Referer** sent to another origin,
+  **no address or pot data in any URL**, and storage holds only the four non-sensitive settings, no
+  cookies, no session data and no IndexedDB.
+- `docs/PRIVACY_CHECKLIST.md`: 12 items with evidence and status (10 met, 1 partly, 1 not met yet).
+- `docs/THREAT_MODEL.md`: the Blind Pot section was missing and is added, plus a review table of what
+  each feature protects against and its limits, and what the scenarios did and did not prove.
+- Playwright projects: `dev` and `preview` run the quick checks (`npm run test:e2e`), `scenarios`
+  runs the long ones (`npm run test:scenarios`). CI has a new `scenarios` job.
+
+**Verified**
+
+- `lint`, `format:check`, `typecheck`, `build`, `npm audit` (0). 393 unit and screen tests (plus 3
+  opt-in live) and 210 quick browser tests pass.
+- **Scenarios pass twice in a row**: two consecutive full runs, each 8 passed in about 1.7 minutes.
+  The live-drand Mode A test passed twice as well (about 35 s each).
+- **Responsive**: the longest the main thread was blocked was 61 ms while sealing a 2 KB letter for
+  three guardians and 92 ms while timelock-sealing (limit set at 500 ms for slower machines).
+
+**Not done / blocked on the wallet**
+
+- **Scenarios on testnet.** They use the simulated chain. Real transactions, block times (25 s on
+  NU7), fees, note maturity, and the WebZjs memo and multi-output API are untested. The simulation
+  also shows memos in plain text where the real chain encrypts them.
+- **Endpoint down (fallback).** Only one gRPC-web testnet server exists, so there is nothing to fall
+  back to. The health check reports an unreachable server (tested in a real browser with the server
+  blocked).
+- **Sync and proving off the main thread.** There is no sync or proving yet. What exists (crypto
+  sealing) was measured and is fast. This must be re-measured and likely moved to a worker when
+  WebZjs is added.
+- **Encrypted local storage** (privacy checklist item 2).
+- **The simulated "faucet"** just gives wallets starting funds; the real faucet flow is untested.
+
+**Notes**
+
+- There is no screen showing a person their own receiving address yet (a Phase 3 receive screen), so
+  the scenarios read addresses from the simulated chain and type them in.
+- The harness exposes test helpers (`window.__zealed`) only inside the harness page, to build forged
+  and underpaid memos and read a guardian's letter ids; none of that is in the shipped app.
+- `test:e2e` now runs only the `dev` and `preview` projects.
