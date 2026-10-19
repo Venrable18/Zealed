@@ -32,6 +32,16 @@ export function cleanBody(text: string): string | null {
   return new TextEncoder().encode(body).length <= UNSIGNED_MESSAGE_MAX_BYTES ? body : null
 }
 
+export type BodyProblem = 'empty' | 'too-long' | 'unsafe'
+
+/** Why a message cannot be sent, or null if it can. */
+export function isReasonableBody(text: string): BodyProblem | null {
+  const body = text.trim()
+  if (body === '') return 'empty'
+  if (!isPlainText(body)) return 'unsafe'
+  return new TextEncoder().encode(body).length > UNSIGNED_MESSAGE_MAX_BYTES ? 'too-long' : null
+}
+
 /** Builds a payload. Throws RangeError if the message is empty, too long or has unsafe characters. */
 export function encodeUnsigned(payload: UnsignedPayload): Uint8Array {
   const body = cleanBody(payload.body)

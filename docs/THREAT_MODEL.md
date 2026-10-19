@@ -53,7 +53,7 @@ beyond what Zcash and Tor already address.
 
 ## Feature analysis
 
-Blind Pot (Phases 6–7) and the Unsigned sender side (Phase 12) are still to be written; full review in
+Blind Pot (Phases 6–7) is still to be written; full review in
 Phase 14. Legacy Mode B is below.
 
 ### Legacy Mode B: open if I go silent (Phase 10)
@@ -154,3 +154,49 @@ filters by what was paid.
    vanish on reload.
 6. **Payments are linkable by amount and time** to anyone who can see both sides; shielded
    transactions hide this on chain, but a sender and recipient who compare notes can match them.
+
+### Unsigned: sender side (Phase 12)
+
+**Design.** A sender opens a card link (the card is in the URL fragment), writes a message of up to
+2 KB, pays at least the card's minimum, and the message travels as memos in the same single
+transaction as the payment. They may ask for a reply (a fresh address is made for it) and may keep
+a receipt (a commitment in the memo).
+
+**Controls**
+
+- Nothing is sent unless every check passes: message valid, payment at least the minimum (a smaller
+  payment would never be read, so it is refused up front), enough spendable money for the payment
+  and fee. A failed send says plainly that nothing was paid.
+- The reply address is **always a fresh address from the wallet**, never the wallet's main address,
+  and a different one for every message, so a recipient cannot link two of one sender's messages
+  through it. A card that turns replies off never gets one, even if the sender asked.
+- The message text is kept on the device only when a receipt was requested (it is needed to reveal
+  it later). Otherwise only the amount and time are kept.
+- A visible privacy panel is shown before writing: use a separate wallet, avoid identifying details,
+  consider Tor Browser (and that this app needs JavaScript, so Tor Browser's "Safest" level will not
+  work), amounts and timing can be matched, and a reply address links one sender's messages.
+
+**Optional receipt.** The memo carries `SHA-256(salt || message)` with a random 16-byte salt kept by
+the sender. The commitment **hides** the message (the salt is secret and random) and **binds** the
+sender to it (it cannot be changed later). The receipt file holds the transaction id, salt,
+commitment, time and card address, and **no message text**; the sender keeps the message
+separately. To prove what they sent, the sender reveals message and salt; the recipient's verify
+screen recomputes the commitment and looks for it among the messages received. Checked values are
+compared in constant time, and surrounding whitespace is ignored the same way as when sending.
+
+**Known limitations**
+
+1. **Zealed cannot hide who you are from your own device or network**, or from how you write. The
+   chain hides the payer; the message content and your connection can still identify you.
+2. **A receipt proves what a sender sent, not who they are**, and only to someone who has the salt.
+   A sender who loses the salt or the message cannot prove anything.
+3. **A recipient can claim not to have received a message.** The receipt shows a transaction on the
+   chain, which anyone can check, but cannot show the recipient read it.
+4. **A reply address links one sender's replies.** It is fresh per message, but whoever reads the
+   replies knows they came from the same sender.
+5. **Payment amount and time are linkable** by someone who can see both ends, for example if the
+   sender tells a third party what they paid and when.
+6. **The sent list and any kept message text are in memory only** until encrypted storage exists
+   (Phase 3), and must never go to plaintext storage.
+7. **The receipt download** uses the browser's own save. It has been checked with a stand-in in
+   tests and not yet in a real browser download under the page's security policy.

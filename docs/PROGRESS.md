@@ -505,3 +505,63 @@ test-double wallet; it has not been run with a real wallet and chain.
 - The card link points to `/u`, which shows "Page not found" until Phase 12, as the Blind Pot link
   did until Phase 7.
 - The main bundle grew from 519 kB to 534 kB (Unsigned is not lazy-loaded; it is small).
+
+## Phase 12: Unsigned, sender side (2026-10-18): PARTIAL, wallet parts blocked
+
+Everything that does not need a wallet is built and tested. Sending and reading replies go through
+`UnsignedWalletPort` (two methods added: `spendableZat`, `sendPayment`). The phase's "done when" (an
+anonymous sender with a fresh wallet sends a paid message, the recipient reads it, and if enabled
+replies) is covered end to end by a test with two test-double wallets on one fake network; it has not
+been run with a real wallet and chain.
+
+**Built** (`src/features/unsigned/`, route `/u`)
+
+- **Card page** (`/u#<card>`, `Send.tsx`): reads the card from the URL fragment and shows name, bio,
+  minimum and whether replies are accepted. A broken, missing or oversized link says so; hostile
+  names and bios render as plain text.
+- **Privacy guidance** (`PrivacyGuidance`): always visible; separate wallet, no identifying details,
+  Tor Browser (with the "Safest" mode and JavaScript caveat), amounts and timing, reply addresses.
+- **Compose and send** (`SendForm`, `send.ts`): message up to 2,048 bytes with a live count, payment
+  (at least the minimum), optional reply address, optional receipt, fee preview, a confirmation, a
+  balance check. One transaction carries the payment and all the memos.
+- **Replies**: a **fresh** address per message from the wallet, never reused and never the main
+  address; none if the card turned replies off. "Check for replies" reads that address.
+- **Receipt (stretch)** (`receipt.ts`): `SHA-256(salt || message)` in the memo, a downloadable
+  receipt file (no message text in it), and a **Verify a receipt** screen on the recipient page that
+  matches a revealed message and salt (or a whole pasted receipt) against inbox commitments.
+- **Sent list** (`SentMessages`): this device only; message text kept only when a receipt was asked
+  for.
+- `docs/THREAT_MODEL.md` has the sender-side section: controls, how the commitment hides and binds,
+  and seven known limitations.
+
+**Verified**
+
+- `lint`, `format:check`, `typecheck`, `build`, `npm audit` (0). 341 unit and screen tests (plus 2
+  opt-in live tests) and 188 Playwright tests pass (dev and production build), including axe at 360px
+  in both themes.
+- **End to end, two wallets**: a sender sends a paid message, the recipient reads it (amount, text,
+  reply address), replies, and the sender finds the reply at their fresh address; a long message is
+  one transaction with several memos; replies off means no address is made; two messages get two
+  different reply addresses.
+- **Nothing happens without every check**: invalid input, no wallet, too little money, a balance
+  read failing and a failed send all leave nothing paid.
+- **Receipts**: the commitment changes with the message or salt; a sent message with a receipt is
+  matched by the recipient; a changed message is not; whitespace is handled the same on both sides;
+  hostile receipt files are rejected and never throw (seeded fuzz); the downloaded file parses and
+  holds no message text.
+- The card and message are never sent to the server (browser test over every request).
+
+**Not done / blocked on the wallet**
+
+- `newAddress`, `spendableZat`, `estimateFee`, `sendPayment` (a payment with memos in one
+  transaction), `receivedTransactions`. See `CAPABILITIES.md`.
+- Persistence: the sent list and any kept message text are in memory; they must be stored encrypted.
+- A live run with a real wallet, real block times and fees.
+- The receipt download has been tested with a stand-in for the browser's save, not in a real browser
+  under the page's CSP.
+- There is no link to `/u` in the navigation on purpose: it is reached through a card link.
+
+**Notes**
+
+- Test wallets now share one address counter so two fake wallets never hand out the same address.
+- The main bundle grew to 549 kB (the sender page is small and not lazy-loaded).

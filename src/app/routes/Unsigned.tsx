@@ -2,6 +2,7 @@ import { BubbleIcon } from '../../components/Icons.tsx'
 import { CreateCardForm } from '../../features/unsigned/CreateCardForm.tsx'
 import { InboxPanel } from '../../features/unsigned/InboxPanel.tsx'
 import { createCard } from '../../features/unsigned/service.ts'
+import { VerifyReceipt } from '../../features/unsigned/VerifyReceipt.tsx'
 import { ShareCard } from '../../features/unsigned/ShareCard.tsx'
 import { useUnsigned } from '../../features/unsigned/stores.ts'
 import { useUnsignedWallet } from '../../features/unsigned/walletPort.ts'
@@ -10,6 +11,7 @@ export function Unsigned() {
   const wallet = useUnsignedWallet()
   const card = useUnsigned((state) => state.card)
   const setCard = useUnsigned((state) => state.setCard)
+  const messages = useUnsigned((state) => state.messages)
 
   return (
     <div className="space-y-12 py-10">
@@ -58,6 +60,10 @@ export function Unsigned() {
           <section className="space-y-4">
             <h2 className="text-xl">Inbox</h2>
             <InboxPanel card={card} wallet={wallet} />
+          </section>
+          <section className="space-y-4">
+            <h2 className="text-xl">Verify a receipt</h2>
+            <VerifyReceipt messages={messages} />
           </section>
         </>
       )}

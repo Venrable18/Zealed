@@ -8,6 +8,7 @@ import { Home } from './routes/Home.tsx'
 import { NotFound } from './routes/NotFound.tsx'
 import { PotPage } from './routes/PotPage.tsx'
 import { Unsigned } from './routes/Unsigned.tsx'
+import { Send } from './routes/Send.tsx'
 import { Settings } from './routes/Settings.tsx'
 
 export const router = createBrowserRouter([
@@ -25,6 +26,7 @@ export const router = createBrowserRouter([
         path: 'legacy/silent',
         lazy: async () => ({ Component: (await import('./routes/Silent.tsx')).Silent }),
       },
+      { path: 'u', element: <Send /> },
       { path: 'blind-pot', element: <BlindPot /> },
       { path: 'blind-pot/give', element: <Give /> },
       { path: 'blind-pot/:id', element: <PotPage /> },

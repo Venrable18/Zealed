@@ -22,7 +22,12 @@ export interface UnsignedWalletPort {
   receivedTransactions(address: string): Promise<ReceivedTx[]>
   /** Total network fee for sending `memoCount` memos. */
   estimateFee(args: { memoCount: number }): Promise<bigint>
+  /** Sends memos with no value (used for replies). */
   sendMemos(args: { to: string; memos: Uint8Array[] }): Promise<{ txid: string }>
+  /** Zatoshis the wallet can spend right now. */
+  spendableZat(): Promise<bigint>
+  /** One shielded transaction paying `zat` to `to`, with the memos attached to that payment. */
+  sendPayment(args: { to: string; zat: bigint; memos: Uint8Array[] }): Promise<{ txid: string }>
 }
 
 /** `null` until the wallet exists. Screens must handle that and say so plainly. */

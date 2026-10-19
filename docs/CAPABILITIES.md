@@ -196,5 +196,13 @@ Unsigned uses `UnsignedWalletPort` (`src/features/unsigned/walletPort.ts`). Stat
 | `estimateFee({ memoCount })`    | A proposal to read the ZIP 317 fee for several memo outputs.                           |
 | `sendMemos({ to, memos })`      | One transaction with several 512-byte arbitrary-data memo outputs (tooling goal).      |
 
+Added in Phase 12 for the sender side:
+
+| Method                            | Needs from WebZjs                                                                     |
+| --------------------------------- | ------------------------------------------------------------------------------------- |
+| `spendableZat()`                  | Spendable balance, to refuse a message the sender cannot afford.                      |
+| `sendPayment({ to, zat, memos })` | **One** shielded transaction paying `zat` with several memos attached (tooling goal). |
+| `newAddress()` (again)            | A fresh address per message, for replies.                                             |
+
 The inbox needs amounts and block times per transaction, not just memos, so the history API must
 expose them alongside raw memos.

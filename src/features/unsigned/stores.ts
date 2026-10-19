@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { Card } from './card.ts'
 import type { UnsignedMessage } from './inbox.ts'
+import type { SentMessage } from './send.ts'
 
 interface UnsignedState {
   card: Card | null
@@ -31,5 +32,22 @@ export const useUnsigned = create<UnsignedState>()((set) => ({
     set((state) =>
       state.repliedIds.includes(id) ? state : { repliedIds: [...state.repliedIds, id] },
     )
+  },
+}))
+
+interface SentState {
+  sent: SentMessage[]
+  add: (message: SentMessage) => void
+}
+
+/**
+ * Messages this person sent, kept on this device only and in memory for now. An item holds the
+ * message text when a receipt was requested, so it must only ever be persisted encrypted
+ * (Phase 3), never in plaintext storage.
+ */
+export const useSentMessages = create<SentState>()((set) => ({
+  sent: [],
+  add: (message) => {
+    set((state) => ({ sent: [message, ...state.sent] }))
   },
 }))
