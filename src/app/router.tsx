@@ -3,7 +3,6 @@ import { RootLayout } from './RootLayout.tsx'
 import { BlindPot } from './routes/BlindPot.tsx'
 import { Give } from './routes/Give.tsx'
 import { Components } from './routes/Components.tsx'
-import { Dashboard } from './routes/Dashboard.tsx'
 import { Home } from './routes/Home.tsx'
 import { NotFound } from './routes/NotFound.tsx'
 import { PotPage } from './routes/PotPage.tsx'
@@ -31,7 +30,11 @@ export const router = createBrowserRouter([
       { path: 'blind-pot/give', element: <Give /> },
       { path: 'blind-pot/:id', element: <PotPage /> },
       { path: 'unsigned', element: <Unsigned /> },
-      { path: 'dashboard', element: <Dashboard /> },
+      {
+        path: 'dashboard',
+        // Loaded on demand: it reads Legacy's guardian and heir logic, which pulls in the timelock library.
+        lazy: async () => ({ Component: (await import('./routes/Dashboard.tsx')).Dashboard }),
+      },
       { path: 'settings', element: <Settings /> },
       { path: 'components', element: <Components /> },
       { path: '*', element: <NotFound /> },

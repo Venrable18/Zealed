@@ -1,17 +1,15 @@
-import { EmptyState } from '../../components/EmptyState.tsx'
+import { DashboardView } from '../../features/dashboard/DashboardView.tsx'
+import { useDashboard } from '../../features/dashboard/useDashboard.ts'
 
 export function Dashboard() {
+  const data = useDashboard()
   return (
-    <div className="py-10">
-      <h1 className="text-3xl">Dashboard</h1>
-      <p className="mt-3 max-w-prose text-muted">
-        Your own numbers, worked out on this device. Nothing about them leaves your browser.
-      </p>
-      <div className="mt-8">
-        <EmptyState title="No activity yet">
-          Once the wallet is built, your balance and recent activity will show up here.
-        </EmptyState>
+    <div className="space-y-6 py-10">
+      <div>
+        <h1 className="text-3xl">Dashboard</h1>
+        <p className="mt-3 max-w-prose text-muted">Your own numbers, worked out on this device.</p>
       </div>
+      <DashboardView data={data} />
     </div>
   )
 }

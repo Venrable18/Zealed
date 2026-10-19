@@ -18,7 +18,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "test:live": "LIVE_DRAND=1 vitest run src/crypto/tlock.live.test.ts"
+    "test:live": "LIVE_DRAND=1 vitest run src/crypto/tlock.live.test.ts src/lib/lightwalletd.live.test.ts && LIVE_DRAND=1 playwright test tests/e2e/settings.spec.ts -g 'real testnet'"
   },
   "dependencies": {
     "@fontsource-variable/fraunces": "^5.3.0",

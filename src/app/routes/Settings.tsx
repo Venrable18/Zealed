@@ -1,5 +1,10 @@
 import { Link } from 'react-router'
 import { ZCASH_NETWORK } from '../../config/network.ts'
+import { AutoLockSetting } from '../../features/settings/AutoLockSetting.tsx'
+import { EndpointSettings } from '../../features/settings/EndpointSettings.tsx'
+import { SeedExport } from '../../features/settings/SeedExport.tsx'
+import { useSeedPort } from '../../features/settings/seedPort.ts'
+import { WipeData } from '../../features/settings/WipeData.tsx'
 import { useSettings, type ThemePreference } from '../settingsStore.ts'
 
 const THEMES: readonly { value: ThemePreference; label: string }[] = [
@@ -13,9 +18,14 @@ export function Settings() {
   const setTheme = useSettings((state) => state.setTheme)
   const demoMode = useSettings((state) => state.demoMode)
   const setDemoMode = useSettings((state) => state.setDemoMode)
+  const endpointUrl = useSettings((state) => state.endpointUrl)
+  const setEndpointUrl = useSettings((state) => state.setEndpointUrl)
+  const autoLockMinutes = useSettings((state) => state.autoLockMinutes)
+  const setAutoLockMinutes = useSettings((state) => state.setAutoLockMinutes)
+  const seedPort = useSeedPort()
 
   return (
-    <div className="space-y-8 py-10">
+    <div className="space-y-10 py-10">
       <h1 className="text-3xl">Settings</h1>
 
       <fieldset className="space-y-2">
@@ -56,6 +66,18 @@ export function Settings() {
           </span>
         </label>
       </section>
+
+      <EndpointSettings selectedUrl={endpointUrl} onSelect={setEndpointUrl} />
+
+      <AutoLockSetting
+        minutes={autoLockMinutes}
+        onChange={setAutoLockMinutes}
+        walletExists={seedPort !== null}
+      />
+
+      <SeedExport port={seedPort} />
+
+      <WipeData />
 
       <section className="space-y-2">
         <h2 className="text-lg font-semibold">About</h2>

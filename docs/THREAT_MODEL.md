@@ -200,3 +200,38 @@ compared in constant time, and surrounding whitespace is ignored the same way as
    (Phase 3), and must never go to plaintext storage.
 7. **The receipt download** uses the browser's own save. It has been checked with a stand-in in
    tests and not yet in a real browser download under the page's security policy.
+
+### Dashboard and settings (Phase 13)
+
+**Dashboard.** Every number is computed on the device from data already there: the app's own stores,
+the wallet's local balance, and pot totals **as of each pot's last batch boundary** (never per
+payment). It makes no network requests: a test scans its source for network APIs and network-bound
+imports, and a browser test checks the running page (only its own code files are downloaded, nothing
+else, no POST, no light-wallet server, no drand). It reveals nothing a screen elsewhere did not, and
+has no per-payment, per-gift, per-message or per-address field.
+
+**Settings**
+
+- **Server choice.** Only servers listed in the app's configuration can be chosen: the page's CSP
+  blocks every other address, and saved values are checked on load, so edited browser storage cannot
+  point the app at an unlisted server. The health check runs only when pressed, sends an empty
+  request (no identifier, no referrer, no cookies) and reports reachability, network (a mainnet
+  server is refused) and the network upgrade. The server operator sees the connection, as with any
+  sync.
+- **Seed export.** Needs the passphrase again, checked by the wallet. The words are never put on the
+  clipboard or in storage, disappear after a minute or on "Hide now", and are cleared when the
+  screen closes. Five wrong passphrases pause attempts for 30 seconds (this slows guessing on a
+  device someone else is holding; it is not a substitute for a strong passphrase).
+- **Auto-lock.** 1 to 60 minutes, and deliberately no "never".
+- **Wipe local data.** Needs the exact word typed. Removes settings, session data and every
+  IndexedDB database, empties every in-memory store, then returns to the start. Without the seed
+  phrase, wallet funds cannot be recovered afterwards. A browser that cannot list its databases is
+  reported, and the person is told to clear site data in the browser settings to be sure.
+
+**Known limitations**
+
+1. The wipe cannot reach a copy the person made elsewhere (a screenshot, a downloaded receipt).
+2. The seed screen cannot stop a screen recorder, shoulder-surfing or a malicious extension.
+3. Auto-lock and seed export are settings and screens only until the wallet exists (Phase 3).
+4. The attempt limit is held in the page, so reloading resets it; the wallet's own passphrase hashing
+   (Phase 3) is the real defence against guessing.

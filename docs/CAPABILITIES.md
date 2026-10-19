@@ -22,11 +22,11 @@ yet), **unsupported** (checked and missing; see workaround).
 
 ## Network endpoints
 
-| Endpoint                                                | Status                | Notes                                                                                                                                                                                                               |
-| ------------------------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `https://zjs.zec.rocks/testnet` (primary gRPC-web)      | verified (2026-10-07) | A gRPC-web `GetLightdInfo` POST returns status 0: lightwalletd v0.5.4, Zebra 7.0.0-rc.0, chain `test`, height 4,475,856, consensus branch `77190ad9` (NU7). Browser CORS/COEP behavior is checked once WebZjs runs. |
-| `https://zcash-testnet.chainsafe.dev` (ChainSafe proxy) | **not used**          | Now 301-redirects to `https://testnet.zec.rocks/`, a native gRPC lightwalletd (not gRPC-web). Not added to the fallback list.                                                                                       |
-| drand quicknet, `https://api.drand.sh`                  | verified              | `/<chain>/info` returns 200. tlock-js 0.9.0 `mainnetClient()` uses exactly this: chain hash `52db9ba7…e971`, scheme `bls-unchained-g1-rfc9380`, period 3 s. drand-client is 1.4.2.                                  |
+| Endpoint                                                | Status                                           | Notes                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `https://zjs.zec.rocks/testnet` (primary gRPC-web)      | **verified in a browser (2026-10-19, Phase 13)** | A gRPC-web `GetLightdInfo` POST works from Chromium under the app's own CSP and COOP/COEP headers with no console errors: the server answers the CORS preflight (allows `content-type, x-grpc-web, x-user-agent, grpc-timeout`) and exposes `grpc-status`. Reported height 4,519,623, branch `77190ad9` (NU7), about 0.8 s. Earlier (2026-10-07) via curl: lightwalletd v0.5.4, Zebra 7.0.0-rc.0, height 4,475,856. |
+| `https://zcash-testnet.chainsafe.dev` (ChainSafe proxy) | **not used**                                     | Now 301-redirects to `https://testnet.zec.rocks/`, a native gRPC lightwalletd (not gRPC-web). Not added to the fallback list.                                                                                                                                                                                                                                                                                       |
+| drand quicknet, `https://api.drand.sh`                  | verified                                         | `/<chain>/info` returns 200. tlock-js 0.9.0 `mainnetClient()` uses exactly this: chain hash `52db9ba7…e971`, scheme `bls-unchained-g1-rfc9380`, period 3 s. drand-client is 1.4.2.                                                                                                                                                                                                                                  |
 
 ## Packages for later phases
 
@@ -206,3 +206,14 @@ Added in Phase 12 for the sender side:
 
 The inbox needs amounts and block times per transaction, not just memos, so the history API must
 expose them alongside raw memos.
+
+## Wallet interfaces Phase 13 needs
+
+| Interface                               | Needs from the wallet (Phase 3 / WebZjs)                                               |
+| --------------------------------------- | -------------------------------------------------------------------------------------- |
+| `DashboardWalletPort.balance()`         | Spendable and pending balance, read from the wallet's own local database (no network). |
+| `SeedPort.verifyPassphrase(passphrase)` | Checks the passphrase against the wallet's own encryption (Zealed never compares it).  |
+| `SeedPort.exportSeed()`                 | The seed phrase as words, called only after the passphrase was verified.               |
+| Auto-lock                               | A lock timer in the wallet; the setting (1 to 60 minutes) is already saved.            |
+
+The dashboard also reads pot totals through `PotWalletPort` (Phase 6) as of each pot's last batch.

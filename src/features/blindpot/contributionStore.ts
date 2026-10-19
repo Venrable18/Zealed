@@ -11,7 +11,7 @@ export interface ContributionStore {
   clear(potId: string): Promise<void>
 }
 
-export function createMemoryContributionStore(): ContributionStore {
+export function createMemoryContributionStore(): ContributionStore & { clearAll: () => void } {
   const byPot = new Map<string, Contribution>()
   return {
     load: (potId) => Promise.resolve(byPot.get(potId)),
@@ -22,6 +22,9 @@ export function createMemoryContributionStore(): ContributionStore {
     clear: (potId) => {
       byPot.delete(potId)
       return Promise.resolve()
+    },
+    clearAll: () => {
+      byPot.clear()
     },
   }
 }

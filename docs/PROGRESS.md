@@ -565,3 +565,63 @@ been run with a real wallet and chain.
 
 - Test wallets now share one address counter so two fake wallets never hand out the same address.
 - The main bundle grew to 549 kB (the sender page is small and not lazy-loaded).
+
+## Phase 13: Dashboard and settings (2026-10-19): PARTIAL, wallet parts blocked
+
+The dashboard is computed entirely from local data and is complete for what exists today. Parts that
+need the wallet (balance, seed export, auto-lock) are built and tested against interfaces; the
+server health check and the wipe are fully real and verified.
+
+**Built**
+
+- **Dashboard** (`src/features/dashboard/`, route `/dashboard`, loaded on demand): wallet balance;
+  Blind Pot (pots open and closed, each pot's total and privacy strength **as of its last batch**,
+  total across pots); Legacy (letters sent and not delivered, sealed for you with ready and locked
+  counts, letters if you go silent with a **countdown to the next check-in and an overdue alert**,
+  people you guard by status, letters waiting for you); Unsigned (card, messages received, below
+  minimum, earnings, messages sent). The banner reads "Your dashboard is computed on this device. We
+  can't see it." `computeDashboard` is a pure function; a Refresh button reloads balance and totals.
+- **Server health check** (`src/lib/lightwalletd.ts`, `EndpointSettings`): a small gRPC-web client
+  (no new dependency) calling `GetLightdInfo`. Reports height, network upgrade and speed; refuses a
+  mainnet server; explains unreachable, timeout and bad responses. Runs only on a button press.
+- **Settings**: server selection (only configured servers), auto-lock (1, 5, 15, 30, 60 minutes, no
+  "never"), seed export with passphrase re-entry (`SeedExport`), wipe all local data with a typed
+  word (`WipeData`, `wipe.ts`). Saved settings are validated when loaded.
+
+**Verified**
+
+- `lint`, `format:check`, `typecheck`, `build`, `npm audit` (0). 393 unit and screen tests (plus 3
+  opt-in live tests) and 210 Playwright tests (plus 2 opt-in live) pass in dev and production build,
+  including axe at 360px in both themes.
+- **Correct numbers after the earlier scenarios**: `scenario.ts` replays the Blind Pot, Legacy Mode
+  A and B and Unsigned flows with the real logic and test-double wallets; tests check every figure
+  against values worked out by hand (including that a gift after the last batch is not counted, that
+  one guardian can hold one letter that is fine and one that is releasing, and that the numbers move
+  with the clock). The same data renders correctly in the screen through the hook.
+- **No network from the dashboard**: a source scan (no fetch, XHR, WebSocket, beacon, worker, or
+  imports of the network, drand, tlock or lightwalletd modules), and a browser test: opened from
+  inside the app it downloads only its own code files, makes no non-GET request and no request to
+  any light-wallet server or drand; once loaded, refreshing and waiting produce zero requests.
+- **Live**: `npm run test:live` now also checks the real testnet server from Node and from a real
+  Chromium page under the app's CSP and COEP headers: reachable, on testnet, height 4,519,623,
+  branch `77190ad9` (NU7), no console errors. This closes the browser CORS/COEP question left open
+  since Phase 2.
+- **Wipe in a real browser**: after wiping, saved settings, a session value and a test IndexedDB
+  database are gone, the theme and auto-lock are back to defaults, and the page is at the start.
+- Seed export: a wrong passphrase never reads the seed; the right one shows words with a warning and
+  no copy button; hides by itself after a minute and on "Hide now"; five wrong tries pause attempts.
+
+**Not done / blocked on the wallet**
+
+- Balance, `verifyPassphrase`/`exportSeed`, and enforcing auto-lock (the setting is saved only).
+- A second server for fallback (only one gRPC-web testnet server is known); selection works with a
+  list of one.
+- Persisting anything: stores are in memory, so the dashboard starts empty after a reload.
+
+**Notes**
+
+- The dashboard is loaded on demand: it reads Legacy's guardian and heir logic, which pulls in the
+  timelock library (about 300 kB). The main bundle stays at about 560 kB.
+- `resetAllStores` also clears the in-memory contribution queue (added `clearAll` to the memory
+  store).
+- Settings that are saved: demo mode, theme, server, auto-lock. Nothing private is among them.
