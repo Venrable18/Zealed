@@ -11,6 +11,7 @@ import { ContributorWalletContext } from '../features/blindpot/contributorWallet
 import { PotWalletContext } from '../features/blindpot/walletPort.ts'
 import { DashboardWalletContext } from '../features/dashboard/walletPort.ts'
 import { LegacyWalletContext } from '../features/legacy/walletPort.ts'
+import { ReceiveWalletContext } from '../features/receive/walletPort.ts'
 import { SeedContext } from '../features/settings/seedPort.ts'
 import { UnsignedWalletContext } from '../features/unsigned/walletPort.ts'
 import { generateKeypair, signCheckIn, signRevoke } from '../crypto/sign.ts'
@@ -32,7 +33,11 @@ function Wallets({ children }: { children: ReactNode }) {
         <LegacyWalletContext.Provider value={wallet}>
           <UnsignedWalletContext.Provider value={wallet}>
             <DashboardWalletContext.Provider value={wallet}>
-              <SeedContext.Provider value={wallet}>{children}</SeedContext.Provider>
+              <SeedContext.Provider value={wallet}>
+                <ReceiveWalletContext.Provider value={wallet}>
+                  {children}
+                </ReceiveWalletContext.Provider>
+              </SeedContext.Provider>
             </DashboardWalletContext.Provider>
           </UnsignedWalletContext.Provider>
         </LegacyWalletContext.Provider>

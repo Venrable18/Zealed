@@ -1,19 +1,10 @@
 import { useSettings } from '../../app/settingsStore.ts'
 import { useToasts } from '../../components/toastStore.ts'
-import { memoryContributionStore } from '../blindpot/contributionStore.ts'
-import { usePots } from '../blindpot/potStore.ts'
-import { useSilent } from '../legacy/silent/stores.ts'
-import { useLegacy } from '../legacy/stores.ts'
-import { useSentMessages, useUnsigned } from '../unsigned/stores.ts'
+import { resetSensitiveData } from '../../storage/persistence.ts'
 
-/** Empties every in-memory store the app keeps. */
+/** Empties every in-memory store the app keeps, and puts the saved settings back to their defaults. */
 export function resetAllStores(): void {
-  usePots.setState({ pots: [] })
-  memoryContributionStore.clearAll()
-  useLegacy.setState({ sent: [], inbox: [] })
-  useSilent.setState({ owned: [], guardians: [], heirs: [] })
-  useUnsigned.setState({ card: null, messages: [], repliedIds: [] })
-  useSentMessages.setState({ sent: [] })
+  resetSensitiveData()
   useToasts.setState({ toasts: [] })
   const settings = useSettings.getState()
   settings.setDemoMode(false)
@@ -26,6 +17,8 @@ export interface WipeDeps {
   /** Absent in browsers that cannot list databases; those cannot be enumerated and are reported. */
   indexedDB?: Pick<IDBFactory, 'databases' | 'deleteDatabase'> | undefined
   resetStores: () => void
+  /** Empties the encrypted vault first, so its database is not held open (and blocked) when deleted. */
+  wipeVault?: (() => Promise<void>) | undefined
 }
 
 export interface WipeResult {
@@ -56,6 +49,7 @@ function deleteDatabase(factory: Pick<IDBFactory, 'deleteDatabase'>, name: strin
  */
 export async function wipeLocalData(deps: WipeDeps): Promise<WipeResult> {
   deps.resetStores()
+  if (deps.wipeVault !== undefined) await deps.wipeVault()
   let databasesDeleted = 0
   let databasesUnknown = false
   if (deps.indexedDB === undefined || typeof deps.indexedDB.databases !== 'function')

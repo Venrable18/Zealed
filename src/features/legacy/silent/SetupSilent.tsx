@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { AddressInput } from '../../../components/AddressInput.tsx'
 import { AmountInput } from '../../../components/AmountInput.tsx'
 import { Button } from '../../../components/Button.tsx'
 import { ConfirmDialog } from '../../../components/ConfirmDialog.tsx'
@@ -151,15 +152,11 @@ export function SetupSilent({ wallet, defaultPeriodMs, defaultGraceMs }: SetupSi
       }}
       className="space-y-5"
     >
-      <TextInput
+      <AddressInput
         label="Heir’s Zealed address"
         hint="Who receives the letter if you go silent."
         value={heir}
-        onChange={(event) => {
-          setHeir(event.target.value)
-        }}
-        autoComplete="off"
-        spellCheck={false}
+        onChange={setHeir}
         {...(errors.heir === undefined ? {} : { error: errors.heir })}
       />
 
@@ -171,18 +168,14 @@ export function SetupSilent({ wallet, defaultPeriodMs, defaultGraceMs }: SetupSi
           Each holds one key share. They cannot read your letter, and alone they cannot open it.
         </p>
         {guardians.map((address, index) => (
-          <div key={index} className="flex items-end gap-2">
+          <div key={index} className="flex items-start gap-2">
             <div className="flex-1">
-              <TextInput
+              <AddressInput
                 label={`Guardian ${String(index + 1)} address`}
                 value={address}
-                onChange={(event) => {
-                  setGuardians((current) =>
-                    current.map((g, i) => (i === index ? event.target.value : g)),
-                  )
+                onChange={(value) => {
+                  setGuardians((current) => current.map((g, i) => (i === index ? value : g)))
                 }}
-                autoComplete="off"
-                spellCheck={false}
               />
             </div>
             {guardians.length > GUARDIANS_LIMITS.min && (

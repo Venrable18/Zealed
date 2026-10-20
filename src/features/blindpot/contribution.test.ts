@@ -3,6 +3,10 @@ import { POT_DENOMINATIONS_ZAT, POT_MAX_PIECES } from '../../config/constants.ts
 import { decodeMemo } from '../../zmp/index.ts'
 import { FakeContributorWallet } from './fakeWallet.ts'
 import {
+  beginSend,
+  completeSend,
+  recoverInterrupted,
+  resolveUnconfirmed,
   MAX_ATTEMPTS,
   RETRY_DELAY_MS,
   createContribution,
@@ -305,5 +309,99 @@ describe('contribution queue (with a test-double wallet)', () => {
     wallet.script = [{ ok: false, reason: 'insufficient-funds' }]
     c = await runStep(c, wallet, NOW + 10 * 60_000)
     expect(progress(c)).toMatchObject({ sent: 1, state: 'blocked' })
+  })
+})
+
+describe('interrupted sends (a page that closes mid-send)', () => {
+  const NOW = 1_000_000
+  const build = (): Contribution => {
+    const split = ok(splitContribution(5_000_000n, true))
+    return createContribution({
+      pot,
+      split,
+      wish: 'hi',
+      nowMs: NOW,
+      delays: { min: 0, max: 0 },
+      random: mulberry32(4),
+    })
+  }
+
+  it('marks the piece as sending before the wallet is called, and leaves the original untouched', () => {
+    const c = build()
+    const begun = beginSend(c, NOW)
+    expect(begun?.contribution.pieces[begun.index]?.status).toBe('sending')
+    expect(c.pieces.every((p) => p.status === 'pending')).toBe(true)
+    // While one is being sent, no other can start.
+    expect(nextDue(begun?.contribution ?? c, NOW + 1_000_000)).toBe(-1)
+    expect(beginSend(begun?.contribution ?? c, NOW + 1_000_000)).toBeNull()
+    expect(beginSend(c, NOW - 1)).toBeNull()
+  })
+
+  it('the wallet sees a queue that already says "sending"', async () => {
+    const wallet = new FakeContributorWallet()
+    const begun = beginSend(build(), NOW)
+    if (begun === null) throw new Error('expected a send')
+    let saved = begun.contribution
+    const original = wallet.sendPiece.bind(wallet)
+    wallet.sendPiece = (args) => {
+      // What was saved before this call: a page that closed now would find "sending".
+      expect(saved.pieces[begun.index]?.status).toBe('sending')
+      return original(args)
+    }
+    saved = await completeSend(begun.contribution, begun.index, wallet, NOW)
+    expect(saved.pieces[begun.index]?.status).toBe('sent')
+    expect(wallet.sent).toHaveLength(1)
+  })
+
+  it('a loaded queue with a piece mid-send becomes unconfirmed, and waits', () => {
+    const begun = beginSend(build(), NOW)
+    const loaded = recoverInterrupted(begun?.contribution ?? build())
+    expect(loaded.pieces.filter((p) => p.status === 'unconfirmed')).toHaveLength(1)
+    expect(progress(loaded).state).toBe('unconfirmed')
+    expect(nextDue(loaded, NOW + 10 * 60_000)).toBe(-1)
+  })
+
+  it('leaves a queue with nothing interrupted exactly as it was', () => {
+    const c = build()
+    expect(recoverInterrupted(c)).toBe(c)
+  })
+
+  it('"it was sent" counts the piece as sent and never sends it again; the rest carry on', async () => {
+    const begun = beginSend(build(), NOW)
+    const resolved = resolveUnconfirmed(
+      recoverInterrupted(begun?.contribution ?? build()),
+      'sent',
+      NOW,
+    )
+    expect(progress(resolved)).toMatchObject({ sent: 1, state: 'running' })
+    const wallet = new FakeContributorWallet()
+    let c = resolved
+    for (let i = 0; i < 20 && progress(c).state === 'running'; i++)
+      c = await runStep(c, wallet, NOW + i * 1000)
+    expect(progress(c).state).toBe('done')
+    expect(wallet.sent).toHaveLength(5)
+    expect(receipt(c).totalZat).toBe(5_000_000n)
+  })
+
+  it('"not sent: send it again" puts the piece back, once', async () => {
+    const begun = beginSend(build(), NOW)
+    const resolved = resolveUnconfirmed(
+      recoverInterrupted(begun?.contribution ?? build()),
+      'resend',
+      NOW + 5,
+    )
+    expect(resolved.pieces.filter((p) => p.status === 'unconfirmed')).toHaveLength(0)
+    const wallet = new FakeContributorWallet()
+    let c = resolved
+    for (let i = 0; i < 20 && progress(c).state === 'running'; i++)
+      c = await runStep(c, wallet, NOW + i * 1000)
+    expect(progress(c).state).toBe('done')
+    expect(wallet.sent).toHaveLength(6)
+    expect(wallet.sent.reduce((sum, s) => sum + s.zat, 0n)).toBe(5_000_000n)
+  })
+
+  it('resolving does nothing to a queue with no unconfirmed piece', () => {
+    const c = build()
+    expect(resolveUnconfirmed(c, 'sent', NOW).pieces).toEqual(c.pieces)
   })
 })

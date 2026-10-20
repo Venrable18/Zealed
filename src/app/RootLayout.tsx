@@ -1,17 +1,29 @@
+import { useEffect } from 'react'
 import { Link, NavLink, Outlet } from 'react-router'
 import { ToastViewport } from '../components/Toasts.tsx'
 import { ZCASH_NETWORK } from '../config/network.ts'
+import { useAutoLock } from '../storage/autoLock.ts'
+import { LockScreen } from '../storage/LockScreen.tsx'
+import { initVault, useVaultStatus } from '../storage/vaultState.ts'
 import { FEATURES } from './features.tsx'
 import { useSettings } from './settingsStore.ts'
 
 const NAV_ITEMS = [
   ...FEATURES.map(({ path, title }) => ({ path, label: title })),
   { path: '/dashboard', label: 'Dashboard' },
+  { path: '/contacts', label: 'Contacts' },
+  { path: '/receive', label: 'Receive' },
   { path: '/settings', label: 'Settings' },
 ]
 
 export function RootLayout() {
   const demoMode = useSettings((state) => state.demoMode)
+  const vaultStatus = useVaultStatus((state) => state.status)
+  useAutoLock()
+  useEffect(() => {
+    void initVault()
+  }, [])
+  const locked = vaultStatus === 'locked'
 
   return (
     <div className="min-h-dvh bg-page text-ink">
@@ -37,25 +49,27 @@ export function RootLayout() {
             )}
           </div>
         </div>
-        <nav aria-label="Main" className="mt-3 border-b border-line pb-3">
-          <ul className="flex flex-wrap gap-x-1 gap-y-1 text-sm">
-            {NAV_ITEMS.map(({ path, label }) => (
-              <li key={path}>
-                <NavLink
-                  to={path}
-                  className={({ isActive }) =>
-                    `inline-flex min-h-11 items-center rounded-control px-3 ${isActive ? 'bg-seal-soft font-semibold text-ink' : 'text-muted hover:bg-sunken hover:text-ink'}`
-                  }
-                >
-                  {label}
-                </NavLink>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        {!locked && (
+          <nav aria-label="Main" className="mt-3 border-b border-line pb-3">
+            <ul className="flex flex-wrap gap-x-1 gap-y-1 text-sm">
+              {NAV_ITEMS.map(({ path, label }) => (
+                <li key={path}>
+                  <NavLink
+                    to={path}
+                    className={({ isActive }) =>
+                      `inline-flex min-h-11 items-center rounded-control px-3 ${isActive ? 'bg-seal-soft font-semibold text-ink' : 'text-muted hover:bg-sunken hover:text-ink'}`
+                    }
+                  >
+                    {label}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
       </header>
       <main id="main" className="mx-auto max-w-3xl px-4 pb-24">
-        <Outlet />
+        {vaultStatus === 'checking' ? null : locked ? <LockScreen /> : <Outlet />}
       </main>
       <ToastViewport />
     </div>

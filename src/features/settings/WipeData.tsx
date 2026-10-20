@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Button } from '../../components/Button.tsx'
 import { ConfirmDialog } from '../../components/ConfirmDialog.tsx'
 import { TextInput } from '../../components/Field.tsx'
+import { wipeVault } from '../../storage/vaultState.ts'
 import { resetAllStores, wipeLocalData, type WipeDeps, type WipeResult } from './wipe.ts'
 
 export const CONFIRM_WORD = 'WIPE'
@@ -14,7 +15,7 @@ interface WipeDataProps {
 }
 
 function browserDeps(): WipeDeps {
-  return { localStorage, sessionStorage, indexedDB, resetStores: resetAllStores }
+  return { localStorage, sessionStorage, indexedDB, resetStores: resetAllStores, wipeVault }
 }
 
 /** Deletes everything Zealed keeps on this device. A typed word is needed, because it cannot be undone. */

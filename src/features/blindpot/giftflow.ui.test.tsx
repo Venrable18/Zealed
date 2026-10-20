@@ -5,6 +5,8 @@ import { decodeMemo } from '../../zmp/index.ts'
 import { createMemoryContributionStore } from './contributionStore.ts'
 import { FakeContributorWallet } from './fakeWallet.ts'
 import { GiftFlow } from './GiftFlow.tsx'
+import { beginSend, createContribution, type Contribution } from './queue.ts'
+import { splitContribution } from './splitter.ts'
 import type { SharedPot } from './shareLink.ts'
 import { decodeWish } from './wishes.ts'
 
@@ -165,5 +167,79 @@ describe('GiftFlow', () => {
     await waitFor(() => {
       expect(wallet.sent).toHaveLength(1)
     })
+  })
+})
+
+describe('GiftFlow after the page closed mid-send', () => {
+  const interrupted = (): Contribution => {
+    const split = splitContribution(5_000_000n, true)
+    if (!split.ok) throw new Error('expected a split')
+    const c = createContribution({
+      pot,
+      split,
+      wish: 'hi',
+      nowMs: Date.now() - 60_000,
+      delays: { min: 0, max: 0 },
+    })
+    const begun = beginSend(c, Date.now())
+    if (begun === null) throw new Error('expected a send')
+    return begun.contribution
+  }
+
+  async function mount(wallet: FakeContributorWallet) {
+    const store = createMemoryContributionStore()
+    await store.save(interrupted())
+    render(
+      <GiftFlow pot={pot} wallet={wallet} delays={{ min: 0, max: 0 }} tickMs={5} store={store} />,
+    )
+    return store
+  }
+
+  it('does not send anything by itself, and asks the person to check their wallet', async () => {
+    const wallet = new FakeContributorWallet()
+    await mount(wallet)
+    expect((await screen.findByRole('alert')).textContent).toContain(
+      'not certain whether it went through',
+    )
+    await new Promise((resolve) => setTimeout(resolve, 80))
+    expect(wallet.sent).toHaveLength(0)
+  })
+
+  it('"It was sent" carries on with the rest, without repeating that piece', async () => {
+    const wallet = new FakeContributorWallet()
+    await mount(wallet)
+    fireEvent.click(await screen.findByRole('button', { name: 'It was sent' }))
+    expect(await screen.findByText('Thank you', {}, { timeout: 4000 })).toBeTruthy()
+    expect(wallet.sent).toHaveLength(5)
+  })
+
+  it('"It was not sent" sends that piece again, so every piece goes out once', async () => {
+    const wallet = new FakeContributorWallet()
+    const store = await mount(wallet)
+    fireEvent.click(await screen.findByRole('button', { name: 'It was not sent: send it again' }))
+    expect(await screen.findByText('Thank you', {}, { timeout: 4000 })).toBeTruthy()
+    expect(wallet.sent).toHaveLength(6)
+    expect(wallet.sent.reduce((sum, s) => sum + s.zat, 0n)).toBe(5_000_000n)
+    expect((await store.load(pot.id))?.pieces.every((p) => p.status === 'sent')).toBe(true)
+  })
+
+  it('saves "sending" before the wallet is called', async () => {
+    const wallet = new FakeContributorWallet()
+    const store = createMemoryContributionStore()
+    const seenWhileSending: string[][] = []
+    const original = wallet.sendPiece.bind(wallet)
+    wallet.sendPiece = async (args) => {
+      seenWhileSending.push((await store.load(pot.id))?.pieces.map((p) => p.status) ?? [])
+      return original(args)
+    }
+    render(
+      <GiftFlow pot={pot} wallet={wallet} delays={{ min: 0, max: 0 }} tickMs={5} store={store} />,
+    )
+    fireEvent.change(screen.getByLabelText('Gift amount (ZEC)'), { target: { value: '0.5' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Send gift' }))
+    fireEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Send' }))
+    await screen.findByText('Thank you', {}, { timeout: 4000 })
+    expect(seenWhileSending.length).toBeGreaterThan(0)
+    for (const statuses of seenWhileSending) expect(statuses).toContain('sending')
   })
 })

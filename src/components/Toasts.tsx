@@ -24,21 +24,24 @@ function ToastItem({ toast }: { toast: Toast }) {
   }, [toast.id, toast.kind, dismiss])
 
   return (
-    <li
-      role={toast.kind === 'error' ? 'alert' : 'status'}
-      className={`flex items-start gap-3 rounded-control border px-4 py-3 shadow-lg ${STYLES[toast.kind]}`}
-    >
-      <span className="flex-1 text-sm">{toast.message}</span>
-      <button
-        type="button"
-        onClick={() => {
-          dismiss(toast.id)
-        }}
-        aria-label="Dismiss message"
-        className="-m-2 flex size-11 items-center justify-center rounded-control text-lg hover:bg-sunken"
+    <li>
+      {/* The role is on an inner element: a list item with a role of its own is no longer a list item. */}
+      <div
+        role={toast.kind === 'error' ? 'alert' : 'status'}
+        className={`flex items-start gap-3 rounded-control border px-4 py-3 shadow-lg ${STYLES[toast.kind]}`}
       >
-        <span aria-hidden="true">×</span>
-      </button>
+        <span className="flex-1 text-sm">{toast.message}</span>
+        <button
+          type="button"
+          onClick={() => {
+            dismiss(toast.id)
+          }}
+          aria-label="Dismiss message"
+          className="-m-2 flex size-11 items-center justify-center rounded-control text-lg hover:bg-sunken"
+        >
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
     </li>
   )
 }

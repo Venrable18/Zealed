@@ -288,3 +288,14 @@ forged check-in and a forged revoke; Unsigned with a recipient and a sender; and
 (not enough money, running out partway, change not yet spendable, drand unreachable, junk memos).
 **What they did not prove:** anything about the real wallet, real transactions, real block times or
 real fees. Those need the WebZjs tooling and the wallet (Phase 3).
+
+## Storage vault (2026-10-20)
+
+- **Protects**: someone who gets the device's browser files later (lost laptop, copied profile) while
+  the app is locked: they find only encrypted records.
+- **Does not protect**: a weak passphrase against offline guessing (600,000 PBKDF2 rounds slow it
+  but do not stop it); malware or an extension reading memory while unlocked; shoulder-surfing.
+- **Choices**: opt-in, so people who do not want anything on disk keep nothing on disk; lock on
+  reload so a stolen unlocked tab does not stay open; record names are authenticated so records
+  cannot be swapped; contact links keep addresses in the URL fragment so servers never see them.
+- **Open**: the passphrase cannot be recovered; the wallet's own storage is not covered yet.

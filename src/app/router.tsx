@@ -1,4 +1,5 @@
 import { createBrowserRouter } from 'react-router'
+import { Loading } from '../components/Loading.tsx'
 import { RootLayout } from './RootLayout.tsx'
 import { BlindPot } from './routes/BlindPot.tsx'
 import { Give } from './routes/Give.tsx'
@@ -8,12 +9,16 @@ import { NotFound } from './routes/NotFound.tsx'
 import { PotPage } from './routes/PotPage.tsx'
 import { Unsigned } from './routes/Unsigned.tsx'
 import { Send } from './routes/Send.tsx'
+import { AddContact } from './routes/AddContact.tsx'
+import { Contacts } from './routes/Contacts.tsx'
+import { Receive } from './routes/Receive.tsx'
 import { Settings } from './routes/Settings.tsx'
 
 export const router = createBrowserRouter([
   {
     path: '/',
     element: <RootLayout />,
+    HydrateFallback: Loading,
     children: [
       { index: true, element: <Home /> },
       {
@@ -35,6 +40,9 @@ export const router = createBrowserRouter([
         // Loaded on demand: it reads Legacy's guardian and heir logic, which pulls in the timelock library.
         lazy: async () => ({ Component: (await import('./routes/Dashboard.tsx')).Dashboard }),
       },
+      { path: 'contacts', element: <Contacts /> },
+      { path: 'add', element: <AddContact /> },
+      { path: 'receive', element: <Receive /> },
       { path: 'settings', element: <Settings /> },
       { path: 'components', element: <Components /> },
       { path: '*', element: <NotFound /> },

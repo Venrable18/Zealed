@@ -4,6 +4,7 @@ import { AutoLockSetting } from '../../features/settings/AutoLockSetting.tsx'
 import { EndpointSettings } from '../../features/settings/EndpointSettings.tsx'
 import { SeedExport } from '../../features/settings/SeedExport.tsx'
 import { useSeedPort } from '../../features/settings/seedPort.ts'
+import { VaultSettings } from '../../features/settings/VaultSettings.tsx'
 import { WipeData } from '../../features/settings/WipeData.tsx'
 import { useSettings, type ThemePreference } from '../settingsStore.ts'
 
@@ -66,6 +67,8 @@ export function Settings() {
           </span>
         </label>
       </section>
+
+      <VaultSettings />
 
       <EndpointSettings selectedUrl={endpointUrl} onSelect={setEndpointUrl} />
 

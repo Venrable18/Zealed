@@ -9,11 +9,14 @@ import type { ContributorWalletPort } from './contributorWallet.ts'
 import { memoryContributionStore, type ContributionStore } from './contributionStore.ts'
 import { todayString } from './pot.ts'
 import {
+  beginSend,
+  completeSend,
   createContribution,
   progress,
   receipt,
+  recoverInterrupted,
+  resolveUnconfirmed,
   resume,
-  runStep,
   type Contribution,
   type DelayRange,
 } from './queue.ts'
@@ -59,8 +62,11 @@ export function GiftFlow({
     let cancelled = false
     void store.load(pot.id).then((existing) => {
       if (!cancelled && existing !== undefined) {
-        latest.current = existing
-        setContribution(existing)
+        // A piece that was mid-send when the page closed may or may not have gone out.
+        const recovered = recoverInterrupted(existing)
+        latest.current = recovered
+        setContribution(recovered)
+        if (recovered !== existing) void store.save(recovered)
       }
     })
     return () => {
@@ -76,8 +82,15 @@ export function GiftFlow({
     const timer = window.setInterval(() => {
       const current = latest.current
       if (current === undefined || stepping.current) return
+      const begun = beginSend(current, currentTime())
+      if (begun === null) return
       stepping.current = true
-      void runStep(current, wallet, currentTime())
+      // Save "sending" first, so a page that closes mid-send is never mistaken for "not sent yet".
+      latest.current = begun.contribution
+      setContribution(begun.contribution)
+      void store
+        .save(begun.contribution)
+        .then(() => completeSend(begun.contribution, begun.index, wallet, currentTime()))
         .then(async (next) => {
           latest.current = next
           setContribution(next)
@@ -181,6 +194,41 @@ export function GiftFlow({
             single gift can be picked out.
           </p>
         )}
+        {queueState === 'unconfirmed' && (
+          <div
+            role="alert"
+            className="space-y-3 rounded-control border border-warn bg-warn-soft p-4"
+          >
+            <p>
+              This page closed while one piece of your gift was being sent, so it is not certain
+              whether it went through. Check your wallet’s recent activity, then choose. Choosing
+              wrongly would send that piece twice, or not at all.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  const next = resolveUnconfirmed(contribution, 'sent', currentTime())
+                  latest.current = next
+                  setContribution(next)
+                  void store.save(next)
+                }}
+              >
+                It was sent
+              </Button>
+              <Button
+                onClick={() => {
+                  const next = resolveUnconfirmed(contribution, 'resend', currentTime())
+                  latest.current = next
+                  setContribution(next)
+                  void store.save(next)
+                }}
+              >
+                It was not sent: send it again
+              </Button>
+            </div>
+          </div>
+        )}
         {queueState === 'blocked' && (
           <div
             role="alert"
@@ -192,6 +240,7 @@ export function GiftFlow({
                 const next = resume(contribution, currentTime())
                 latest.current = next
                 setContribution(next)
+                void store.save(next)
               }}
             >
               Continue
@@ -208,6 +257,7 @@ export function GiftFlow({
                 const next = resume(contribution, currentTime())
                 latest.current = next
                 setContribution(next)
+                void store.save(next)
               }}
             >
               Try again

@@ -28,7 +28,7 @@ test.describe('Dashboard', () => {
   test('says it is computed on this device and shows every section', async ({ page }) => {
     await page.goto('/dashboard')
     await expect(page.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeVisible()
-    await expect(page.getByRole('note')).toHaveText(
+    await expect(page.getByRole('note').filter({ hasText: 'computed on this device' })).toHaveText(
       'Your dashboard is computed on this device. We can’t see it.',
     )
     for (const name of ['Wallet', 'Blind Pot', 'Legacy', 'Unsigned'])

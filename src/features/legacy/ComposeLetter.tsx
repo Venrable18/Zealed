@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { ChainClient } from 'tlock-js'
+import { AddressInput } from '../../components/AddressInput.tsx'
 import { AmountInput } from '../../components/AmountInput.tsx'
 import { Button } from '../../components/Button.tsx'
 import { ConfirmDialog } from '../../components/ConfirmDialog.tsx'
@@ -140,14 +141,10 @@ export function ComposeLetter({
       }}
       className="space-y-5"
     >
-      <TextInput
+      <AddressInput
         label="Recipient’s Zealed address"
         value={recipient}
-        onChange={(event) => {
-          setRecipient(event.target.value)
-        }}
-        autoComplete="off"
-        spellCheck={false}
+        onChange={setRecipient}
         {...(errors.recipient === undefined ? {} : { error: errors.recipient })}
       />
 

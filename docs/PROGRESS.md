@@ -662,11 +662,11 @@ for everything that can be tested without the wallet; the items that need it are
   - **Errors**: not enough money is refused up front; a gift that runs out partway pauses and
     continues after the guest adds funds with nothing lost or repeated; change that is not spendable
     yet is waited for with no error shown.
-- **Strict final check for every actor** (`assertClean`): only the app's own origin (plus drand where
+- **Strict final check for every actor** (`assertClean`; _correction: when this phase was first reported, the no-console, no-Referer and no-private-URL checks were described as enforced but were not actually in the code. They were added afterwards and are now enforced, and fixed real problems they exposed_): only the app's own origin (plus drand where
   allowed) was contacted, **no console message of any kind**, **no Referer** sent to another origin,
   **no address or pot data in any URL**, and storage holds only the four non-sensitive settings, no
   cookies, no session data and no IndexedDB.
-- `docs/PRIVACY_CHECKLIST.md`: 12 items with evidence and status (10 met, 1 partly, 1 not met yet).
+- `docs/PRIVACY_CHECKLIST.md`: 12 items with evidence and status (10 met, 1 partly, 1 not met yet; item 2 later became met with caveats, see the storage section below).
 - `docs/THREAT_MODEL.md`: the Blind Pot section was missing and is added, plus a review table of what
   each feature protects against and its limits, and what the scenarios did and did not prove.
 - Playwright projects: `dev` and `preview` run the quick checks (`npm run test:e2e`), `scenarios`
@@ -702,3 +702,32 @@ for everything that can be tested without the wallet; the items that need it are
 - The harness exposes test helpers (`window.__zealed`) only inside the harness page, to build forged
   and underpaid memos and read a guardian's letter ids; none of that is in the shipped app.
 - `test:e2e` now runs only the `dev` and `preview` projects.
+
+## Storage, contacts and receive (2026-10-20): done for what needs no wallet
+
+**Built**
+
+- **Encrypted vault** (`src/storage/`): opt-in passphrase, PBKDF2-SHA256 (600,000 rounds), in-memory
+  non-extractable AES-GCM key, one encrypted record per store, IndexedDB `zealed-vault` created only
+  after a passphrase is chosen. Lock screen, real auto-lock (wipes in-memory private data and any
+  toast text), change passphrase, wrong-passphrase limit, wipe-everything deletes the database.
+  Reloading locks by design. Settings has the controls; every page warns while nothing is saved.
+- **Persistence of all stores**: pots, contributions, letters, shares, check-in keys, unsigned
+  messages, sent list, contacts. A gift is saved as "sending" before the wallet call; if the page
+  closes mid-send it comes back as "unconfirmed" and the guest decides, so money is never sent twice
+  by accident.
+- **Receive screen** (address as text and QR, copy), **Contacts** (add, rename, remove, a shareable
+  link that carries the address in the URL fragment, never sent to a server), and a shared address
+  field that accepts typing, a saved contact, paste, scanning, a `zcash:` request or a contact link.
+  Used for the letter recipient, the heir and guardians.
+- Fixed while testing: an empty database was created on every load; wipe left a connection open so
+  deletion was blocked; a toast with a contact name stayed on the lock screen; toast markup failed
+  an accessibility rule; a router warning on lazy routes.
+
+**Verified**: `lint`, `format:check`, `typecheck`, `build`, `npm audit` (0); 492 unit and screen
+tests; 264 quick browser tests (dev and preview); scenarios, including a new persistence scenario,
+9 passed in two consecutive runs.
+
+**Not done / blocked on the wallet**: the wallet's own key and note storage; the Receive screen shows
+an address only when a wallet provides one (it says so otherwise); camera scanning is tested with a
+fake camera only.

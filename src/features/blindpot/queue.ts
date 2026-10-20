@@ -3,7 +3,11 @@ import type { SplitResult } from './splitter.ts'
 import type { ContributorWalletPort } from './contributorWallet.ts'
 import { encodeWishMemo } from './wishMemo.ts'
 
-export type PieceStatus = 'pending' | 'sending' | 'sent' | 'blocked' | 'failed'
+/**
+ * `unconfirmed`: the page closed while this piece was being sent, so it is not known whether it went
+ * through. The queue stops until the person decides, because guessing could pay it twice.
+ */
+export type PieceStatus = 'pending' | 'sending' | 'sent' | 'blocked' | 'failed' | 'unconfirmed'
 
 export interface QueuedPiece {
   zat: bigint
@@ -93,7 +97,7 @@ export function createContribution(options: {
   }
 }
 
-export type QueueState = 'running' | 'done' | 'blocked' | 'failed'
+export type QueueState = 'running' | 'done' | 'blocked' | 'failed' | 'unconfirmed'
 
 export function progress(contribution: Contribution): {
   sent: number
@@ -104,6 +108,7 @@ export function progress(contribution: Contribution): {
   const sent = contribution.pieces.filter((p) => p.status === 'sent').length
   let state: QueueState = 'running'
   if (sent === total) state = 'done'
+  else if (contribution.pieces.some((p) => p.status === 'unconfirmed')) state = 'unconfirmed'
   else if (contribution.pieces.some((p) => p.status === 'failed')) state = 'failed'
   else if (contribution.pieces.some((p) => p.status === 'blocked')) state = 'blocked'
   return { sent, total, state }
@@ -161,16 +166,31 @@ function retryLater(
 }
 
 /**
- * Sends the next due piece, if any, and returns the updated queue. Call it on a timer. A piece
- * the wallet cannot spend yet is retried without counting as a failure; running out of funds
- * pauses the queue; other failures are retried up to `MAX_ATTEMPTS` times.
+ * Step 1 of sending: marks the next due piece as `sending`. Save the result **before** calling
+ * `completeSend`, so that if the page closes mid-send the saved queue says a send was in progress
+ * and the piece is never silently sent a second time.
  */
-export async function runStep(
+export function beginSend(
   contribution: Contribution,
+  nowMs: number,
+): { contribution: Contribution; index: number } | null {
+  const index = nextDue(contribution, nowMs)
+  return index < 0
+    ? null
+    : { contribution: update(contribution, index, { status: 'sending' }), index }
+}
+
+/**
+ * Step 2: sends the piece marked by `beginSend` and returns the updated queue. A piece the wallet
+ * cannot spend yet is retried without counting as a failure; running out of funds pauses the
+ * queue; other failures are retried up to `MAX_ATTEMPTS` times.
+ */
+export async function completeSend(
+  contribution: Contribution,
+  index: number,
   wallet: ContributorWalletPort,
   nowMs: number,
 ): Promise<Contribution> {
-  const index = nextDue(contribution, nowMs)
   const piece = contribution.pieces[index]
   if (piece === undefined) return contribution
 
@@ -197,6 +217,52 @@ export async function runStep(
   if (result.reason === 'insufficient-funds')
     return update(contribution, index, { status: 'blocked' })
   return retryLater(contribution, index, nowMs, true)
+}
+
+/** Both steps together, for callers that do not need to save in between. */
+export async function runStep(
+  contribution: Contribution,
+  wallet: ContributorWalletPort,
+  nowMs: number,
+): Promise<Contribution> {
+  const begun = beginSend(contribution, nowMs)
+  return begun === null
+    ? contribution
+    : completeSend(begun.contribution, begun.index, wallet, nowMs)
+}
+
+/**
+ * Call when a saved queue is loaded. A piece that was still `sending` when the page closed may or
+ * may not have gone out, so it becomes `unconfirmed` and the queue waits for the person.
+ */
+export function recoverInterrupted(contribution: Contribution): Contribution {
+  if (!contribution.pieces.some((p) => p.status === 'sending')) return contribution
+  return {
+    ...contribution,
+    pieces: contribution.pieces.map((p) =>
+      p.status === 'sending' ? { ...p, status: 'unconfirmed' } : p,
+    ),
+  }
+}
+
+/**
+ * The person checked their wallet: the unconfirmed piece(s) either `sent` (it did go out, so do not
+ * send it again) or `resend` (it did not, so send it again).
+ */
+export function resolveUnconfirmed(
+  contribution: Contribution,
+  outcome: 'sent' | 'resend',
+  nowMs: number,
+): Contribution {
+  return {
+    ...contribution,
+    pieces: contribution.pieces.map((p) => {
+      if (p.status !== 'unconfirmed') return p
+      return outcome === 'sent'
+        ? { ...p, status: 'sent' }
+        : { ...p, status: 'pending', attempts: 0, notBeforeMs: nowMs }
+    }),
+  }
 }
 
 /** Lets the guest continue after adding funds (blocked) or retry after repeated failures (failed). */

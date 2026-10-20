@@ -6,20 +6,20 @@ exactly what is missing and why.
 
 ## Summary
 
-| #   | Item                                                         | Status                                                                          |
-| --- | ------------------------------------------------------------ | ------------------------------------------------------------------------------- |
-| 1   | No secrets in logs                                           | Met                                                                             |
-| 2   | Local storage is encrypted                                   | **Not met yet**: nothing private is stored; wallet storage is pending (Phase 3) |
-| 3   | No network calls outside the allowlist                       | Met                                                                             |
-| 4   | No referrer leaks                                            | Met                                                                             |
-| 5   | Card and pot data only in URL fragments                      | Met                                                                             |
-| 6   | No analytics, telemetry or third-party code                  | Met                                                                             |
-| 7   | Untrusted text is shown as text                              | Met                                                                             |
-| 8   | The dashboard makes no network requests                      | Met                                                                             |
-| 9   | Only well-known audited crypto, nothing home-made            | Met                                                                             |
-| 10  | Malformed or hostile input is ignored safely                 | Met                                                                             |
-| 11  | Wallet seed and keys are never logged or stored in the clear | **Partly**: the seed screen is built and tested; the wallet itself is pending   |
-| 12  | No known vulnerable dependencies                             | Met (`npm audit`: 0)                                                            |
+| #   | Item                                                         | Status                                                                                        |
+| --- | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| 1   | No secrets in logs                                           | Met                                                                                           |
+| 2   | Local storage is encrypted                                   | **Met, with caveats**: opt-in passphrase vault; the wallet's own storage is pending (Phase 3) |
+| 3   | No network calls outside the allowlist                       | Met                                                                                           |
+| 4   | No referrer leaks                                            | Met                                                                                           |
+| 5   | Card and pot data only in URL fragments                      | Met                                                                                           |
+| 6   | No analytics, telemetry or third-party code                  | Met                                                                                           |
+| 7   | Untrusted text is shown as text                              | Met                                                                                           |
+| 8   | The dashboard makes no network requests                      | Met                                                                                           |
+| 9   | Only well-known audited crypto, nothing home-made            | Met                                                                                           |
+| 10  | Malformed or hostile input is ignored safely                 | Met                                                                                           |
+| 11  | Wallet seed and keys are never logged or stored in the clear | **Partly**: the seed screen is built and tested; the wallet itself is pending                 |
+| 12  | No known vulnerable dependencies                             | Met (`npm audit`: 0)                                                                          |
 
 ## Details
 
@@ -31,17 +31,25 @@ exactly what is missing and why.
 - Error values are fixed phrases with no content: `CryptoError` carries a code only; wallet failures
   are reported as "could not" messages without details.
 
-### 2. Local storage is encrypted: Not met yet
+### 2. Local storage is encrypted: Met, with caveats
 
-What is true today: **nothing private is written to storage at all.** Pots, letters, shares, check-in
-keys, messages and the sent list live in memory only and are lost on reload (each store says so).
-The scenarios assert that after full flows a browser holds only the four non-sensitive settings
-(`demoMode`, `theme`, `endpointUrl`, `autoLockMinutes`) in localStorage, no cookies, no
-sessionStorage and no IndexedDB databases. Saved settings are validated on load.
-
-What is missing: the encrypted wallet and storage layer (Phase 3), which is blocked on the WebZjs
-tooling. Until it exists, nothing survives a reload, and that is the safe default. When it is built,
-this item needs a test that reads IndexedDB and finds no plaintext.
+- **Nothing private is written unless the person chooses a passphrase** (Settings). Without one,
+  pots, letters, shares, check-in keys, messages, contacts and the sent list live in memory only,
+  and the app says so. Scenarios assert a browser then holds only the four non-sensitive settings,
+  no cookies, no session data and no IndexedDB database.
+- With a passphrase, a key is derived with PBKDF2-SHA256 (600,000 rounds, random salt) and kept
+  only in memory as a non-extractable AES-256-GCM key. Every stored record is encrypted with its
+  name as authenticated data, so a record cannot be swapped for another. Only the `zealed-vault`
+  IndexedDB database is created. Tests read the raw database and fail if any name, address or
+  message text is readable (`src/storage/*.test.ts`, `tests/e2e/vault.spec.ts`,
+  `tests/e2e/scenarios/persistence.spec.ts`).
+- Locking (button, auto-lock timer, or reload) wipes the in-memory private data and shows a lock
+  screen. Five wrong passphrases trigger a 30-second wait in the app.
+- Caveats: the passphrase cannot be recovered (by design); an attacker who copies the database can
+  guess offline, limited only by the 600,000-round cost, so a long passphrase matters (minimum 10
+  characters is enforced); a compromised device or browser extension can read memory while the app
+  is unlocked; and the **wallet's own storage (keys, notes) does not exist yet** and will need the
+  same test when the wallet is added.
 
 ### 3. No network calls outside the allowlist: Met
 

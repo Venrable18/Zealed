@@ -122,7 +122,10 @@ test('Legacy Mode A: a sealed letter cannot be opened early, and says so when th
   expect(await rp.getByText(LETTER).count()).toBe(0)
   expect(chain.balanceZat('recipient')).toBe(0n)
 
-  await assertClean([s, r], baseURL, [DRAND_ORIGIN], [/ERR_CONNECTION_REFUSED/])
+  await assertClean([s, r], baseURL, {
+    allowedOrigins: [DRAND_ORIGIN],
+    expectedProblems: [/ERR_CONNECTION_REFUSED/],
+  })
   await Promise.all([s.close(), r.close()])
 })
 
@@ -154,7 +157,7 @@ test.describe('against the real drand network', () => {
     await expect(rp.getByText(/Moved 0\.2499 ZEC into your wallet/)).toBeVisible()
     expect(chain.balanceZat('recipient')).toBe(25_000_000n - 10_000n)
 
-    await assertClean([s, r], baseURL, [DRAND_ORIGIN])
+    await assertClean([s, r], baseURL, { allowedOrigins: [DRAND_ORIGIN] })
     await Promise.all([s.close(), r.close()])
   })
 })

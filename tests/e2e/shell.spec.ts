@@ -8,6 +8,8 @@ const ROUTES = [
   { path: '/blind-pot', heading: 'Blind Pot' },
   { path: '/unsigned', heading: 'Unsigned' },
   { path: '/dashboard', heading: 'Dashboard' },
+  { path: '/contacts', heading: 'Contacts' },
+  { path: '/receive', heading: 'Receive' },
   { path: '/settings', heading: 'Settings' },
   { path: '/components', heading: 'Component gallery' },
 ] as const
