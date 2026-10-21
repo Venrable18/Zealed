@@ -1,4 +1,5 @@
 import { Link } from 'react-router'
+import { LANGUAGES, useT, type LanguagePreference, type MessageKey } from '../../i18n/index.ts'
 import { ZCASH_NETWORK } from '../../config/network.ts'
 import { AutoLockSetting } from '../../features/settings/AutoLockSetting.tsx'
 import { EndpointSettings } from '../../features/settings/EndpointSettings.tsx'
@@ -8,11 +9,11 @@ import { VaultSettings } from '../../features/settings/VaultSettings.tsx'
 import { WipeData } from '../../features/settings/WipeData.tsx'
 import { useSettings, type ThemePreference } from '../settingsStore.ts'
 
-const THEMES: readonly { value: ThemePreference; label: string }[] = [
-  { value: 'system', label: 'Match my device' },
-  { value: 'light', label: 'Light' },
-  { value: 'dark', label: 'Dark' },
-]
+const THEMES = [
+  { value: 'system', key: 'settings.theme.system' },
+  { value: 'light', key: 'settings.theme.light' },
+  { value: 'dark', key: 'settings.theme.dark' },
+] as const satisfies readonly { value: ThemePreference; key: MessageKey }[]
 
 export function Settings() {
   const theme = useSettings((state) => state.theme)
@@ -24,14 +25,21 @@ export function Settings() {
   const autoLockMinutes = useSettings((state) => state.autoLockMinutes)
   const setAutoLockMinutes = useSettings((state) => state.setAutoLockMinutes)
   const seedPort = useSeedPort()
+  const language = useSettings((state) => state.language)
+  const setLanguage = useSettings((state) => state.setLanguage)
+  const t = useT()
+  const languageChoices: readonly { value: LanguagePreference; label: string }[] = [
+    { value: 'system', label: t('settings.language.system') },
+    ...LANGUAGES.map(({ code, label }) => ({ value: code, label })),
+  ]
 
   return (
     <div className="space-y-10 py-10">
-      <h1 className="text-3xl">Settings</h1>
+      <h1 className="text-3xl">{t('settings.title')}</h1>
 
       <fieldset className="space-y-2">
-        <legend className="text-lg font-semibold">Appearance</legend>
-        {THEMES.map(({ value, label }) => (
+        <legend className="text-lg font-semibold">{t('settings.appearance')}</legend>
+        {THEMES.map(({ value, key }) => (
           <label key={value} className="flex min-h-11 items-center gap-3">
             <input
               type="radio"
@@ -43,13 +51,33 @@ export function Settings() {
               }}
               className="size-5 accent-seal"
             />
-            {label}
+            {t(key)}
           </label>
         ))}
       </fieldset>
 
+      <fieldset className="space-y-2">
+        <legend className="text-lg font-semibold">{t('settings.language')}</legend>
+        {languageChoices.map(({ value, label }) => (
+          <label key={value} className="flex min-h-11 items-center gap-3">
+            <input
+              type="radio"
+              name="language"
+              value={value}
+              checked={language === value}
+              onChange={() => {
+                setLanguage(value)
+              }}
+              className="size-5 accent-seal"
+            />
+            <span lang={value === 'system' ? undefined : value}>{label}</span>
+          </label>
+        ))}
+        <p className="text-sm text-muted">{t('settings.language.note')}</p>
+      </fieldset>
+
       <section className="space-y-2">
-        <h2 className="text-lg font-semibold">Demo mode</h2>
+        <h2 className="text-lg font-semibold">{t('settings.demo')}</h2>
         <label className="flex min-h-11 items-start gap-3">
           <input
             type="checkbox"
@@ -60,10 +88,8 @@ export function Settings() {
             className="mt-1 size-5 accent-seal"
           />
           <span>
-            Shorten timers (unlock dates, check-in periods) so a feature can be tried in minutes.
-            <span className="block text-sm text-muted">
-              Only for demonstrations. Shortened timers are not suitable for real use.
-            </span>
+            {t('settings.demo.label')}
+            <span className="block text-sm text-muted">{t('settings.demo.note')}</span>
           </span>
         </label>
       </section>
@@ -83,14 +109,11 @@ export function Settings() {
       <WipeData />
 
       <section className="space-y-2">
-        <h2 className="text-lg font-semibold">About</h2>
-        <p className="text-muted">
-          Network: <span className="font-medium text-ink">{ZCASH_NETWORK}</span>. Zealed is a
-          testnet prototype and does not handle real money.
-        </p>
+        <h2 className="text-lg font-semibold">{t('settings.about')}</h2>
+        <p className="text-muted">{t('settings.about.network', { network: ZCASH_NETWORK })}</p>
         <p>
           <Link to="/components" className="underline underline-offset-4">
-            Component gallery
+            {t('settings.about.gallery')}
           </Link>
         </p>
       </section>

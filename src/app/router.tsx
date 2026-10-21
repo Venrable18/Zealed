@@ -11,6 +11,7 @@ import { Unsigned } from './routes/Unsigned.tsx'
 import { Send } from './routes/Send.tsx'
 import { AddContact } from './routes/AddContact.tsx'
 import { Contacts } from './routes/Contacts.tsx'
+import { GuardianInvite } from './routes/GuardianInvite.tsx'
 import { Receive } from './routes/Receive.tsx'
 import { Settings } from './routes/Settings.tsx'
 
@@ -42,6 +43,7 @@ export const router = createBrowserRouter([
       },
       { path: 'contacts', element: <Contacts /> },
       { path: 'add', element: <AddContact /> },
+      { path: 'invite', element: <GuardianInvite /> },
       { path: 'receive', element: <Receive /> },
       { path: 'settings', element: <Settings /> },
       { path: 'components', element: <Components /> },

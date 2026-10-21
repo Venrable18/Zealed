@@ -20,7 +20,7 @@ export interface CleanOptions {
  * - no console message of any kind, because the app logs nothing;
  * - no `Referer` header was sent to another origin;
  * - no request URL carried an address or pot data (those live in the URL fragment, never sent);
- * - storage holds only the four non-sensitive settings, no cookies and no session data, and either
+ * - storage holds only the five non-sensitive settings, no cookies and no session data, and either
  *   no IndexedDB at all or, when the actor chose a passphrase, only the encrypted vault.
  */
 export async function assertClean(actors: Actor[], baseURL: string, options: CleanOptions = {}) {
@@ -62,7 +62,7 @@ export async function assertClean(actors: Actor[], baseURL: string, options: Cle
     ).toBe(true)
     expect(
       stored.settings.every((key) =>
-        ['autoLockMinutes', 'demoMode', 'endpointUrl', 'theme'].includes(key),
+        ['autoLockMinutes', 'demoMode', 'endpointUrl', 'language', 'theme'].includes(key),
       ),
     ).toBe(true)
     expect(stored.session).toBe(0)

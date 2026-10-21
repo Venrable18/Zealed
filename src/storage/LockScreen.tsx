@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { Button } from '../components/Button.tsx'
 import { TextInput } from '../components/Field.tsx'
+import { useT } from '../i18n/index.ts'
 import { currentTime, useNow } from '../features/legacy/silent/useNow.ts'
 import { WipeData } from '../features/settings/WipeData.tsx'
 import { unlockVault } from './vaultState.ts'
 
 /** Shown instead of the app while a vault exists and has not been unlocked. */
 export function LockScreen() {
+  const t = useT()
   const [passphrase, setPassphrase] = useState('')
   const [error, setError] = useState<string | undefined>()
   const [busy, setBusy] = useState(false)
@@ -26,18 +28,15 @@ export function LockScreen() {
     setPassphrase('')
     if (result.reason === 'cooling-down') {
       setRetryAt(currentTime() + result.retryInMs)
-      setError('Too many wrong attempts.')
-    } else if (result.reason === 'wrong-passphrase') setError('That passphrase is not right.')
-    else setError('Your saved data could not be opened. Nothing was shown.')
+      setError(t('lock.tooMany'))
+    } else if (result.reason === 'wrong-passphrase') setError(t('lock.wrong'))
+    else setError(t('lock.cannotOpen'))
   }
 
   return (
     <div className="mx-auto max-w-md space-y-6 py-16">
-      <h1 className="text-3xl">Locked</h1>
-      <p className="text-muted">
-        Enter your passphrase to open your data. It is saved on this device, encrypted, and nowhere
-        else.
-      </p>
+      <h1 className="text-3xl">{t('lock.title')}</h1>
+      <p className="text-muted">{t('lock.intro')}</p>
       <form
         onSubmit={(event) => {
           event.preventDefault()
@@ -46,7 +45,7 @@ export function LockScreen() {
         className="space-y-4"
       >
         <TextInput
-          label="Passphrase"
+          label={t('lock.passphrase')}
           type="password"
           autoComplete="current-password"
           autoFocus
@@ -57,24 +56,17 @@ export function LockScreen() {
           {...(error === undefined
             ? {}
             : {
-                error:
-                  waitSeconds > 0 ? `${error} Try again in ${String(waitSeconds)} seconds.` : error,
+                error: waitSeconds > 0 ? t('lock.wait', { error, seconds: waitSeconds }) : error,
               })}
         />
         <Button type="submit" busy={busy} disabled={waitSeconds > 0 || passphrase === ''}>
-          Unlock
+          {t('lock.unlock')}
         </Button>
       </form>
       <details className="rounded-card border border-line p-4">
-        <summary className="min-h-11 cursor-pointer py-2 font-medium">
-          Forgot your passphrase?
-        </summary>
+        <summary className="min-h-11 cursor-pointer py-2 font-medium">{t('lock.forgot')}</summary>
         <div className="space-y-3">
-          <p className="text-sm text-muted">
-            There is no way to recover it, and no one can reset it for you: that is what keeps your
-            data private. The only way forward is to wipe this device and start again. Wallet funds
-            can then only be recovered with your seed phrase.
-          </p>
+          <p className="text-sm text-muted">{t('lock.forgotBody')}</p>
           <WipeData />
         </div>
       </details>

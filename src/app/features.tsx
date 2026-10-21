@@ -1,10 +1,11 @@
 import type { ComponentType, SVGProps } from 'react'
+import type { MessageKey } from '../i18n/index.ts'
 import { BubbleIcon, LetterIcon, PotIcon } from '../components/Icons.tsx'
 
 export interface Feature {
   path: string
   title: string
-  tagline: string
+  taglineKey: MessageKey
   Icon: ComponentType<SVGProps<SVGSVGElement>>
 }
 
@@ -13,19 +14,19 @@ export const FEATURES: readonly Feature[] = [
   {
     path: '/legacy',
     title: 'Legacy',
-    tagline: 'Seal a letter and funds for someone, opened on a date or if you go silent.',
+    taglineKey: 'feature.legacy',
     Icon: LetterIcon,
   },
   {
     path: '/blind-pot',
     title: 'Blind Pot',
-    tagline: 'A shared gift pot. The host sees the total, never who gave what.',
+    taglineKey: 'feature.blindPot',
     Icon: PotIcon,
   },
   {
     path: '/unsigned',
     title: 'Unsigned',
-    tagline: 'An anonymous contact line. Send a message, with money if you like.',
+    taglineKey: 'feature.unsigned',
     Icon: BubbleIcon,
   },
 ]

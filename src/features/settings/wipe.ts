@@ -9,6 +9,7 @@ export function resetAllStores(): void {
   const settings = useSettings.getState()
   settings.setDemoMode(false)
   settings.setTheme('system')
+  settings.setLanguage('system')
 }
 
 export interface WipeDeps {

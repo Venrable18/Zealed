@@ -75,7 +75,10 @@ test.describe('theme', () => {
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
     await expect(page.getByRole('radio', { name: 'Dark' })).toBeChecked()
 
-    await page.getByRole('radio', { name: 'Match my device' }).check()
+    await page
+      .getByRole('group', { name: 'Appearance' })
+      .getByRole('radio', { name: 'Match my device' })
+      .check()
     await expect(page.locator('html')).not.toHaveAttribute('data-theme')
     expect(await background()).toBe('rgb(250, 248, 245)')
   })

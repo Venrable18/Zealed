@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { parseDemoParam } from '../config/demo.ts'
 import { LIGHTWALLET_ENDPOINTS } from '../config/network.ts'
+import { isLanguageCode, type LanguagePreference } from '../i18n/languages.ts'
 
 export type ThemePreference = 'system' | 'light' | 'dark'
 
@@ -21,6 +22,9 @@ interface SettingsState {
   setEndpointUrl: (url: string) => void
   autoLockMinutes: number
   setAutoLockMinutes: (minutes: number) => void
+  /** The language of the translated screens, or "system" to follow the browser. */
+  language: LanguagePreference
+  setLanguage: (language: LanguagePreference) => void
 }
 
 const isEndpoint = (url: unknown): url is string =>
@@ -52,15 +56,20 @@ export const useSettings = create<SettingsState>()(
       setAutoLockMinutes: (minutes) => {
         if (isAutoLock(minutes)) set({ autoLockMinutes: minutes })
       },
+      language: 'system',
+      setLanguage: (language) => {
+        if (language === 'system' || isLanguageCode(language)) set({ language })
+      },
     }),
     {
       name: 'zealed:settings',
       storage: createJSONStorage(() => localStorage),
-      partialize: ({ demoMode, theme, endpointUrl, autoLockMinutes }) => ({
+      partialize: ({ demoMode, theme, endpointUrl, autoLockMinutes, language }) => ({
         demoMode,
         theme,
         endpointUrl,
         autoLockMinutes,
+        language,
       }),
       merge: (saved, current) => {
         const s = (typeof saved === 'object' && saved !== null ? saved : {}) as Record<
@@ -75,6 +84,7 @@ export const useSettings = create<SettingsState>()(
           autoLockMinutes: isAutoLock(s['autoLockMinutes'])
             ? s['autoLockMinutes']
             : DEFAULT_AUTO_LOCK_MINUTES,
+          language: isLanguageCode(s['language']) ? s['language'] : 'system',
         }
       },
     },

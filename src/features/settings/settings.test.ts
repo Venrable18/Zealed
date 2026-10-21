@@ -91,6 +91,7 @@ describe('settings store', () => {
       'autoLockMinutes',
       'demoMode',
       'endpointUrl',
+      'language',
       'theme',
     ])
   })

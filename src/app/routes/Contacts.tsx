@@ -12,9 +12,11 @@ import {
   type Contact,
   type ContactField,
 } from '../../features/contacts/contacts.ts'
+import { useT } from '../../i18n/index.ts'
 import { NotSavedNotice } from '../../storage/NotSavedNotice.tsx'
 
 function ContactRow({ contact }: { contact: Contact }) {
+  const t = useT()
   const rename = useContacts((state) => state.rename)
   const remove = useContacts((state) => state.remove)
   const push = useToasts((state) => state.push)
@@ -30,11 +32,11 @@ function ContactRow({ contact }: { contact: Contact }) {
           onSubmit={(event) => {
             event.preventDefault()
             if (rename(contact.id, name)) setEditing(false)
-            else push('error', 'That name cannot be used.')
+            else push('error', t('contacts.badName'))
           }}
         >
           <TextInput
-            label={`New name for ${contact.name}`}
+            label={t('contacts.newName', { name: contact.name })}
             value={name}
             maxLength={CONTACT_NAME_MAX * 4}
             onChange={(e) => {
@@ -42,7 +44,7 @@ function ContactRow({ contact }: { contact: Contact }) {
             }}
           />
           <div className="flex gap-3">
-            <Button type="submit">Save name</Button>
+            <Button type="submit">{t('contacts.saveName')}</Button>
             <Button
               variant="ghost"
               onClick={() => {
@@ -50,7 +52,7 @@ function ContactRow({ contact }: { contact: Contact }) {
                 setName(contact.name)
               }}
             >
-              Cancel
+              {t('contacts.cancel')}
             </Button>
           </div>
         </form>
@@ -61,29 +63,29 @@ function ContactRow({ contact }: { contact: Contact }) {
           <div className="flex flex-wrap gap-3">
             <Button
               variant="secondary"
-              aria-label={`Rename ${contact.name}`}
+              aria-label={t('contacts.renameLabel', { name: contact.name })}
               onClick={() => {
                 setEditing(true)
               }}
             >
-              Rename
+              {t('contacts.rename')}
             </Button>
             <Button
               variant="ghost"
-              aria-label={`Remove ${contact.name}`}
+              aria-label={t('contacts.removeLabel', { name: contact.name })}
               onClick={() => {
                 setRemoving(true)
               }}
             >
-              Remove
+              {t('contacts.remove')}
             </Button>
           </div>
         </>
       )}
       <ConfirmDialog
         open={removing}
-        title={`Remove ${contact.name}?`}
-        confirmLabel="Remove"
+        title={t('contacts.removeTitle', { name: contact.name })}
+        confirmLabel={t('contacts.remove')}
         danger
         onCancel={() => {
           setRemoving(false)
@@ -93,13 +95,14 @@ function ContactRow({ contact }: { contact: Contact }) {
           remove(contact.id)
         }}
       >
-        They are removed from this list only. Letters and payments already sent are not affected.
+        {t('contacts.removeBody')}
       </ConfirmDialog>
     </li>
   )
 }
 
 export function Contacts() {
+  const t = useT()
   const contacts = useContacts((state) => state.contacts)
   const add = useContacts((state) => state.add)
   const push = useToasts((state) => state.push)
@@ -110,16 +113,13 @@ export function Contacts() {
   return (
     <div className="space-y-10 py-10">
       <div>
-        <h1 className="text-3xl">Contacts</h1>
-        <p className="mt-3 max-w-prose text-muted">
-          Names for the addresses you use, so you can pick a person instead of pasting a long
-          address. They stay on this device.
-        </p>
+        <h1 className="text-3xl">{t('contacts.title')}</h1>
+        <p className="mt-3 max-w-prose text-muted">{t('contacts.intro')}</p>
       </div>
       <NotSavedNotice />
 
       <section className="space-y-4">
-        <h2 className="text-xl">Add a contact</h2>
+        <h2 className="text-xl">{t('contacts.addTitle')}</h2>
         <form
           noValidate
           className="space-y-4"
@@ -130,12 +130,12 @@ export function Contacts() {
               setName('')
               setAddress('')
               setErrors({})
-              push('success', `${result.contact.name} was saved.`)
+              push('success', t('contacts.saved', { name: result.contact.name }))
             } else setErrors(result.errors)
           }}
         >
           <TextInput
-            label="Name"
+            label={t('contacts.name')}
             value={name}
             maxLength={CONTACT_NAME_MAX * 4}
             onChange={(e) => {
@@ -145,32 +145,30 @@ export function Contacts() {
             {...(errors.name === undefined ? {} : { error: errors.name })}
           />
           <AddressInput
-            label="Address"
+            label={t('contacts.address')}
             value={address}
             onChange={setAddress}
             onParsed={(contact) => {
               if (name.trim() === '' && contact.name !== undefined) setName(contact.name)
             }}
-            hint="Type it, paste it, or scan a QR code or contact link."
+            hint={t('contacts.addressHint')}
             {...(errors.address === undefined ? {} : { error: errors.address })}
           />
-          <Button type="submit">Save contact</Button>
+          <Button type="submit">{t('contacts.save')}</Button>
         </form>
         <p className="text-sm text-muted">
-          Someone can also send you a contact link from their{' '}
+          {t('contacts.linkNote')}{' '}
           <Link to="/receive" className="underline underline-offset-4">
-            Receive
-          </Link>{' '}
-          page. Opening it adds them here after you confirm.
+            {t('nav.receive')}
+          </Link>
+          {t('contacts.linkNote2')}
         </p>
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-xl">Your contacts</h2>
+        <h2 className="text-xl">{t('contacts.listTitle')}</h2>
         {contacts.length === 0 ? (
-          <EmptyState title="No contacts yet">
-            Add someone above, or open a contact link they send you.
-          </EmptyState>
+          <EmptyState title={t('contacts.emptyTitle')}>{t('contacts.empty')}</EmptyState>
         ) : (
           <ul className="space-y-3">
             {contacts.map((contact) => (

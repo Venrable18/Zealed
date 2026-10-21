@@ -42,9 +42,13 @@ beforeEach(async () => {
   await initVault()
 })
 
-afterEach(() => {
+afterEach(async () => {
   cleanup()
   vi.useRealTimers()
+  // Let any lock still saving finish, so it cannot spill into the next test.
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 20))
+  })
 })
 
 async function lockedVault() {
@@ -212,6 +216,16 @@ describe('VaultSettings', () => {
   })
 })
 
+// Locking really encrypts and saves, which takes real time that fake timers cannot advance.
+const realSetTimeout = globalThis.setTimeout
+
+async function untilStatus(status: 'locked' | 'unlocked' | 'none') {
+  for (let i = 0; i < 1000 && useVaultStatus.getState().status !== status; i++)
+    await act(async () => {
+      await new Promise((resolve) => realSetTimeout(resolve, 5))
+    })
+}
+
 describe('auto-lock', () => {
   function Probe() {
     useAutoLock()
@@ -235,6 +249,7 @@ describe('auto-lock', () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(2000)
     })
+    await untilStatus('locked')
     expect(useVaultStatus.getState().status).toBe('locked')
     expect(useContacts.getState().contacts).toEqual([])
   })
@@ -251,6 +266,7 @@ describe('auto-lock', () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(5 * 60_000 + 1000)
     })
+    await untilStatus('locked')
     expect(useVaultStatus.getState().status).toBe('locked')
   })
 
@@ -264,6 +280,7 @@ describe('auto-lock', () => {
       // Locking saves first, so it finishes a moment later.
       await vi.advanceTimersByTimeAsync(100)
     })
+    await untilStatus('locked')
     expect(useVaultStatus.getState().status).toBe('locked')
   })
 

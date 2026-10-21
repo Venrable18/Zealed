@@ -153,7 +153,11 @@ test.describe('Settings', () => {
     expect(left).toEqual({ local: [], session: 0, databases: [], theme: 'system' })
     await page.goto('/settings')
     await expect(page.getByLabel('Lock after')).toHaveValue('5')
-    await expect(page.getByRole('radio', { name: 'Match my device' })).toBeChecked()
+    await expect(
+      page
+        .getByRole('group', { name: 'Appearance' })
+        .getByRole('radio', { name: 'Match my device' }),
+    ).toBeChecked()
   })
 })
 

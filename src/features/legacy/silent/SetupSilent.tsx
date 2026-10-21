@@ -11,6 +11,7 @@ import { shortAddress } from '../format.ts'
 import { MIN_GIFT_ZAT } from '../validate.ts'
 import type { LegacyWalletPort } from '../walletPort.ts'
 import { UNIT_MS, describeDuration, joinDuration, splitDuration, type Unit } from './duration.ts'
+import { InviteGuardian } from './InviteGuardian.tsx'
 import { GUARDIANS_LIMITS, setupSilentLetter, validateSilent, type SilentField } from './owner.ts'
 import { useSilent } from './stores.ts'
 import { currentTime } from './useNow.ts'
@@ -205,6 +206,7 @@ export function SetupSilent({ wallet, defaultPeriodMs, defaultGraceMs }: SetupSi
         {errors.guardians !== undefined && (
           <p className="text-sm font-medium text-bad">{errors.guardians}</p>
         )}
+        <InviteGuardian />
       </fieldset>
 
       <div className="space-y-1.5">

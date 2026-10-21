@@ -664,7 +664,7 @@ for everything that can be tested without the wallet; the items that need it are
     yet is waited for with no error shown.
 - **Strict final check for every actor** (`assertClean`; _correction: when this phase was first reported, the no-console, no-Referer and no-private-URL checks were described as enforced but were not actually in the code. They were added afterwards and are now enforced, and fixed real problems they exposed_): only the app's own origin (plus drand where
   allowed) was contacted, **no console message of any kind**, **no Referer** sent to another origin,
-  **no address or pot data in any URL**, and storage holds only the four non-sensitive settings, no
+  **no address or pot data in any URL**, and storage holds only the five non-sensitive settings, no
   cookies, no session data and no IndexedDB.
 - `docs/PRIVACY_CHECKLIST.md`: 12 items with evidence and status (10 met, 1 partly, 1 not met yet; item 2 later became met with caveats, see the storage section below).
 - `docs/THREAT_MODEL.md`: the Blind Pot section was missing and is added, plus a review table of what
@@ -731,3 +731,34 @@ tests; 264 quick browser tests (dev and preview); scenarios, including a new per
 **Not done / blocked on the wallet**: the wallet's own key and note storage; the Receive screen shows
 an address only when a wallet provides one (it says so otherwise); camera scanning is tested with a
 fake camera only.
+
+## Guardian invitations and a language switch (2026-10-22): done
+
+**Built**
+
+- **Guardian invitation.** In the guardian setup, "Invite a guardian" makes a link to `/invite` that
+  holds only the owner's optional name (nothing about the letter, heir or money), in the URL
+  fragment so no server sees it. The guardian opens it, reads what the role means in plain words
+  (holds one piece of a key, cannot read the letter, must open Zealed now and then), is warned that
+  anyone can make an invitation, and gets a reply link carrying their own address (from the Receive
+  wallet interface, with a "fresh address" button and a QR code). The owner pastes the reply into a
+  guardian field, which fills in the address, or opens it to save the guardian as a contact. The name
+  in an invitation is untrusted: it is length- and character-checked and shown as plain text.
+- **Language switch.** English, Spanish and French, chosen in Settings or following the browser, with
+  English as the fallback. The choice is a plain setting (so storage now holds five non-sensitive
+  settings), sets `<html lang>`, and each language is named in its own language. A test checks that
+  every language has exactly the same keys and `{placeholders}` as English, so nothing can be missing.
+
+**Covered by translation:** the header and navigation, home page, Settings page, lock screen,
+"nothing is saved" notice, Receive, Contacts, Add contact and the invitation pages.
+
+**Not translated yet (be honest about it):** the Legacy, Blind Pot and Unsigned screens and their
+forms, the vault/seed/endpoint/wipe sections inside Settings, validation messages that come from the
+logic layer (for example "Give this contact a name."), dates and numbers. Settings says that some
+screens are still only in English. Feature names (Legacy, Blind Pot, Unsigned) are kept in every
+language on purpose. The Spanish and French were written for this prototype and **need review by a
+native speaker** before anyone relies on them.
+
+**Verified**: see the run recorded in the commit; new tests cover the invitation format and its
+refusals, both pages, the language catalogues and switching, 360 px width and axe in Spanish and
+French (light and dark), and a two-actor scenario for the full invite-and-reply flow.

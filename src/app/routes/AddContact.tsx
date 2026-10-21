@@ -4,6 +4,7 @@ import { Button } from '../../components/Button.tsx'
 import { EmptyState } from '../../components/EmptyState.tsx'
 import { TextInput } from '../../components/Field.tsx'
 import { useToasts } from '../../components/toastStore.ts'
+import { useT } from '../../i18n/index.ts'
 import {
   CONTACT_NAME_MAX,
   findContact,
@@ -13,6 +14,7 @@ import {
 
 /** The page a contact link opens. The contact is read from the URL fragment, which servers never see. */
 export function AddContact() {
+  const t = useT()
   const { hash } = useLocation()
   const shared = readContactFromHash(hash)
   const contacts = useContacts((state) => state.contacts)
@@ -26,14 +28,14 @@ export function AddContact() {
     return (
       <div className="py-10">
         <EmptyState
-          title="This link does not look right"
+          title={t('add.badTitle')}
           action={
             <Link to="/contacts" className="underline underline-offset-4">
-              Go to contacts
+              {t('add.goContacts')}
             </Link>
           }
         >
-          Ask for the contact link again, and make sure the whole link was copied.
+          {t('add.badBody')}
         </EmptyState>
       </div>
     )
@@ -43,12 +45,12 @@ export function AddContact() {
 
   return (
     <div className="space-y-6 py-10">
-      <h1 className="text-3xl">Add a contact</h1>
+      <h1 className="text-3xl">{t('add.title')}</h1>
       {existing !== undefined ? (
         <p role="status" className="rounded-control border border-line px-4 py-3">
-          This address is already saved as <strong>{existing.name}</strong>.{' '}
+          {t('add.already', { name: existing.name })}{' '}
           <Link to="/contacts" className="underline underline-offset-4">
-            Go to contacts
+            {t('add.goContacts')}
           </Link>
         </p>
       ) : (
@@ -59,32 +61,28 @@ export function AddContact() {
             event.preventDefault()
             const result = add(name, shared.address)
             if (result.ok) {
-              push('success', `${result.contact.name} was saved.`)
+              push('success', t('contacts.saved', { name: result.contact.name }))
               void navigate('/contacts')
-            } else
-              setError(result.errors.name ?? result.errors.address ?? 'That could not be saved.')
+            } else setError(result.errors.name ?? result.errors.address ?? t('add.cannotSave'))
           }}
         >
-          <p className="text-muted">
-            Someone sent you a link to add them. Check it came from who you expect: anyone can make
-            one.
-          </p>
+          <p className="text-muted">{t('add.intro')}</p>
           <TextInput
-            label="Name"
+            label={t('contacts.name')}
             value={name}
             maxLength={CONTACT_NAME_MAX * 4}
             onChange={(e) => {
               setName(e.target.value)
             }}
             autoComplete="off"
-            hint="Their suggested name is filled in. Change it if you like."
+            hint={t('add.nameHint')}
             {...(error === undefined ? {} : { error })}
           />
           <div>
-            <p className="text-sm font-medium">Address</p>
+            <p className="text-sm font-medium">{t('contacts.address')}</p>
             <p className="break-all text-sm text-muted">{shared.address}</p>
           </div>
-          <Button type="submit">Save contact</Button>
+          <Button type="submit">{t('contacts.save')}</Button>
         </form>
       )}
     </div>

@@ -299,3 +299,16 @@ real fees. Those need the WebZjs tooling and the wallet (Phase 3).
   reload so a stolen unlocked tab does not stay open; record names are authenticated so records
   cannot be swapped; contact links keep addresses in the URL fragment so servers never see them.
 - **Open**: the passphrase cannot be recovered; the wallet's own storage is not covered yet.
+
+## Guardian invitations (2026-10-22)
+
+- **What an invitation reveals**: the owner's chosen name, to whoever gets the link, and that this
+  person is setting up a guardian arrangement. It holds no address, letter, heir or amount, and its
+  data is in the URL fragment, so servers never see it.
+- **Abuse**: anyone can make an invitation in any name. The page says so and asks the guardian to
+  accept only if they know the sender. The name is validated (length, no control or hidden
+  characters, no line breaks) and rendered as text. Nothing is sent from the page.
+- **The reply** is an ordinary contact link with the guardian's address, ideally a fresh one. Whoever
+  sees it learns that address, so it should travel by a channel the owner trusts. A swapped reply
+  (someone replaces the link) would make the owner pick the wrong guardian: the owner should confirm
+  with the guardian out of band, as with any address.

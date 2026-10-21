@@ -35,7 +35,7 @@ exactly what is missing and why.
 
 - **Nothing private is written unless the person chooses a passphrase** (Settings). Without one,
   pots, letters, shares, check-in keys, messages, contacts and the sent list live in memory only,
-  and the app says so. Scenarios assert a browser then holds only the four non-sensitive settings,
+  and the app says so. Scenarios assert a browser then holds only the five non-sensitive settings,
   no cookies, no session data and no IndexedDB database.
 - With a passphrase, a key is derived with PBKDF2-SHA256 (600,000 rounds, random salt) and kept
   only in memory as a non-extractable AES-256-GCM key. Every stored record is encrypted with its
