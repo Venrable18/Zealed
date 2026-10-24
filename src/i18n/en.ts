@@ -156,6 +156,51 @@ export const en = {
   'inviteMaker.copied': 'Invitation copied.',
   'inviteMaker.note':
     'The invitation holds only your name. Nothing about your letter, your heir or any money.',
+
+  'nav.wallet': 'Wallet',
+  'wallet.title': 'Wallet',
+  'wallet.intro':
+    'Your Zcash testnet wallet. It runs in this browser, and its keys never leave this device.',
+  'wallet.needVault':
+    'The wallet’s keys are kept encrypted on this device, so choose a passphrase first.',
+  'wallet.needVaultLink': 'Choose a passphrase',
+  'wallet.createTitle': 'Create a wallet',
+  'wallet.createBody':
+    'Make a new wallet with a 24-word recovery phrase. Anyone with the phrase can take the money, and without it a lost device cannot be recovered.',
+  'wallet.create': 'Create a new wallet',
+  'wallet.restoreTitle': 'Restore a wallet',
+  'wallet.restoreBody': 'Enter the 24 words of an existing testnet wallet.',
+  'wallet.phrase': 'Recovery phrase',
+  'wallet.birthday': 'Starting block (optional)',
+  'wallet.birthdayHint':
+    'The block the wallet was made at. A later block makes the first sync much quicker. Leave empty if unsure.',
+  'wallet.restore': 'Restore this wallet',
+  'wallet.badPhrase': 'A recovery phrase has exactly 24 words.',
+  'wallet.badBirthday': 'The starting block must be a whole number.',
+  'wallet.writeTitle': 'Write down your recovery phrase',
+  'wallet.writeBody':
+    'Write these 24 words on paper, in order, and keep them private. They are the only way to get the wallet back, and they are not shown again until you confirm your passphrase in Settings.',
+  'wallet.written': 'I have written the 24 words down',
+  'wallet.continue': 'Create the wallet',
+  'wallet.cancel': 'Cancel',
+  'wallet.loading':
+    'Preparing the wallet. The first time this downloads the proving code, about 55 MB.',
+  'wallet.failed': 'The wallet could not be opened. Check your connection and try again.',
+  'wallet.retry': 'Try again',
+  'wallet.remove': 'Remove this wallet from the device',
+  'wallet.balance': 'Balance',
+  'wallet.spendable': 'Spendable',
+  'wallet.pending': 'Waiting for confirmations',
+  'wallet.syncing': 'Catching up with the network…',
+  'wallet.syncedAt': 'Up to date. Last checked {time}.',
+  'wallet.syncFailed': 'The wallet could not reach the network. It will keep trying.',
+  'wallet.syncNow': 'Check now',
+  'wallet.fundTitle': 'Get test money',
+  'wallet.fundBody':
+    'This is a testnet wallet. Send test ZEC (TAZ) from a testnet faucet to the address on the Receive page. Test money has no value.',
+  'wallet.receiveLink': 'Open Receive',
+  'wallet.backupLink': 'Back up your recovery phrase in Settings',
+  'wallet.details': 'Technical details',
 } as const
 
 export type MessageKey = keyof typeof en

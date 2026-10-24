@@ -42,6 +42,12 @@ describe('buildCsp (production)', () => {
     expect(csp).not.toContain('ws:')
   })
 
+  it('lets only this site and blob workers (the wallet’s proving threads) run as workers', () => {
+    expect(directive(csp, 'worker-src')).toEqual(["'self'", 'blob:'])
+    // Worker scripts are still limited by script-src, so a blob cannot bring in other code.
+    expect(directive(csp, 'script-src')).not.toContain('blob:')
+  })
+
   it('blocks framing, plugins and base/form hijacking', () => {
     expect(directive(csp, 'frame-ancestors')).toEqual(["'none'"])
     expect(directive(csp, 'object-src')).toEqual(["'none'"])

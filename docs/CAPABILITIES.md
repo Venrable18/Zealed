@@ -44,28 +44,50 @@ yet), **unsupported** (checked and missing; see workaround).
 
 ## Zcash operations (Phase 2 gate)
 
-| Capability                                                          | Status                                                                    | Workaround              |
-| ------------------------------------------------------------------- | ------------------------------------------------------------------------- | ----------------------- |
-| Initialize WASM and thread pool once                                | pending                                                                   |                         |
-| Connect to endpoint, fetch chain info, endpoint fallback            | chain info verified outside the browser (curl, gRPC-web); browser pending |                         |
-| Create wallet, restore from seed, sync in a Web Worker              | pending                                                                   |                         |
-| Unified address, faucet funding, balance                            | pending                                                                   |                         |
-| Shielded send **with memo**, receive and decrypt memo               | **FAILS (gate)**                                                          | See "Gate result" below |
-| One transaction with **multiple outputs/memos** to one recipient    | **FAILS (gate)**                                                          | See "Gate result" below |
-| Current shielded pool and transaction version                       | **FAILS (gate)**: testnet is NU7 + Ironwood; no WebZjs supports NU7       | See "Gate result" below |
-| Multiple accounts in one wallet                                     | pending                                                                   | Separate wallet per pot |
-| Fresh addresses, viewing key export/import, block heights and times | pending                                                                   |                         |
-| ZIP 302 arbitrary-data memo marker (`0xFF`) for ZMP                 | verified against zips.z.cash (2026-10-14)                                 |                         |
+| Capability                                                          | Status                                                                                                                                                         | Workaround              |
+| ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| Initialize WASM and thread pool once                                | pending                                                                                                                                                        |                         |
+| Connect to endpoint, fetch chain info, endpoint fallback            | chain info verified outside the browser (curl, gRPC-web); browser pending                                                                                      |                         |
+| Create wallet, restore from seed, sync in a Web Worker              | **verified in Chromium (2026-10-24)**: a new wallet is created, opens and syncs the NU7 testnet to "Up to date" in about 7 s (`tests/e2e/wallet.live.spec.ts`) |                         |
+| Unified address, faucet funding, balance                            | address and balance **verified**; faucet funding not yet done                                                                                                  |                         |
+| Shielded send **with memo**, receive and decrypt memo               | **built (2026-10-24), not yet proven on testnet**: `send_payments` / `received_notes`; unit-tested with a fake wallet; needs a funded testnet wallet           | See "Update 2026-10-24" |
+| One transaction with **multiple outputs/memos** to one recipient    | **built (2026-10-24), not yet proven on testnet**: same call                                                                                                   | See "Update 2026-10-24" |
+| Current shielded pool and transaction version                       | **works for sync (verified 2026-10-24)**: NU7 branch id and height patched in; change goes to Ironwood; sending untested                                       | See "Update 2026-10-24" |
+| Multiple accounts in one wallet                                     | pending                                                                                                                                                        | Separate wallet per pot |
+| Fresh addresses, viewing key export/import, block heights and times | pending                                                                                                                                                        |                         |
+| ZIP 302 arbitrary-data memo marker (`0xFF`) for ZMP                 | verified against zips.z.cash (2026-10-14)                                                                                                                      |                         |
 
 ## Platform requirements
 
-| Requirement                                                       | Status               | Notes                                                                                                           |
-| ----------------------------------------------------------------- | -------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Cross-origin isolation (COOP `same-origin` + COEP `require-corp`) | verified in Chromium | `window.crossOriginIsolated === true` on the dev server and `vite preview` (Playwright).                        |
-| WebAssembly under CSP                                             | configured           | `script-src` includes `'wasm-unsafe-eval'` (allows WASM compilation only, not JS `eval`). Exercised in Phase 2. |
-| Workers under CSP                                                 | configured           | `worker-src 'self'`. If WebZjs spawns `blob:` workers, this must be widened in Phase 2 and recorded here.       |
+| Requirement                                                       | Status                    | Notes                                                                                                                                                                                                                                 |
+| ----------------------------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cross-origin isolation (COOP `same-origin` + COEP `require-corp`) | verified in Chromium      | `window.crossOriginIsolated === true` on the dev server and `vite preview` (Playwright).                                                                                                                                              |
+| WebAssembly under CSP                                             | configured                | `script-src` includes `'wasm-unsafe-eval'` (allows WASM compilation only, not JS `eval`). Exercised in Phase 2.                                                                                                                       |
+| Workers under CSP                                                 | **verified (2026-10-24)** | `worker-src 'self' blob:`. The wallet's proving threads are started from `blob:` scripts, so `blob:` was added (not to `script-src`). `eval` and `new Function` stay forbidden: `wasm_thread` used `eval` and is patched (see below). |
 
-## Gate result (Phase 2): FAILED, stopped (re-checked 2026-10-07)
+## Update 2026-10-24: the gate is passed for sync; sending is built but unproven
+
+Zealed now carries its own copy of the wallet, in `wallet/` (see `wallet/README.md`), instead of
+waiting for WebZjs:
+
+- **NU7.** A 9-line patch to the librustzcash revision WebZjs already builds on adds NU7's real branch
+  id (`0x77190AD9`) and testnet height (4,465,026). NU7 uses the same v6 transaction format as NU6.3,
+  so nothing else was needed to talk to the network. A native run (`examples/probe.rs`) and a
+  Chromium run both sync the live NU7 testnet. Moving to the newly released NU7 crates
+  (`zcash_client_backend` 0.25, 2026-10-21) would be cleaner but changes the storage traits
+  `zcash_client_memory` implements (about 200 compile errors); not done.
+- **Memos and many outputs.** `send_payments` (one transaction, several recipients, each with an
+  optional 512-byte memo, change to Ironwood) and `received_notes` (every received note, with
+  arbitrary-data memos as raw bytes and the block's time) were added to the WebZjs bindings.
+- **Three more fixes found by running it in a browser**: `wasm_thread` called `eval` (forbidden by our
+  CSP), so it is vendored and patched; the thread pool needs `blob:` workers; and the testnet's
+  gRPC-web server answers the transparent-UTXO stream with "malformed response", which stopped every
+  sync, so that step is allowed to fail (Zealed holds only shielded money).
+- **Not yet proven**: that a memo payment is accepted by a testnet node and read back. That needs a
+  funded wallet. Until then the send path is covered only by tests against a fake wallet. Zero-value
+  outputs (used to carry memos with no payment) are the main thing to confirm.
+
+## Gate result (Phase 2, original, 2026-10-07): FAILED, stopped. Kept for the record; see the update above
 
 Two independent blockers. Both were found by reading the source and querying the live testnet
 endpoint, not with a running build. The limits are in the API and the consensus rules, so a

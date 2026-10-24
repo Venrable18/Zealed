@@ -5,6 +5,8 @@ import { useLanguage, useT, type MessageKey } from '../i18n/index.ts'
 import { ZCASH_NETWORK } from '../config/network.ts'
 import { useAutoLock } from '../storage/autoLock.ts'
 import { LockScreen } from '../storage/LockScreen.tsx'
+import { WalletProviders } from '../wallet/WalletProviders.tsx'
+import { useWalletBoot } from '../wallet/runtime.ts'
 import { initVault, useVaultStatus } from '../storage/vaultState.ts'
 import { FEATURES } from './features.tsx'
 import { useSettings } from './settingsStore.ts'
@@ -13,6 +15,7 @@ import { useSettings } from './settingsStore.ts'
 const NAV_ITEMS: readonly { path: string; name?: string; key?: MessageKey }[] = [
   ...FEATURES.map(({ path, title }) => ({ path, name: title })),
   { path: '/dashboard', key: 'nav.dashboard' },
+  { path: '/wallet', key: 'nav.wallet' },
   { path: '/contacts', key: 'nav.contacts' },
   { path: '/receive', key: 'nav.receive' },
   { path: '/settings', key: 'nav.settings' },
@@ -22,6 +25,7 @@ export function RootLayout() {
   const demoMode = useSettings((state) => state.demoMode)
   const vaultStatus = useVaultStatus((state) => state.status)
   useAutoLock()
+  useWalletBoot()
   const t = useT()
   const language = useLanguage()
   useEffect(() => {
@@ -76,7 +80,13 @@ export function RootLayout() {
         )}
       </header>
       <main id="main" className="mx-auto max-w-3xl px-4 pb-24">
-        {vaultStatus === 'checking' ? null : locked ? <LockScreen /> : <Outlet />}
+        {vaultStatus === 'checking' ? null : locked ? (
+          <LockScreen />
+        ) : (
+          <WalletProviders>
+            <Outlet />
+          </WalletProviders>
+        )}
       </main>
       <ToastViewport />
     </div>

@@ -159,4 +159,50 @@ export const es: Record<MessageKey, string> = {
   'inviteMaker.copied': 'Invitación copiada.',
   'inviteMaker.note':
     'La invitación solo contiene tu nombre. Nada sobre tu carta, tu heredero ni dinero.',
+
+  'nav.wallet': 'Cartera',
+  'wallet.title': 'Cartera',
+  'wallet.intro':
+    'Tu cartera de Zcash en la red de pruebas. Funciona en este navegador y sus claves nunca salen de este dispositivo.',
+  'wallet.needVault':
+    'Las claves de la cartera se guardan cifradas en este dispositivo, así que primero elige una frase de acceso.',
+  'wallet.needVaultLink': 'Elegir una frase de acceso',
+  'wallet.createTitle': 'Crear una cartera',
+  'wallet.createBody':
+    'Crea una cartera nueva con una frase de recuperación de 24 palabras. Quien tenga la frase puede llevarse el dinero, y sin ella no se puede recuperar un dispositivo perdido.',
+  'wallet.create': 'Crear una cartera nueva',
+  'wallet.restoreTitle': 'Restaurar una cartera',
+  'wallet.restoreBody':
+    'Escribe las 24 palabras de una cartera de la red de pruebas que ya tengas.',
+  'wallet.phrase': 'Frase de recuperación',
+  'wallet.birthday': 'Bloque inicial (opcional)',
+  'wallet.birthdayHint':
+    'El bloque en que se creó la cartera. Uno posterior acelera mucho la primera sincronización. Déjalo vacío si no estás seguro.',
+  'wallet.restore': 'Restaurar esta cartera',
+  'wallet.badPhrase': 'Una frase de recuperación tiene exactamente 24 palabras.',
+  'wallet.badBirthday': 'El bloque inicial debe ser un número entero.',
+  'wallet.writeTitle': 'Apunta tu frase de recuperación',
+  'wallet.writeBody':
+    'Escribe estas 24 palabras en papel, en orden, y mantenlas en privado. Son la única forma de recuperar la cartera y no se vuelven a mostrar hasta que confirmes tu frase de acceso en Ajustes.',
+  'wallet.written': 'He apuntado las 24 palabras',
+  'wallet.continue': 'Crear la cartera',
+  'wallet.cancel': 'Cancelar',
+  'wallet.loading':
+    'Preparando la cartera. La primera vez se descarga el código de pruebas criptográficas, unos 55 MB.',
+  'wallet.failed': 'No se pudo abrir la cartera. Revisa tu conexión e inténtalo de nuevo.',
+  'wallet.retry': 'Intentar de nuevo',
+  'wallet.remove': 'Quitar esta cartera del dispositivo',
+  'wallet.balance': 'Saldo',
+  'wallet.spendable': 'Disponible',
+  'wallet.pending': 'Esperando confirmaciones',
+  'wallet.syncing': 'Poniéndose al día con la red…',
+  'wallet.syncedAt': 'Al día. Última comprobación: {time}.',
+  'wallet.syncFailed': 'La cartera no pudo conectarse a la red. Seguirá intentándolo.',
+  'wallet.syncNow': 'Comprobar ahora',
+  'wallet.fundTitle': 'Conseguir dinero de prueba',
+  'wallet.fundBody':
+    'Esta es una cartera de la red de pruebas. Envía ZEC de prueba (TAZ) desde un grifo de la red de pruebas a la dirección de la página Recibir. El dinero de prueba no tiene valor.',
+  'wallet.receiveLink': 'Abrir Recibir',
+  'wallet.backupLink': 'Respalda tu frase de recuperación en Ajustes',
+  'wallet.details': 'Detalles técnicos',
 }

@@ -6,6 +6,7 @@ import { useContacts, type Contact } from '../features/contacts/contacts.ts'
 import { useSilent } from '../features/legacy/silent/stores.ts'
 import { useLegacy } from '../features/legacy/stores.ts'
 import { useSentMessages, useUnsigned } from '../features/unsigned/stores.ts'
+import { useWalletData, validWalletData } from '../wallet/walletData.ts'
 import type { Vault } from './vault.ts'
 import type { Contribution } from '../features/blindpot/queue.ts'
 
@@ -28,6 +29,21 @@ const isObject = (data: unknown): data is Record<string, unknown> =>
 const list = <T>(value: unknown): T[] => (Array.isArray(value) ? (value as T[]) : [])
 
 export const BINDINGS: readonly Binding[] = [
+  {
+    name: 'wallet.v1',
+    read: () => {
+      const { seed, birthday, accounts, dbBytes } = useWalletData.getState()
+      return { seed, birthday, accounts, dbBytes }
+    },
+    write: (data) => {
+      const valid = validWalletData(data)
+      if (valid !== null) useWalletData.getState().set(valid)
+    },
+    subscribe: (listener) => useWalletData.subscribe(listener),
+    reset: () => {
+      useWalletData.getState().reset()
+    },
+  },
   {
     name: 'pots.v1',
     read: () => usePots.getState().pots,

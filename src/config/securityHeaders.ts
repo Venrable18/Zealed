@@ -30,7 +30,8 @@ export function buildCsp({ devNonce }: CspOptions = {}): string {
       ...allowedConnectOrigins(),
       ...(devNonce === undefined ? [] : DEV_HMR_SOURCES),
     ],
-    'worker-src': ["'self'"],
+    // blob: lets the wallet start its proving threads (the library makes each from a blob that imports its own files).
+    'worker-src': ["'self'", 'blob:'],
     'manifest-src': ["'self'"],
     'object-src': ["'none'"],
     'base-uri': ["'none'"],

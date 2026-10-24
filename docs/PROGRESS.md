@@ -762,3 +762,35 @@ native speaker** before anyone relies on them.
 **Verified**: see the run recorded in the commit; new tests cover the invitation format and its
 refusals, both pages, the language catalogues and switching, 360 px width and axe in Spanish and
 French (light and dark), and a two-actor scenario for the full invite-and-reply flow.
+
+## Real wallet (2026-10-24): sync works on the NU7 testnet; sending is built but not yet proven
+
+**Built**
+
+- `wallet/`: the browser wallet, vendored from WebZjs with changes (NU7, memo send, memo receive,
+  Ironwood balance and change, no `eval`). Built to WebAssembly by `npm run wallet:build` and served
+  from `public/wallet` (about 60 MB because it holds the proving parameters). See `wallet/README.md`.
+- `src/wallet/`: `RealWallet`, one object satisfying every wallet interface the screens use (Blind Pot
+  host and guest, Legacy, Unsigned, Dashboard, Receive, seed export); a runtime that opens it when the
+  vault is unlocked and keeps it in sync; and the vault record `wallet.v1` (seed, accounts, database).
+  The seed and database are encrypted in the vault like the rest; locking closes the wallet.
+- A **Wallet** page: create (24 words shown once, confirmed) or restore (optional start block), balance,
+  sync status with technical details on failure, and a pointer to get test money.
+- Pots are accounts of the same seed; a gift wallet is an account from its own throwaway seed.
+- CSP: `worker-src` gained `blob:`; `script-src` is unchanged (no `eval`, no `blob:`).
+
+**Verified**: 23 unit tests of `RealWallet` against a fake wallet; in Chromium, a new wallet is created,
+opens, syncs the live NU7 testnet and shows its address (`LIVE_TESTNET=1`, about 7 s). Lint, format,
+typecheck, build, 566 unit tests, 320 quick browser tests and 10 scenarios pass.
+
+**Not proven, and why it matters**: no memo payment has been sent on testnet yet, because no funded
+wallet was available. Everything that sends (Legacy, Blind Pot gifts, Unsigned) therefore remains
+unproven against a real node, and zero-value outputs are the likeliest thing to need a fix. A
+funded wallet closes this: `PROBE_DIR=... SEND=1` runs `examples/probe.rs` natively.
+
+**Known limits**: the first load downloads about 55 MB; a restore with no known start block scans from
+the start of NU7 (about 70,000 blocks); no host with a 25 MB per-file limit (for example Cloudflare
+Pages) can serve the WebAssembly file as it is; syncing and proving use several worker threads, which
+needs cross-origin isolation (already set); block times are looked up per block from the server, which
+tells it which blocks hold the wallet's notes (it already sees every block fetched); the wallet is
+not translated beyond the Wallet page.

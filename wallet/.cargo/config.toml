@@ -1,0 +1,8 @@
+# NU7 is behind this cfg flag in the librustzcash revision we build against (see patches/).
+# Native builds and tests: export RUSTFLAGS='--cfg zcash_unstable="nu7"' (the environment variable
+# replaces the target flags below, so repeat the cfg there).
+[target.wasm32-unknown-unknown]
+rustflags = [
+  "-C", "target-feature=+atomics,+bulk-memory,+mutable-globals",
+  "--cfg", "zcash_unstable=\"nu7\"",
+]

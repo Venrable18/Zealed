@@ -4,3 +4,9 @@ playwright-report
 test-results
 package-lock.json
 zealed-build-plan.md
+wallet/target
+wallet/.deps
+wallet/pkg
+wallet/crates
+wallet/patches
+public/wallet

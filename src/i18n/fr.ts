@@ -159,4 +159,49 @@ export const fr: Record<MessageKey, string> = {
   'inviteMaker.copied': 'Invitation copiée.',
   'inviteMaker.note':
     'L’invitation ne contient que votre nom. Rien sur votre lettre, votre héritier ou de l’argent.',
+
+  'nav.wallet': 'Portefeuille',
+  'wallet.title': 'Portefeuille',
+  'wallet.intro':
+    'Votre portefeuille Zcash sur le réseau de test. Il fonctionne dans ce navigateur et ses clés ne quittent jamais cet appareil.',
+  'wallet.needVault':
+    'Les clés du portefeuille sont conservées chiffrées sur cet appareil : choisissez d’abord une phrase secrète.',
+  'wallet.needVaultLink': 'Choisir une phrase secrète',
+  'wallet.createTitle': 'Créer un portefeuille',
+  'wallet.createBody':
+    'Créez un nouveau portefeuille avec une phrase de récupération de 24 mots. Quiconque a la phrase peut prendre l’argent, et sans elle un appareil perdu est irrécupérable.',
+  'wallet.create': 'Créer un nouveau portefeuille',
+  'wallet.restoreTitle': 'Restaurer un portefeuille',
+  'wallet.restoreBody': 'Saisissez les 24 mots d’un portefeuille du réseau de test existant.',
+  'wallet.phrase': 'Phrase de récupération',
+  'wallet.birthday': 'Bloc de départ (facultatif)',
+  'wallet.birthdayHint':
+    'Le bloc où le portefeuille a été créé. Un bloc plus récent accélère beaucoup la première synchronisation. Laissez vide en cas de doute.',
+  'wallet.restore': 'Restaurer ce portefeuille',
+  'wallet.badPhrase': 'Une phrase de récupération compte exactement 24 mots.',
+  'wallet.badBirthday': 'Le bloc de départ doit être un nombre entier.',
+  'wallet.writeTitle': 'Notez votre phrase de récupération',
+  'wallet.writeBody':
+    'Écrivez ces 24 mots sur papier, dans l’ordre, et gardez-les privés. C’est le seul moyen de retrouver le portefeuille, et ils ne sont plus affichés tant que vous ne confirmez pas votre phrase secrète dans les Réglages.',
+  'wallet.written': 'J’ai noté les 24 mots',
+  'wallet.continue': 'Créer le portefeuille',
+  'wallet.cancel': 'Annuler',
+  'wallet.loading':
+    'Préparation du portefeuille. La première fois, le code de preuve est téléchargé : environ 55 Mo.',
+  'wallet.failed': 'Le portefeuille n’a pas pu être ouvert. Vérifiez votre connexion et réessayez.',
+  'wallet.retry': 'Réessayer',
+  'wallet.remove': 'Retirer ce portefeuille de l’appareil',
+  'wallet.balance': 'Solde',
+  'wallet.spendable': 'Disponible',
+  'wallet.pending': 'En attente de confirmations',
+  'wallet.syncing': 'Synchronisation avec le réseau…',
+  'wallet.syncedAt': 'À jour. Dernière vérification : {time}.',
+  'wallet.syncFailed': 'Le portefeuille n’a pas pu joindre le réseau. Il continuera d’essayer.',
+  'wallet.syncNow': 'Vérifier maintenant',
+  'wallet.fundTitle': 'Obtenir de l’argent de test',
+  'wallet.fundBody':
+    'Ceci est un portefeuille du réseau de test. Envoyez des ZEC de test (TAZ) depuis un faucet du réseau de test vers l’adresse de la page Recevoir. L’argent de test n’a aucune valeur.',
+  'wallet.receiveLink': 'Ouvrir Recevoir',
+  'wallet.backupLink': 'Sauvegardez votre phrase de récupération dans les Réglages',
+  'wallet.details': 'Détails techniques',
 }

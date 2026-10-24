@@ -10,6 +10,7 @@ const ROUTES = [
   { path: '/dashboard', heading: 'Dashboard' },
   { path: '/contacts', heading: 'Contacts' },
   { path: '/receive', heading: 'Receive' },
+  { path: '/wallet', heading: 'Wallet' },
   { path: '/settings', heading: 'Settings' },
   { path: '/components', heading: 'Component gallery' },
 ] as const

@@ -25,3 +25,9 @@ npm-debug.log*
 .idea
 .DS_Store
 *.sw?
+
+# The wallet's WebAssembly build (see wallet/README.md)
+wallet/target
+wallet/.deps
+wallet/pkg
+public/wallet

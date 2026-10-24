@@ -312,3 +312,20 @@ real fees. Those need the WebZjs tooling and the wallet (Phase 3).
   sees it learns that address, so it should travel by a channel the owner trusts. A swapped reply
   (someone replaces the link) would make the owner pick the wrong guardian: the owner should confirm
   with the guardian out of band, as with any address.
+
+## The real wallet (2026-10-24)
+
+- **Keys**: the 24-word seed and the wallet database live only in memory while unlocked, and in the
+  encrypted vault otherwise. A gift wallet's seed is also stored in the vault. Locking, auto-lock and
+  wipe close the wallet and clear them. The seed is shown once at creation and again only after the
+  passphrase is confirmed in Settings.
+- **What the server learns**: the usual light-wallet exposure. It sees which blocks the wallet
+  downloads and when, the wallet's IP address, and transactions it broadcasts. It also sees single
+  block lookups the wallet makes to learn a note's time. It does not see the keys, balances or
+  memos. Using a proxy or a VPN is outside Zealed.
+- **Code run in the page**: the wallet is 60 MB of WebAssembly built from third-party code plus our
+  patches (`wallet/patches`). It is served from the same origin and the CSP still forbids `eval`,
+  `new Function`, inline scripts and remote scripts. `blob:` workers are allowed so the wallet can
+  start its proving threads; they can only import same-origin scripts.
+- **Limits**: a compromised build or host serves wrong code (a risk for any web wallet; reproducible
+  builds are not set up); testnet only.
