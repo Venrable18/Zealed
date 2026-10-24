@@ -216,6 +216,33 @@ describe('sending', () => {
   })
 })
 
+describe('waiting for change', () => {
+  beforeEach(() => {
+    RealWallet.retryDelayMs = 1
+  })
+
+  it('waits for pending change to confirm, then sends', async () => {
+    const { wallet, state } = await open()
+    state.balances.set(1, { spendable: 0, pending: 50_000 })
+    state.failWith = 'could not propose the payments: InsufficientFunds'
+    const sending = wallet.sendMemos({ to: A, memos: [memo('later')] })
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    expect(wallet.busy).toBe(true)
+    state.failWith = ''
+    await expect(sending).resolves.toMatchObject({ txid: 'tx1' })
+    expect(state.syncs).toBeGreaterThan(0)
+    expect(wallet.busy).toBe(false)
+  })
+
+  it('does not wait when nothing is pending: it is simply not enough', async () => {
+    const { wallet, state } = await open()
+    state.balances.set(1, { spendable: 0, pending: 0 })
+    state.failWith = 'could not propose the payments: InsufficientFunds'
+    await expect(wallet.sendMemos({ to: A, memos: [memo('x')] })).rejects.toThrow(/Insufficient/)
+    expect(wallet.busy).toBe(false)
+  })
+})
+
 describe('reading', () => {
   it('lists only arbitrary-data memos, as raw bytes', async () => {
     const { wallet, state } = await open()
@@ -308,7 +335,8 @@ describe('gift wallets', () => {
 
     state.balances.set(2, { spendable: 50_000_000, pending: 0 })
     const swept = await wallet.sweepGiftWallet(gift.seed)
-    expect(swept).toMatchObject({ ok: true, sweptZat: 50_000_000n })
+    // It reports what actually arrives: the gift less the fee.
+    expect(swept).toMatchObject({ ok: true, sweptZat: 50_000_000n - 10_000n })
     // Signed with the gift wallet's own seed, to the main address.
     expect(state.sends.at(-1)).toMatchObject({ seed: 'gift seed words', account: 2 })
     expect(state.sends.at(-1)?.payments[0]?.address).toBe('utest1account1address')

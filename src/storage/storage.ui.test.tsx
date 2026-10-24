@@ -14,6 +14,8 @@ import { LockScreen } from './LockScreen.tsx'
 import { NotSavedNotice } from './NotSavedNotice.tsx'
 import { resetSensitiveData } from './persistence.ts'
 import { Vault } from './vault.ts'
+import { useWalletRuntime } from '../wallet/runtime.ts'
+import type { RealWallet } from '../wallet/realWallet.ts'
 import {
   MAX_UNLOCK_FAILURES,
   configureVault,
@@ -268,6 +270,26 @@ describe('auto-lock', () => {
     })
     await untilStatus('locked')
     expect(useVaultStatus.getState().status).toBe('locked')
+  })
+
+  it('waits while the wallet is busy (a send must not be cut off), then locks', async () => {
+    const wallet = { busy: true }
+    useWalletRuntime.setState({ wallet: wallet as unknown as RealWallet })
+    try {
+      await unlockedAndWatching(1)
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(5 * 60_000)
+      })
+      expect(useVaultStatus.getState().status).toBe('unlocked')
+      wallet.busy = false
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(6_000)
+      })
+      await untilStatus('locked')
+      expect(useVaultStatus.getState().status).toBe('locked')
+    } finally {
+      useWalletRuntime.setState({ wallet: null })
+    }
   })
 
   it('locks straight away when the page comes back after being away longer than the limit', async () => {

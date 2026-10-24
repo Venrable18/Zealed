@@ -1,3 +1,4 @@
+import { giftContent } from '../seal.ts'
 import { LEGACY_LETTER_MAX_BYTES } from '../../../config/constants.ts'
 import { sealForGuardians } from '../../../crypto/bundle.ts'
 import { toHex } from '../../../crypto/bytes.ts'
@@ -167,14 +168,14 @@ export async function setupSilentLetter(
   if (wallet === null) return { ok: false, reason: 'wallet-unavailable' }
   const value = checked.value
 
-  let gift: { seed: string; address: string } | undefined
+  let gift: { seed: string; address: string; birthday?: number } | undefined
   let sealed
   let ownerAddress: string
   try {
     ownerAddress = await wallet.ownAddress()
     gift = value.amountZat === null ? undefined : await wallet.createGiftWallet()
     sealed = await sealForGuardians({
-      content: { letter: value.letter, ...(gift === undefined ? {} : { giftSeed: gift.seed }) },
+      content: { letter: value.letter, ...giftContent(gift) },
       heirAddress: value.heirAddress,
       total: value.guardianAddresses.length,
       threshold: value.threshold,

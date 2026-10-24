@@ -56,9 +56,13 @@ export async function openLetter(
 }
 
 /** Moves a gift into the recipient's wallet. Never throws; a thrown wallet error becomes 'failed'. */
-export async function sweepGift(wallet: LegacyWalletPort, seed: string): Promise<SweepResult> {
+export async function sweepGift(
+  wallet: LegacyWalletPort,
+  seed: string,
+  birthday?: number,
+): Promise<SweepResult> {
   try {
-    return await wallet.sweepGiftWallet(seed)
+    return await wallet.sweepGiftWallet(seed, birthday)
   } catch {
     return { ok: false, reason: 'failed' }
   }

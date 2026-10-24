@@ -1,6 +1,10 @@
 import { useEffect } from 'react'
 import { useSettings } from '../app/settingsStore.ts'
+import { useWalletRuntime } from '../wallet/runtime.ts'
 import { lockVault, useVaultStatus } from './vaultState.ts'
+
+/** How often to try again when the wallet is busy at the moment the lock is due. */
+const BUSY_RETRY_MS = 5_000
 
 const ACTIVITY_EVENTS = ['pointerdown', 'keydown', 'touchstart', 'wheel'] as const
 
@@ -16,15 +20,25 @@ export function useAutoLock(): void {
     if (status !== 'unlocked') return
     const limit = minutes * 60_000
     let last = Date.now()
-    let timer = setTimeout(() => void lockVault(), limit)
+    // Locking closes the wallet. Never in the middle of a send: a letter's gift could be funded and
+    // the letter itself never sent. So a lock that falls due while the wallet is busy waits for it.
+    const lock = () => {
+      if (useWalletRuntime.getState().wallet?.busy === true) {
+        clearTimeout(timer)
+        timer = setTimeout(lock, BUSY_RETRY_MS)
+        return
+      }
+      void lockVault()
+    }
+    let timer = setTimeout(lock, limit)
 
     const activity = () => {
       last = Date.now()
       clearTimeout(timer)
-      timer = setTimeout(() => void lockVault(), limit)
+      timer = setTimeout(lock, limit)
     }
     const visible = () => {
-      if (document.visibilityState === 'visible' && Date.now() - last >= limit) void lockVault()
+      if (document.visibilityState === 'visible' && Date.now() - last >= limit) lock()
     }
 
     for (const name of ACTIVITY_EVENTS) window.addEventListener(name, activity, { passive: true })

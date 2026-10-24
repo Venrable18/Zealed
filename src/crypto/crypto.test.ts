@@ -379,6 +379,23 @@ describe('bundle format', () => {
     expect(() => decodeContent(bytes('nonsense'))).toThrow(CryptoError)
   })
 
+  it('carries the gift wallet’s start block, and ignores one that is not a block height', () => {
+    const withBirthday = { ...content, giftBirthday: 4_536_900 }
+    expect(decodeContent(encodeContent(withBirthday))).toEqual(withBirthday)
+    const json = (extra: string) => bytes(`{"v":1,"letter":"hi","giftSeed":"a b c"${extra}}`)
+    for (const bad of [
+      ',"giftBirthday":-1',
+      ',"giftBirthday":1.5',
+      ',"giftBirthday":"4"',
+      ',"giftBirthday":1e20',
+    ])
+      expect(decodeContent(json(bad))).toEqual({ letter: 'hi', giftSeed: 'a b c' })
+    // A start block without a seed means nothing, and is dropped.
+    expect(decodeContent(bytes('{"v":1,"letter":"hi","giftBirthday":5}'))).toEqual({ letter: 'hi' })
+    // Letters sealed before the field existed still open.
+    expect(decodeContent(json(''))).toEqual({ letter: 'hi', giftSeed: 'a b c' })
+  })
+
   it('Mode A: seals with a timelock and opens after the round', async () => {
     const unlockMs = timeOfRound(FIXTURE_ROUNDS[0] ?? 0)
     const sealed = await sealTimelocked({ content, unlockMs, nowMs: 1, client: fixtureClient() })

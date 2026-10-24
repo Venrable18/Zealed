@@ -32,6 +32,11 @@ const MAX_ADDRESS_CHARS = 500
 export interface LegacyContent {
   letter: string
   giftSeed?: string
+  /**
+   * The block the gift wallet was made at, so the recipient's wallet only has to scan from there
+   * rather than from the start of the network upgrade. Letters sealed before this existed lack it.
+   */
+  giftBirthday?: number
 }
 
 export function encodeContent(content: LegacyContent): Uint8Array {
@@ -43,6 +48,7 @@ export function encodeContent(content: LegacyContent): Uint8Array {
     v: 1,
     letter: content.letter,
     ...(content.giftSeed === undefined ? {} : { giftSeed: content.giftSeed }),
+    ...(content.giftBirthday === undefined ? {} : { giftBirthday: content.giftBirthday }),
   })
   return new TextEncoder().encode(json)
 }
@@ -52,10 +58,21 @@ export function decodeContent(bytes: Uint8Array): LegacyContent {
   try {
     const data: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes))
     if (typeof data !== 'object' || data === null) throw new Error()
-    const { v, letter, giftSeed } = data as Record<string, unknown>
+    const { v, letter, giftSeed, giftBirthday } = data as Record<string, unknown>
     if (v !== 1 || typeof letter !== 'string') throw new Error()
     if (giftSeed !== undefined && typeof giftSeed !== 'string') throw new Error()
-    return giftSeed === undefined ? { letter } : { letter, giftSeed }
+    const birthday =
+      typeof giftBirthday === 'number' &&
+      Number.isSafeInteger(giftBirthday) &&
+      giftBirthday >= 0 &&
+      giftBirthday < 2 ** 32
+        ? giftBirthday
+        : undefined
+    return {
+      letter,
+      ...(giftSeed === undefined ? {} : { giftSeed }),
+      ...(giftSeed === undefined || birthday === undefined ? {} : { giftBirthday: birthday }),
+    }
   } catch {
     throw new CryptoError('bad-bundle')
   }

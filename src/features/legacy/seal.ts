@@ -38,6 +38,18 @@ export async function previewFee(
   return wallet.estimateFee({ memoCount, fundsZat: input.amountZat })
 }
 
+/** What a sealed letter carries about its gift: the seed phrase, and the block it was made at. */
+export function giftContent(gift: { seed: string; birthday?: number } | undefined): {
+  giftSeed?: string
+  giftBirthday?: number
+} {
+  if (gift === undefined) return {}
+  return {
+    giftSeed: gift.seed,
+    ...(gift.birthday === undefined ? {} : { giftBirthday: gift.birthday }),
+  }
+}
+
 /**
  * Seals a letter (and a gift, if any) and sends it. Order matters: the gift wallet is funded
  * before the letter is delivered, so a recipient can never open a letter whose funds are missing.
@@ -54,12 +66,12 @@ export async function sealAndSend(
   if (wallet === null) return { ok: false, reason: 'wallet-unavailable' }
   const { recipient, letter, amountZat, unlockMs } = checked.value
 
-  let gift: { seed: string; address: string } | undefined
+  let gift: { seed: string; address: string; birthday?: number } | undefined
   let sealed
   try {
     gift = amountZat === null ? undefined : await wallet.createGiftWallet()
     sealed = await sealTimelocked({
-      content: { letter, ...(gift === undefined ? {} : { giftSeed: gift.seed }) },
+      content: { letter, ...giftContent(gift) },
       unlockMs,
       nowMs: options.nowMs,
       ...(options.client === undefined ? {} : { client: options.client }),

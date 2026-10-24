@@ -43,7 +43,13 @@ export class RealWallet
     ReceiveWalletPort,
     SeedPort
 {
+  /** How long to wait between checks while change from an earlier send confirms. */
+  static retryDelayMs = 15_000
+  /** How long to wait for that, at most. */
+  static maxWaitMs = 10 * 60_000
+
   private queue: Promise<unknown> = Promise.resolve()
+  private running = 0
   private lastSync = 0
 
   private readonly wasm: WasmModule
@@ -92,9 +98,17 @@ export class RealWallet
 
   /** Runs `task` after everything queued before it. A failure does not block what comes next. */
   private exclusive<T>(task: () => Promise<T>): Promise<T> {
-    const run = this.queue.then(task, task)
+    this.running++
+    const run = this.queue.then(task, task).finally(() => {
+      this.running--
+    })
     this.queue = run.catch(() => undefined)
     return run
+  }
+
+  /** True while the wallet is doing something (a sync, a send, a read). Locking waits for it. */
+  get busy(): boolean {
+    return this.running > 0
   }
 
   private get seed(): string {
@@ -190,6 +204,36 @@ export class RealWallet
     })
   }
 
+  /**
+   * Sends, and if the wallet has money that is only waiting for confirmations (change from the
+   * previous send, for example), waits for it and tries again. A letter's gift is funded just
+   * before the letter is sent, so the letter always has to wait for that change. The wallet counts
+   * as busy the whole time, so it is not locked in the middle.
+   */
+  private async sendWhenSpendable(
+    account: WalletAccount,
+    payments: { address: string; zat: bigint; memo?: Uint8Array | undefined }[],
+  ): Promise<string[]> {
+    this.running++
+    try {
+      const deadline = Date.now() + RealWallet.maxWaitMs
+      for (;;) {
+        try {
+          return await this.send(account, payments)
+        } catch (error) {
+          const text = error instanceof Error ? error.message : String(error)
+          if (!/InsufficientFunds|insufficient/i.test(text) || Date.now() > deadline) throw error
+          const { pending } = await this.balances(account.id)
+          if (pending <= 0n) throw error
+          await new Promise((resolve) => setTimeout(resolve, RealWallet.retryDelayMs))
+          await this.sync()
+        }
+      }
+    } finally {
+      this.running--
+    }
+  }
+
   // --- Receive, Unsigned, Dashboard -------------------------------------------------------------
 
   ownAddress = (): Promise<string> => Promise.resolve(this.main.address)
@@ -235,7 +279,7 @@ export class RealWallet
 
   async sendMemos({ to, memos }: { to: string; memos: Uint8Array[] }): Promise<{ txid: string }> {
     await this.fresh(5_000)
-    const txids = await this.send(
+    const txids = await this.sendWhenSpendable(
       this.main,
       memos.map((memo) => ({ address: to, zat: 0n, memo })),
     )
@@ -253,7 +297,7 @@ export class RealWallet
   }): Promise<{ txid: string }> {
     await this.fresh(5_000)
     const [first, ...rest] = memos
-    const txids = await this.send(this.main, [
+    const txids = await this.sendWhenSpendable(this.main, [
       { address: to, zat, memo: first },
       ...rest.map((memo) => ({ address: to, zat: 0n, memo })),
     ])
@@ -331,7 +375,7 @@ export class RealWallet
     await this.fresh(5_000)
     const pot = this.account('pot', Number(accountId))
     const { spendable } = await this.balances(pot.id)
-    const txids = await this.sendAll(pot, this.main.address, spendable)
+    const { txids } = await this.sendAll(pot, this.main.address, spendable)
     return { txid: txids[0] ?? '' }
   }
 
@@ -339,14 +383,18 @@ export class RealWallet
    * Sends everything an account has, less the fee. The fee depends on how many coins are spent, so
    * this tries a few amounts, each a little lower than the last, until the wallet accepts one.
    */
-  private async sendAll(from: WalletAccount, to: string, spendable: bigint): Promise<string[]> {
+  private async sendAll(
+    from: WalletAccount,
+    to: string,
+    spendable: bigint,
+  ): Promise<{ txids: string[]; sentZat: bigint }> {
     if (spendable <= 0n) throw new Error('There is nothing to send.')
     let lastError: unknown
     for (let actions = 2; actions <= 12; actions++) {
       const zat = spendable - MARGINAL_FEE_ZAT * BigInt(actions)
       if (zat <= 0n) break
       try {
-        return await this.send(from, [{ address: to, zat }])
+        return { txids: await this.sendWhenSpendable(from, [{ address: to, zat }]), sentZat: zat }
       } catch (error) {
         lastError = error
       }
@@ -383,10 +431,12 @@ export class RealWallet
 
   // --- Legacy ----------------------------------------------------------------------------------
 
-  createGiftWallet(): Promise<{ seed: string; address: string }> {
+  createGiftWallet(): Promise<{ seed: string; address: string; birthday: number }> {
     return this.exclusive(async () => {
       const seed = this.wasm.generate_seed_phrase()
-      const id = await this.wallet.create_account('gift', seed, 0, await this.chainTipNow())
+      // Nothing can have been sent to a wallet that did not exist yet, so it starts at the tip.
+      const birthday = await this.chainTipNow()
+      const id = await this.wallet.create_account('gift', seed, 0, birthday)
       const address = await this.wallet.get_current_address(id)
       useWalletData.getState().set({
         accounts: [
@@ -395,24 +445,26 @@ export class RealWallet
         ],
       })
       await this.save()
-      return { seed, address }
+      return { seed, address, birthday }
     })
   }
 
   async fundGiftWallet(address: string, zat: bigint): Promise<void> {
     await this.fresh(5_000)
-    await this.send(this.main, [{ address, zat }])
+    await this.sendWhenSpendable(this.main, [{ address, zat }])
   }
 
-  async sweepGiftWallet(seed: string): Promise<SweepResult> {
+  async sweepGiftWallet(seed: string, birthday?: number): Promise<SweepResult> {
     await this.fresh(5_000)
     let gift = useWalletData
       .getState()
       .accounts.find((a) => a.kind === 'gift' && a.giftSeed === seed)
     if (gift === undefined) {
-      // Opened on another device: restore the gift wallet from its seed, from the start of NU7.
+      // Opened on another device: restore the gift wallet from its seed, from the block it was made
+      // at (the letter carries it), or from the start of NU7 for a letter that does not say.
+      const start = Math.max(NU7_TESTNET_ACTIVATION, birthday ?? 0)
       const created = await this.exclusive(async () => {
-        const id = await this.wallet.create_account('gift', seed, 0, NU7_TESTNET_ACTIVATION)
+        const id = await this.wallet.create_account('gift', seed, 0, start)
         const address = await this.wallet.get_current_address(id)
         const account: WalletAccount = {
           id,
@@ -433,8 +485,9 @@ export class RealWallet
       return { ok: false, reason: pending > 0n ? 'not-ready' : 'nothing-to-sweep' }
     }
     try {
-      const txids = await this.sendAll(gift, this.main.address, spendable)
-      return { ok: true, sweptZat: spendable, txid: txids[0] ?? '' }
+      // What arrives is the gift less the network fee, which is what the person is told.
+      const { txids, sentZat } = await this.sendAll(gift, this.main.address, spendable)
+      return { ok: true, sweptZat: sentZat, txid: txids[0] ?? '' }
     } catch {
       return { ok: false, reason: 'failed' }
     }

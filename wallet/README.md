@@ -49,8 +49,15 @@ compressed) because it holds the proving parameters.
 | Sent two zero-value outputs with memos, read both back | `9e81283d11c54a2ef773c5ba5034c269dc5b115e95e038888fac30899f7e489b` | 4,536,966 |
 
 The same send and read-back also passes through the app in Chromium
-(`tests/e2e/wallet.send.live.spec.ts`), and so does the whole Unsigned feature between two wallets in
-two browsers: card, paid message, read, reply, reply read (`tests/e2e/unsigned.live.spec.ts`).
+(`tests/e2e/wallet.send.live.spec.ts`), and so do all three features, each between two wallets in two browsers
+(`tests/e2e/{unsigned,legacy,blindpot}.live.spec.ts`, about 4 minutes each):
+
+- **Unsigned**: card, paid message, message read, reply paid from what arrived, reply read.
+- **Legacy**: a letter with a 0.001 TAZ gift is sealed (gift wallet funded first, then the letter),
+  found by the recipient, opened with the real drand key, and the gift is moved into the recipient's
+  wallet (found from the block the letter says the gift wallet was made at).
+- **Blind Pot**: a pot account is created; a guest gives 0.003 TAZ with a wish as standard-size
+  pieces in separate transactions; the host sees only the total and the wish, then withdraws.
 
 ## Checks
 

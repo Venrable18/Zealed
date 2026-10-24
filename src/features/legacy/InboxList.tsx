@@ -54,10 +54,10 @@ function InboxCard({
     else setProblem(OPEN_ERRORS[result.reason])
   }
 
-  async function sweep(seed: string) {
+  async function sweep(seed: string, birthday?: number) {
     if (wallet === null) return
     setBusy(true)
-    const result = await sweepGift(wallet, seed)
+    const result = await sweepGift(wallet, seed, birthday)
     setBusy(false)
     if (result.ok) {
       setSwept(result.sweptZat)
@@ -79,7 +79,7 @@ function InboxCard({
                   busy={busy}
                   disabled={wallet === null}
                   onClick={() => {
-                    void sweep(content.giftSeed ?? '')
+                    void sweep(content.giftSeed ?? '', content.giftBirthday)
                   }}
                 >
                   Move the gift into my wallet
