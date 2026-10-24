@@ -31,3 +31,4 @@ wallet/target
 wallet/.deps
 wallet/pkg
 public/wallet
+docs/

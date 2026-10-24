@@ -49,7 +49,8 @@ compressed) because it holds the proving parameters.
 | Sent two zero-value outputs with memos, read both back | `9e81283d11c54a2ef773c5ba5034c269dc5b115e95e038888fac30899f7e489b` | 4,536,966 |
 
 The same send and read-back also passes through the app in Chromium
-(`tests/e2e/wallet.send.live.spec.ts`).
+(`tests/e2e/wallet.send.live.spec.ts`), and so does the whole Unsigned feature between two wallets in
+two browsers: card, paid message, read, reply, reply read (`tests/e2e/unsigned.live.spec.ts`).
 
 ## Checks
 
