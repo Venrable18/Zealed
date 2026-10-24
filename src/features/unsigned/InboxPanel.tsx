@@ -68,7 +68,7 @@ function ReplyBox({
       markReplied(message.id)
       push('success', 'Your reply was sent.')
     } else if (result.reason === 'wallet-unavailable')
-      setError('The wallet is not available yet, so nothing was sent.')
+      setError('You need a wallet first, so nothing was sent. Set one up on the Wallet page.')
     else setError('The reply could not be sent. Try again.')
   }
 

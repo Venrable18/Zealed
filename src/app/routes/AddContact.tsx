@@ -44,7 +44,7 @@ export function AddContact() {
   const existing = findContact(contacts, shared.address)
 
   return (
-    <div className="space-y-6 py-10">
+    <div className="max-w-3xl space-y-6 py-10">
       <h1 className="text-3xl">{t('add.title')}</h1>
       {existing !== undefined ? (
         <p role="status" className="rounded-control border border-line px-4 py-3">

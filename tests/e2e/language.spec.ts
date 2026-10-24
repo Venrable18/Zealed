@@ -32,7 +32,7 @@ test.describe('browser language is not offered', () => {
   test.use({ locale: 'ja-JP' })
 
   test('shows English', async ({ page }) => {
-    await page.goto('/')
+    await page.goto('/app')
     await expect(page.getByText('Your dashboard')).toBeVisible()
     await expect(page.locator('html')).toHaveAttribute('lang', 'en')
   })
@@ -44,7 +44,7 @@ test.describe('browser language is Spanish', () => {
   test('the navigation, home and contacts change language; feature names do not', async ({
     page,
   }) => {
-    await page.goto('/')
+    await page.goto('/app')
     const nav = page.getByRole('navigation', { name: 'Principal' })
     await expect(nav.getByRole('link', { name: 'Ajustes' })).toBeVisible()
     await expect(nav.getByRole('link', { name: 'Legacy' })).toBeVisible()
@@ -63,7 +63,7 @@ for (const locale of ['es-ES', 'fr-FR'] as const) {
   for (const scheme of ['light', 'dark'] as const) {
     test.describe(`phone width and accessibility, ${locale}, ${scheme}`, () => {
       test.use({ locale, colorScheme: scheme, viewport: { width: 360, height: 740 } })
-      for (const path of ['/', '/settings', '/contacts', '/receive']) {
+      for (const path of ['/', '/app', '/settings', '/contacts', '/receive']) {
         test(path, async ({ page }) => {
           await page.goto(path)
           await expect(h1(page)).toBeVisible()

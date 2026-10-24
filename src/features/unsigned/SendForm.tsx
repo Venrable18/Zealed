@@ -87,7 +87,7 @@ export function SendForm({ card, wallet }: { card: Card; wallet: UnsignedWalletP
         setErrors(result.errors)
         break
       case 'wallet-unavailable':
-        setProblem('The wallet is not available yet, so nothing was sent.')
+        setProblem('You need a wallet first, so nothing was sent. Set one up on the Wallet page.')
         break
       case 'insufficient-funds':
         setProblem(
@@ -147,7 +147,9 @@ export function SendForm({ card, wallet }: { card: Card; wallet: UnsignedWalletP
           }
           setErrors({})
           if (wallet === null) {
-            setProblem('The wallet is not available yet, so nothing was sent.')
+            setProblem(
+              'You need a wallet first, so nothing was sent. Set one up on the Wallet page.',
+            )
             return
           }
           setConfirming(true)

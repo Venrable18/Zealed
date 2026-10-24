@@ -32,7 +32,15 @@ describe('catalogues', () => {
           (key) =>
             catalogue[key] === (en as Record<string, string>)[key] &&
             // Names that really are the same in both languages.
-            !['contacts.title', 'nav.contacts'].includes(key),
+            ![
+              'contacts.title',
+              'nav.contacts',
+              'shell.menu',
+              'landing.no',
+              'landing.colZealed',
+              'landing.navFaq',
+              'landing.faqTitle',
+            ].includes(key),
         )
         expect(same).toEqual([])
       })

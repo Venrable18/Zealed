@@ -18,7 +18,7 @@ test.describe('Blind Pot (guest side, wallet not built yet)', () => {
     await page.goto(link(pot))
     await expect(page.getByRole('heading', { level: 1, name: /Ada and Tunde/ })).toBeVisible()
     await expect(page.getByText('Event 2099-01-01. Gifts until 2099-02-01.')).toBeVisible()
-    await expect(page.getByText(/wallet is still being built/)).toBeVisible()
+    await expect(page.getByText(/You need a wallet/)).toBeVisible()
 
     await page.getByLabel('Gift amount (ZEC)').fill('0.05')
     await expect(page.getByText(/You will send/)).toContainText('0.05 ZEC in 1 piece')
@@ -37,7 +37,7 @@ test.describe('Blind Pot (guest side, wallet not built yet)', () => {
     await page.goto(link(pot))
     await page.getByLabel('Gift amount (ZEC)').fill('0.05')
     await page.getByRole('button', { name: 'Send gift' }).click()
-    await expect(page.getByRole('alert')).toContainText('wallet is not available yet')
+    await expect(page.getByRole('alert')).toContainText('You need a wallet first')
     await expect(page.getByText('Thank you')).toBeHidden()
   })
 

@@ -100,7 +100,9 @@ export function ComposeLetter({
         setErrors(result.errors)
         break
       case 'wallet-unavailable':
-        setProblem('The wallet is not available yet, so nothing was sealed or sent.')
+        setProblem(
+          'You need a wallet first, so nothing was sealed or sent. Set one up on the Wallet page.',
+        )
         break
       case 'seal-failed':
         setProblem(
@@ -134,7 +136,9 @@ export function ComposeLetter({
         }
         setErrors({})
         if (wallet === null) {
-          setProblem('The wallet is not available yet, so nothing was sealed or sent.')
+          setProblem(
+            'You need a wallet first, so nothing was sealed or sent. Set one up on the Wallet page.',
+          )
           return
         }
         setConfirming(true)

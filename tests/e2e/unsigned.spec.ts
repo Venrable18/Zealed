@@ -5,9 +5,7 @@ test.describe('Unsigned (recipient side; wallet not built yet)', () => {
   test('says the wallet is missing and shows the card form', async ({ page }) => {
     await page.goto('/unsigned')
     await expect(page.getByRole('heading', { level: 1, name: 'Unsigned' })).toBeVisible()
-    await expect(
-      page.getByRole('status').filter({ hasText: 'wallet is still being built' }),
-    ).toBeVisible()
+    await expect(page.getByRole('status').filter({ hasText: 'You need a wallet' })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Create a contact card' })).toBeVisible()
     await expect(page.getByRole('checkbox', { name: /Allow replies/ })).toBeChecked()
     // No card yet, so no inbox or share section.
@@ -41,7 +39,7 @@ test.describe('Unsigned (recipient side; wallet not built yet)', () => {
     await page.getByLabel(/Short bio/).fill('Tell me what you saw.')
     await page.getByLabel(/Minimum payment/).fill('0.05')
     await page.getByRole('button', { name: 'Create contact card' }).click()
-    await expect(page.getByRole('alert')).toContainText('wallet is not available yet')
+    await expect(page.getByRole('alert')).toContainText('You need a wallet first')
     await expect(page.getByRole('heading', { name: 'Your card' })).toHaveCount(0)
   })
 

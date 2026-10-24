@@ -20,7 +20,7 @@ export function Give() {
         <EmptyState
           title="This link does not look right"
           action={
-            <Link to="/" className="underline underline-offset-4">
+            <Link to="/app" className="underline underline-offset-4">
               Back to home
             </Link>
           }
@@ -32,7 +32,7 @@ export function Give() {
   }
 
   return (
-    <div className="space-y-8 py-10">
+    <div className="max-w-3xl space-y-8 py-10">
       <div>
         <h1 className="text-3xl">
           {pot.cover} {pot.name}

@@ -5,6 +5,7 @@ import { BlindPot } from './routes/BlindPot.tsx'
 import { Give } from './routes/Give.tsx'
 import { Components } from './routes/Components.tsx'
 import { Home } from './routes/Home.tsx'
+import { Landing } from './routes/Landing.tsx'
 import { NotFound } from './routes/NotFound.tsx'
 import { PotPage } from './routes/PotPage.tsx'
 import { Unsigned } from './routes/Unsigned.tsx'
@@ -17,12 +18,13 @@ import { Wallet } from './routes/Wallet.tsx'
 import { Settings } from './routes/Settings.tsx'
 
 export const router = createBrowserRouter([
+  // The public front page, outside the app (no lock screen, no wallet).
+  { path: '/', element: <Landing />, HydrateFallback: Loading },
   {
-    path: '/',
     element: <RootLayout />,
     HydrateFallback: Loading,
     children: [
-      { index: true, element: <Home /> },
+      { path: 'app', element: <Home /> },
       {
         path: 'legacy',
         // Loaded on demand: it pulls in the timelock and encryption libraries (about 275 kB).

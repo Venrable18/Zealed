@@ -110,7 +110,7 @@ describe('SendForm', () => {
     renderForm(card, null)
     write('Hello')
     fireEvent.click(screen.getByRole('button', { name: 'Send message' }))
-    expect((await screen.findByRole('alert')).textContent).toContain('wallet is not available yet')
+    expect((await screen.findByRole('alert')).textContent).toContain('You need a wallet first')
   })
 
   it('previews the fee, asks first, then sends one payment the recipient can read', async () => {

@@ -5,9 +5,7 @@ test.describe('Blind Pot (host side, wallet not built yet)', () => {
   test('says the wallet is missing and still shows the form', async ({ page }) => {
     await page.goto('/blind-pot')
     await expect(page.getByRole('heading', { level: 1, name: 'Blind Pot' })).toBeVisible()
-    await expect(
-      page.getByRole('status').filter({ hasText: 'wallet is still being built' }),
-    ).toBeVisible()
+    await expect(page.getByRole('status').filter({ hasText: 'You need a wallet' })).toBeVisible()
     await expect(page.getByText('No pots yet')).toBeVisible()
     await expect(page.getByText(/refreshes only every/)).toContainText('1 hour')
   })
@@ -29,7 +27,7 @@ test.describe('Blind Pot (host side, wallet not built yet)', () => {
     await page.getByLabel('Event date').fill('2099-01-01')
     await page.getByLabel('Last day for gifts').fill('2099-02-01')
     await page.getByRole('button', { name: 'Create pot' }).click()
-    await expect(page.getByRole('alert')).toContainText('wallet is not available yet')
+    await expect(page.getByRole('alert')).toContainText('You need a wallet first')
     await expect(page).toHaveURL(/\/blind-pot$/)
     await expect(page.getByText('No pots yet')).toBeVisible()
   })

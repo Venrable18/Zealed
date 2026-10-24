@@ -2,7 +2,8 @@ import { AxeBuilder } from '@axe-core/playwright'
 import { expect, test, type Page } from '@playwright/test'
 
 const ROUTES = [
-  { path: '/', heading: 'Zealed' },
+  { path: '/', heading: 'Private money and messages for the moments that matter.' },
+  { path: '/app', heading: 'Zealed' },
   { path: '/legacy', heading: 'Legacy' },
   { path: '/legacy/silent', heading: 'If I go silent' },
   { path: '/blind-pot', heading: 'Blind Pot' },
@@ -35,7 +36,7 @@ test.describe('navigation', () => {
   })
 
   test('the main navigation moves between pages and marks the current one', async ({ page }) => {
-    await page.goto('/')
+    await page.goto('/app')
     const nav = page.getByRole('navigation', { name: 'Main' })
     for (const name of ['Legacy', 'Blind Pot', 'Unsigned', 'Dashboard', 'Settings']) {
       await nav.getByRole('link', { name }).click()
@@ -46,7 +47,7 @@ test.describe('navigation', () => {
 
   test('the three feature cards on the home page open their pages', async ({ page }) => {
     for (const name of ['Legacy', 'Blind Pot', 'Unsigned']) {
-      await page.goto('/')
+      await page.goto('/app')
       await page.getByRole('main').getByRole('link', { name }).click()
       await expect(h1(page, name)).toBeVisible()
     }

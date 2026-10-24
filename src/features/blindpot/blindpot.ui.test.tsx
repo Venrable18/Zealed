@@ -71,7 +71,7 @@ describe('CreatePotForm', () => {
     fireEvent.change(screen.getByLabelText('Event date'), { target: { value: future } })
     fireEvent.change(screen.getByLabelText('Last day for gifts'), { target: { value: future } })
     fireEvent.click(screen.getByRole('button', { name: 'Create pot' }))
-    expect((await screen.findByRole('alert')).textContent).toContain('wallet is not available yet')
+    expect((await screen.findByRole('alert')).textContent).toContain('You need a wallet first')
   })
 
   it('creates the pot when the wallet works', async () => {

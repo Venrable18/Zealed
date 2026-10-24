@@ -52,6 +52,17 @@ export function Receive() {
     }
   }
 
+  async function share(url: string) {
+    try {
+      await navigator.share({ title: t('receive.shareTitle'), url })
+    } catch (error) {
+      // Closing the share sheet is not a failure.
+      if (!(error instanceof DOMException && error.name === 'AbortError'))
+        await copy(url, t('receive.linkCopied'))
+    }
+  }
+
+  const canShare = typeof navigator.share === 'function'
   const cleanName = name.trim()
   const link =
     address === undefined
@@ -62,7 +73,7 @@ export function Receive() {
         })
 
   return (
-    <div className="space-y-10 py-10">
+    <div className="max-w-3xl space-y-10 py-10">
       <div>
         <h1 className="text-3xl">{t('receive.title')}</h1>
         <p className="mt-3 max-w-prose text-muted">{t('receive.intro')}</p>
@@ -140,14 +151,26 @@ export function Receive() {
                   }}
                   className="block min-h-11 w-full rounded-control border border-line-strong bg-surface px-3 py-2 text-sm"
                 />
-                <Button
-                  variant="secondary"
-                  onClick={() => {
-                    void copy(link, t('receive.linkCopied'))
-                  }}
-                >
-                  {t('receive.copyLink')}
-                </Button>
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      void copy(link, t('receive.linkCopied'))
+                    }}
+                  >
+                    {t('receive.copyLink')}
+                  </Button>
+                  {canShare && (
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        void share(link)
+                      }}
+                    >
+                      {t('receive.share')}
+                    </Button>
+                  )}
+                </div>
               </>
             )}
           </section>

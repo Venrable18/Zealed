@@ -37,7 +37,7 @@ test('serves cross-origin isolation and a strict CSP', async ({ page, baseURL })
   expect(connectSources).toEqual(["'self'", ...allowedConnectOrigins()])
 
   // The app rendered (so the dev CSP nonce covered React Refresh) and is cross-origin isolated.
-  await expect(page.getByRole('heading', { name: 'Zealed' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   expect(await page.evaluate(() => window.crossOriginIsolated)).toBe(true)
   expect(errors).toEqual([])
 

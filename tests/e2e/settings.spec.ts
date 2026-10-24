@@ -142,8 +142,14 @@ test.describe('Settings', () => {
     await dialog.getByLabel('Type WIPE').fill('WIPE')
     await dialog.getByRole('button', { name: 'Wipe everything' }).click()
 
+    // Back to the front page.
     await expect(page).toHaveURL(/\/$/)
-    await expect(page.getByRole('heading', { level: 1, name: 'Zealed' })).toBeVisible()
+    await expect(
+      page.getByRole('heading', {
+        level: 1,
+        name: 'Private money and messages for the moments that matter.',
+      }),
+    ).toBeVisible()
     const left = await page.evaluate(async () => ({
       local: Object.keys(localStorage).filter((key) => key !== 'zealed:settings'),
       session: sessionStorage.length,

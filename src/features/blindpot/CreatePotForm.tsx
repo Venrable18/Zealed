@@ -13,7 +13,7 @@ interface CreatePotFormProps {
 }
 
 const MESSAGES = {
-  'wallet-unavailable': 'The wallet is not available yet, so a pot cannot be created.',
+  'wallet-unavailable': 'You need a wallet first to create a pot. Set one up on the Wallet page.',
   'wallet-error': 'The wallet could not create the pot. Nothing was created. Try again.',
 } as const
 

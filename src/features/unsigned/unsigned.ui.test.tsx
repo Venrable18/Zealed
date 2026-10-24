@@ -41,7 +41,7 @@ describe('CreateCardForm', () => {
     fireEvent.change(screen.getByLabelText('Display name'), { target: { value: 'Ada' } })
     fireEvent.change(screen.getByLabelText(/Minimum payment/), { target: { value: '0.05' } })
     fireEvent.click(screen.getByRole('button', { name: 'Create contact card' }))
-    expect((await screen.findByRole('alert')).textContent).toContain('wallet is not available yet')
+    expect((await screen.findByRole('alert')).textContent).toContain('You need a wallet first')
   })
 
   it('passes the chosen settings through when the wallet works', async () => {

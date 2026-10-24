@@ -1,3 +1,4 @@
+import { NoWalletNotice } from '../../components/NoWalletNotice.tsx'
 import { Link } from 'react-router'
 import { getTimers } from '../../config/demo.ts'
 import { LetterIcon } from '../../components/Icons.tsx'
@@ -25,12 +26,7 @@ export function Legacy() {
         </p>
       </div>
 
-      {wallet === null && (
-        <p role="status" className="rounded-control border border-warn bg-warn-soft px-4 py-3">
-          The wallet is still being built, so letters cannot be sent or received yet. You can fill
-          in the form to see how it works.
-        </p>
-      )}
+      {wallet === null && <NoWalletNotice to="to seal, send and receive letters" />}
 
       <p>
         <Link to="/legacy/silent" className="underline underline-offset-4">
@@ -38,24 +34,29 @@ export function Legacy() {
         </Link>
       </p>
 
-      <section className="space-y-4">
-        <h2 className="text-xl">Seal a letter</h2>
-        <ComposeLetter
-          wallet={wallet}
-          defaultUnlockDelayMs={defaultUnlockDelayMs}
-          demoMode={demoMode}
-        />
-      </section>
+      <div className="grid items-start gap-12 xl:grid-cols-[minmax(0,40rem)_minmax(0,1fr)] xl:gap-16">
+        <div className="min-w-0 space-y-12">
+          <section className="space-y-4">
+            <h2 className="text-xl">Seal a letter</h2>
+            <ComposeLetter
+              wallet={wallet}
+              defaultUnlockDelayMs={defaultUnlockDelayMs}
+              demoMode={demoMode}
+            />
+          </section>
+        </div>
+        <div className="min-w-0 space-y-12">
+          <section className="space-y-4">
+            <h2 className="text-xl">Sealed for you</h2>
+            <InboxList wallet={wallet} />
+          </section>
 
-      <section className="space-y-4">
-        <h2 className="text-xl">Sealed for you</h2>
-        <InboxList wallet={wallet} />
-      </section>
-
-      <section className="space-y-4">
-        <h2 className="text-xl">Sent</h2>
-        <SentList wallet={wallet} />
-      </section>
+          <section className="space-y-4">
+            <h2 className="text-xl">Sent</h2>
+            <SentList wallet={wallet} />
+          </section>
+        </div>
+      </div>
     </div>
   )
 }

@@ -215,7 +215,9 @@ test.describe('Keeping data on this device, encrypted', () => {
     await dialog.getByRole('button', { name: 'Wipe everything' }).click()
     await expect(page).toHaveURL(/\/$/)
     await page.reload()
-    await expect(page.getByRole('heading', { level: 1, name: 'Zealed' })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { level: 1, name: /Private money and messages/ }),
+    ).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Locked' })).toHaveCount(0)
     const databases = await page.evaluate(async () =>
       (await indexedDB.databases()).map((d) => d.name),

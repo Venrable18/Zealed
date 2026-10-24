@@ -21,7 +21,7 @@ interface CreateCardFormProps {
 }
 
 const PROBLEMS = {
-  'wallet-unavailable': 'The wallet is not available yet, so a card cannot be created.',
+  'wallet-unavailable': 'You need a wallet first to create a card. Set one up on the Wallet page.',
   'wallet-error': 'The wallet could not create the card. Nothing was created. Try again.',
 } as const
 

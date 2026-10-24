@@ -8,6 +8,11 @@ export const en = {
   'shell.skip': 'Skip to content',
   'shell.demo': 'Demo mode',
   'shell.nav': 'Main',
+  'shell.menu': 'Menu',
+  'shell.lock': 'Lock',
+  'shell.noWallet': 'Set up a wallet',
+  'shell.walletOpening': 'Opening the wallet…',
+  'shell.syncing': 'Catching up…',
   'nav.dashboard': 'Dashboard',
   'nav.contacts': 'Contacts',
   'nav.receive': 'Receive',
@@ -96,7 +101,7 @@ export const en = {
   'receive.intro':
     'Your address, to give to someone who wants to send you money, a letter or a message.',
   'receive.noWalletTitle': 'No wallet yet',
-  'receive.noWallet': 'The wallet is still being built, so there is no address to show yet.',
+  'receive.noWallet': 'Set up a wallet on the Wallet page to get your address.',
   'receive.failed': 'Your address could not be read.',
   'receive.yourAddress': 'Your address',
   'receive.freshAddress': 'A fresh address',
@@ -116,6 +121,8 @@ export const en = {
   'receive.linkLabel': 'Contact link',
   'receive.copyLink': 'Copy link',
   'receive.linkCopied': 'Link copied.',
+  'receive.share': 'Share link',
+  'receive.shareTitle': 'Add me on Zealed',
 
   'invite.title': 'Guardian invitation',
   'invite.badTitle': 'This invitation does not look right',
@@ -138,7 +145,7 @@ export const en = {
   'invite.yourName': 'Your name (optional)',
   'invite.yourNameHint': 'Shown to them as a suggested contact name.',
   'invite.noWallet':
-    'The wallet is still being built, so there is no address to send yet. You can come back to this page later.',
+    'Set up a wallet on the Wallet page to get an address to send back. This invitation will still be here.',
   'invite.newAddress': 'Use a fresh address for this',
   'invite.replyLabel': 'Reply link',
   'invite.copyReply': 'Copy reply link',
@@ -201,6 +208,143 @@ export const en = {
   'wallet.receiveLink': 'Open Receive',
   'wallet.backupLink': 'Back up your recovery phrase in Settings',
   'wallet.details': 'Technical details',
+  'landing.open': 'Open Zealed',
+  'landing.navHow': 'How it works',
+  'landing.navPrivacy': 'What stays private',
+  'landing.title': 'Private money and messages for the moments that matter.',
+  'landing.intro':
+    'Seal a letter that opens on a date. Pool gifts without anyone seeing who gave what. Hear from people who stay anonymous. Built on Zcash shielded payments, and it runs entirely in your browser.',
+  'landing.seePrivacy': 'See what stays private',
+  'landing.letterTo': 'To Ada',
+  'landing.letterBody':
+    'If you are reading this, it is your birthday. The key to the blue box is under the third stair.',
+  'landing.letterSealed': 'Sealed. Opens on 25 December 2027, and not before.',
+  'landing.letterLabel': 'A letter being sealed. It opens on 25 December 2027.',
+  'landing.featuresTitle': 'Three things you can do privately',
+  'landing.legacyBody':
+    'Write a letter, add money if you like, and choose when it opens: on a date, or only if you stop checking in. Before then no one can read it, not the recipient, not you, not us.',
+  'landing.legacyDate': 'On a date',
+  'landing.legacyDateBody':
+    'Locked to a moment in time by the drand network. It cannot open early, even if everyone wanted it to.',
+  'landing.legacySilent': 'If you go silent',
+  'landing.legacySilentBody':
+    'Friends you trust each hold a piece of the key. If you stop checking in, enough of them together release it to the person you chose.',
+  'landing.legacyCta': 'Seal a letter',
+  'landing.potBody':
+    'A shared gift pot for a wedding, a birthday or a send-off. Guests give in standard-size pieces, so even the host sees only the total and the wishes, never who gave what.',
+  'landing.potTotal': 'Total so far',
+  'landing.potCta': 'Create a pot',
+  'landing.unsignedBody':
+    'A contact card people can write to without saying who they are. They can pay to be heard, and you can reply without learning their name.',
+  'landing.unsignedFrom': 'From someone who did not sign',
+  'landing.unsignedMessage':
+    'The shipment arrived on the 3rd. The documents are in the blue folder.',
+  'landing.unsignedPaid': 'Paid 0.05 TAZ',
+  'landing.unsignedCta': 'Publish a card',
+  'landing.privacyTitle': 'Who can see what',
+  'landing.privacyIntro':
+    'Zcash shielded payments hide the sender, the recipient and the amount. Zealed adds the rest: everything you write is encrypted before it leaves your device.',
+  'landing.colWhat': 'What',
+  'landing.colYou': 'You',
+  'landing.colOther': 'The other person',
+  'landing.colNetwork': 'The Zcash network',
+  'landing.colServer': 'The light-wallet server',
+  'landing.colZealed': 'Zealed',
+  'landing.rowText': 'What a letter or message says',
+  'landing.rowGiver': 'Who gave to a pot',
+  'landing.rowAmount': 'How much was sent',
+  'landing.rowUse': 'That your wallet is active, and from which IP address',
+  'landing.yes': 'Yes',
+  'landing.no': 'No',
+  'landing.afterDate': 'Yes, once it opens',
+  'landing.ownGift': 'Only their own gift',
+  'landing.whatTheyGot': 'What they received',
+  'landing.privacyNote':
+    'Zealed has no servers of its own. The app is a set of files your browser runs; your data stays on this device, encrypted with your passphrase.',
+  'landing.howTitle': 'Getting started',
+  'landing.step1': 'Choose a passphrase',
+  'landing.step1Body':
+    'Everything you keep is encrypted with it, on this device only. No one can reset it for you.',
+  'landing.step2': 'Create a wallet',
+  'landing.step2Body':
+    'You get 24 words to write down. They are the only way to recover the wallet.',
+  'landing.step3': 'Get test money',
+  'landing.step3Body':
+    'Zealed runs on the Zcash testnet. Test money comes free from a faucet and has no value.',
+  'landing.step4': 'Seal, give or write',
+  'landing.step4Body':
+    'Each feature explains what will be sent and what it costs before anything leaves your wallet.',
+  'landing.footer': 'Zealed runs on the Zcash testnet. Nothing here uses real money.',
+  'landing.previewTo2': 'To Tunde',
+  'landing.previewDate': 'Opens on 25 December 2027',
+  'landing.previewSilent': 'Opens if I stop checking in, with 3 of 5 guardians',
+  'landing.live': 'Live on the Zcash NU7 testnet',
+  'landing.seeProof': 'See it working on testnet',
+  'landing.navFeatures': 'Features',
+  'landing.navProof': 'Proof',
+  'landing.navFaq': 'Questions',
+  'landing.proofTitle': 'Working on the real testnet, not a mock-up',
+  'landing.proofIntro':
+    'Every feature has been run end to end on the Zcash NU7 testnet, between two wallets in two browsers. These are some of the transactions. Anyone can look them up; only the people involved can read them.',
+  'landing.proofMemos': 'Two memos in one transaction',
+  'landing.proofMemosBody': 'Sent from the browser and read back from the chain.',
+  'landing.proofZero': 'Messages with no money attached',
+  'landing.proofZeroBody': 'How replies and check-ins travel.',
+  'landing.proofReceived': 'A payment from another wallet',
+  'landing.proofReceivedBody': 'Received into the Ironwood pool, then spent.',
+  'landing.proofBlock': 'Block {height}',
+  'landing.proofView': 'View on the explorer',
+  'landing.legacyGift': 'Money travels with it',
+  'landing.legacyGiftBody':
+    'Add ZEC to a letter. It waits in a wallet only the letter can open, and moves to the recipient when they open it.',
+  'landing.potPoint1': 'Standard-size pieces',
+  'landing.potPoint1Body':
+    'Each gift is split into common amounts sent at different times, so no single payment points back to a guest.',
+  'landing.potPoint2': 'Totals, not ledgers',
+  'landing.potPoint2Body':
+    'The host sees the total in batches and the wishes, shuffled. Never a list of who gave what.',
+  'landing.potPoint3': 'A pot of its own',
+  'landing.potPoint3Body':
+    'Each pot is a separate account, withdrawn into the host’s wallet when it closes.',
+  'landing.unsignedPoint1': 'No name needed',
+  'landing.unsignedPoint1Body':
+    'Writers need only a Zcash wallet. Nothing ties a message to the person who sent it.',
+  'landing.unsignedPoint2': 'Paid, so not spam',
+  'landing.unsignedPoint2Body':
+    'You set a minimum payment. Messages below it wait in a separate folder.',
+  'landing.unsignedPoint3': 'Proof without exposure',
+  'landing.unsignedPoint3Body':
+    'A writer can keep a receipt and later prove what they wrote, without having signed it.',
+  'landing.mockSealedFor': 'Sealed for you',
+  'landing.mockOpensIn': 'Opens in 2 days, 4 hours',
+  'landing.mockOpen': 'Open letter',
+  'landing.mockGuardians': '3 of 5 guardians needed',
+  'landing.mockWishes': 'Wishes',
+  'landing.mockWish1': 'Many happy years together.',
+  'landing.mockWish2': 'For the honeymoon, with love.',
+  'landing.mockStrength': 'Privacy strength: good',
+  'landing.mockInbox': 'Inbox',
+  'landing.mockReply': 'Reply',
+  'landing.mockMinimum': 'Minimum 0.05 TAZ',
+  'landing.faqTitle': 'Questions',
+  'landing.q1': 'Is this real money?',
+  'landing.a1':
+    'No. Zealed runs on the Zcash testnet, where coins are free from a faucet and have no value. Mainnet comes after NU7 activates there.',
+  'landing.q2': 'Can Zealed read my letters or messages?',
+  'landing.a2':
+    'No. Zealed has no servers. Everything is encrypted in your browser before it leaves your device, and only the person it is for can decrypt it.',
+  'landing.q3': 'What if I forget my passphrase?',
+  'landing.a3':
+    'No one can reset it. Wipe the device and restore the wallet from its 24 words: the money is safe, but letters and contacts kept on that device are gone.',
+  'landing.q4': 'What does it cost?',
+  'landing.a4':
+    'Only the network fee, usually 0.0001 to 0.0002 TAZ per transaction. Every screen shows it before you send.',
+  'landing.q5': 'Do I need to install anything?',
+  'landing.a5':
+    'No. Zealed is a web app. It needs a recent browser, and downloads about 55 MB of wallet code the first time you open a wallet.',
+  'landing.ctaTitle': 'Seal your first letter in a few minutes.',
+  'landing.ctaBody':
+    'Choose a passphrase, create a wallet, get free test money, and try all three.',
 } as const
 
 export type MessageKey = keyof typeof en

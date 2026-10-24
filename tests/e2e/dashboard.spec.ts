@@ -33,9 +33,7 @@ test.describe('Dashboard', () => {
     )
     for (const name of ['Wallet', 'Blind Pot', 'Legacy', 'Unsigned'])
       await expect(page.getByRole('region', { name })).toBeVisible()
-    await expect(
-      page.getByText(/wallet is not available yet, so there is no balance/),
-    ).toBeVisible()
+    await expect(page.getByText(/There is no wallet yet, so there is no balance/)).toBeVisible()
     await expect(page.getByText('No pots yet.')).toBeVisible()
     await expect(page.getByText('None yet')).toBeVisible()
   })
@@ -44,7 +42,7 @@ test.describe('Dashboard', () => {
     page,
     baseURL,
   }) => {
-    await page.goto('/')
+    await page.goto('/app')
     await expect(page.getByRole('heading', { level: 1, name: 'Zealed' })).toBeVisible()
     const own = new URL(baseURL ?? '').origin
 

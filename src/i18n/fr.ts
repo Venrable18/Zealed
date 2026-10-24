@@ -6,6 +6,11 @@ export const fr: Record<MessageKey, string> = {
   'shell.skip': 'Aller au contenu',
   'shell.demo': 'Mode démo',
   'shell.nav': 'Principale',
+  'shell.menu': 'Menu',
+  'shell.lock': 'Verrouiller',
+  'shell.noWallet': 'Configurer un portefeuille',
+  'shell.walletOpening': 'Ouverture du portefeuille…',
+  'shell.syncing': 'Synchronisation…',
   'nav.dashboard': 'Tableau de bord',
   'nav.contacts': 'Contacts',
   'nav.receive': 'Recevoir',
@@ -99,7 +104,7 @@ export const fr: Record<MessageKey, string> = {
     'Votre adresse, à donner à quelqu’un qui veut vous envoyer de l’argent, une lettre ou un message.',
   'receive.noWalletTitle': 'Pas encore de portefeuille',
   'receive.noWallet':
-    'Le portefeuille est encore en construction, il n’y a donc pas encore d’adresse à afficher.',
+    'Configurez un portefeuille sur la page Portefeuille pour obtenir votre adresse.',
   'receive.failed': 'Votre adresse n’a pas pu être lue.',
   'receive.yourAddress': 'Votre adresse',
   'receive.freshAddress': 'Une nouvelle adresse',
@@ -119,6 +124,8 @@ export const fr: Record<MessageKey, string> = {
   'receive.linkLabel': 'Lien de contact',
   'receive.copyLink': 'Copier le lien',
   'receive.linkCopied': 'Lien copié.',
+  'receive.share': 'Partager le lien',
+  'receive.shareTitle': 'Ajoutez-moi sur Zealed',
 
   'invite.title': 'Invitation de gardien',
   'invite.badTitle': 'Cette invitation semble incorrecte',
@@ -141,7 +148,7 @@ export const fr: Record<MessageKey, string> = {
   'invite.yourName': 'Votre nom (facultatif)',
   'invite.yourNameHint': 'Affiché comme nom de contact suggéré.',
   'invite.noWallet':
-    'Le portefeuille est encore en construction, il n’y a donc pas encore d’adresse à envoyer. Vous pourrez revenir sur cette page plus tard.',
+    'Configurez un portefeuille sur la page Portefeuille pour obtenir une adresse à renvoyer. Cette invitation restera ici.',
   'invite.newAddress': 'Utiliser une nouvelle adresse pour cela',
   'invite.replyLabel': 'Lien de réponse',
   'invite.copyReply': 'Copier le lien de réponse',
@@ -204,4 +211,142 @@ export const fr: Record<MessageKey, string> = {
   'wallet.receiveLink': 'Ouvrir Recevoir',
   'wallet.backupLink': 'Sauvegardez votre phrase de récupération dans les Réglages',
   'wallet.details': 'Détails techniques',
+  'landing.open': 'Ouvrir Zealed',
+  'landing.navHow': 'Comment ça marche',
+  'landing.navPrivacy': 'Ce qui reste privé',
+  'landing.title': 'De l’argent et des messages privés pour les moments qui comptent.',
+  'landing.intro':
+    'Scellez une lettre qui s’ouvre à une date. Réunissez des cadeaux sans que personne ne voie qui a donné quoi. Recevez des messages de personnes qui restent anonymes. Construit sur les paiements protégés de Zcash, et tout se passe dans votre navigateur.',
+  'landing.seePrivacy': 'Voir ce qui reste privé',
+  'landing.letterTo': 'Pour Ada',
+  'landing.letterBody':
+    'Si tu lis ceci, c’est ton anniversaire. La clé de la boîte bleue est sous la troisième marche.',
+  'landing.letterSealed': 'Scellée. S’ouvre le 25 décembre 2027, et pas avant.',
+  'landing.letterLabel': 'Une lettre en train d’être scellée. Elle s’ouvre le 25 décembre 2027.',
+  'landing.featuresTitle': 'Trois choses à faire en privé',
+  'landing.legacyBody':
+    'Écrivez une lettre, ajoutez de l’argent si vous le souhaitez, et choisissez quand elle s’ouvre : à une date, ou seulement si vous cessez de donner signe de vie. D’ici là, personne ne peut la lire : ni le destinataire, ni vous, ni nous.',
+  'landing.legacyDate': 'À une date',
+  'landing.legacyDateBody':
+    'Verrouillée jusqu’à un moment précis grâce au réseau drand. Elle ne peut pas s’ouvrir plus tôt, même si tout le monde le voulait.',
+  'landing.legacySilent': 'Si vous restez silencieux',
+  'landing.legacySilentBody':
+    'Des amis de confiance détiennent chacun un morceau de la clé. Si vous cessez de donner signe de vie, assez d’entre eux ensemble la remettent à la personne choisie.',
+  'landing.legacyCta': 'Sceller une lettre',
+  'landing.potBody':
+    'Une cagnotte de cadeaux partagée pour un mariage, un anniversaire ou un départ. Les invités donnent en morceaux de taille standard : même l’hôte ne voit que le total et les vœux, jamais qui a donné quoi.',
+  'landing.potTotal': 'Total jusqu’ici',
+  'landing.potCta': 'Créer une cagnotte',
+  'landing.unsignedBody':
+    'Une carte de contact à laquelle on peut écrire sans dire qui l’on est. On peut payer pour être entendu, et vous pouvez répondre sans connaître son nom.',
+  'landing.unsignedFrom': 'De quelqu’un qui n’a pas signé',
+  'landing.unsignedMessage':
+    'La livraison est arrivée le 3. Les documents sont dans le dossier bleu.',
+  'landing.unsignedPaid': 'A payé 0,05 TAZ',
+  'landing.unsignedCta': 'Publier une carte',
+  'landing.privacyTitle': 'Qui peut voir quoi',
+  'landing.privacyIntro':
+    'Les paiements protégés de Zcash cachent l’expéditeur, le destinataire et le montant. Zealed ajoute le reste : tout ce que vous écrivez est chiffré avant de quitter votre appareil.',
+  'landing.colWhat': 'Quoi',
+  'landing.colYou': 'Vous',
+  'landing.colOther': 'L’autre personne',
+  'landing.colNetwork': 'Le réseau Zcash',
+  'landing.colServer': 'Le serveur du portefeuille',
+  'landing.colZealed': 'Zealed',
+  'landing.rowText': 'Ce que dit une lettre ou un message',
+  'landing.rowGiver': 'Qui a donné à une cagnotte',
+  'landing.rowAmount': 'Combien a été envoyé',
+  'landing.rowUse': 'Que votre portefeuille est actif, et depuis quelle adresse IP',
+  'landing.yes': 'Oui',
+  'landing.no': 'Non',
+  'landing.afterDate': 'Oui, une fois ouverte',
+  'landing.ownGift': 'Seulement son propre cadeau',
+  'landing.whatTheyGot': 'Ce qu’il a reçu',
+  'landing.privacyNote':
+    'Zealed n’a aucun serveur à lui. L’application est un ensemble de fichiers que votre navigateur exécute ; vos données restent sur cet appareil, chiffrées avec votre phrase secrète.',
+  'landing.howTitle': 'Pour commencer',
+  'landing.step1': 'Choisissez une phrase secrète',
+  'landing.step1Body':
+    'Tout ce que vous gardez est chiffré avec elle, sur cet appareil uniquement. Personne ne peut la réinitialiser pour vous.',
+  'landing.step2': 'Créez un portefeuille',
+  'landing.step2Body':
+    'Vous recevez 24 mots à noter. C’est le seul moyen de récupérer le portefeuille.',
+  'landing.step3': 'Obtenez de l’argent de test',
+  'landing.step3Body':
+    'Zealed fonctionne sur le réseau de test de Zcash. L’argent de test est gratuit sur un faucet et n’a aucune valeur.',
+  'landing.step4': 'Scellez, donnez ou écrivez',
+  'landing.step4Body':
+    'Chaque fonction explique ce qui sera envoyé et ce que cela coûte avant que quoi que ce soit ne quitte votre portefeuille.',
+  'landing.footer':
+    'Zealed fonctionne sur le réseau de test de Zcash. Aucun argent réel n’est utilisé ici.',
+  'landing.previewTo2': 'Pour Tunde',
+  'landing.previewDate': 'S’ouvre le 25 décembre 2027',
+  'landing.previewSilent': 'S’ouvre si je cesse de donner signe de vie, avec 3 gardiens sur 5',
+  'landing.live': 'En service sur le réseau de test NU7 de Zcash',
+  'landing.seeProof': 'Le voir fonctionner sur le réseau de test',
+  'landing.navFeatures': 'Fonctions',
+  'landing.navProof': 'Preuves',
+  'landing.navFaq': 'Questions',
+  'landing.proofTitle': 'Sur le vrai réseau de test, pas une maquette',
+  'landing.proofIntro':
+    'Chaque fonction a été testée de bout en bout sur le réseau de test NU7 de Zcash, entre deux portefeuilles dans deux navigateurs. Voici quelques-unes des transactions. Tout le monde peut les consulter ; seules les personnes concernées peuvent les lire.',
+  'landing.proofMemos': 'Deux mémos dans une transaction',
+  'landing.proofMemosBody': 'Envoyés depuis le navigateur et relus depuis la chaîne.',
+  'landing.proofZero': 'Des messages sans argent joint',
+  'landing.proofZeroBody': 'C’est ainsi que voyagent les réponses et les signes de vie.',
+  'landing.proofReceived': 'Un paiement venu d’un autre portefeuille',
+  'landing.proofReceivedBody': 'Reçu dans le pool Ironwood, puis dépensé.',
+  'landing.proofBlock': 'Bloc {height}',
+  'landing.proofView': 'Voir dans l’explorateur',
+  'landing.legacyGift': 'L’argent voyage avec elle',
+  'landing.legacyGiftBody':
+    'Ajoutez des ZEC à une lettre. Ils attendent dans un portefeuille que seule la lettre peut ouvrir, et passent au destinataire quand il l’ouvre.',
+  'landing.potPoint1': 'Des morceaux de taille standard',
+  'landing.potPoint1Body':
+    'Chaque cadeau est divisé en montants courants envoyés à des moments différents : aucun paiement ne désigne un invité.',
+  'landing.potPoint2': 'Des totaux, pas des registres',
+  'landing.potPoint2Body':
+    'L’hôte voit le total par lots et les vœux, mélangés. Jamais une liste de qui a donné quoi.',
+  'landing.potPoint3': 'Une cagnotte à part',
+  'landing.potPoint3Body':
+    'Chaque cagnotte est un compte séparé, versé dans le portefeuille de l’hôte à sa clôture.',
+  'landing.unsignedPoint1': 'Pas besoin de nom',
+  'landing.unsignedPoint1Body':
+    'Il suffit d’un portefeuille Zcash pour écrire. Rien ne relie un message à la personne qui l’a envoyé.',
+  'landing.unsignedPoint2': 'Payant, donc pas de spam',
+  'landing.unsignedPoint2Body':
+    'Vous fixez un paiement minimum. Les messages en dessous attendent dans un dossier à part.',
+  'landing.unsignedPoint3': 'Prouver sans s’exposer',
+  'landing.unsignedPoint3Body':
+    'Celui qui écrit peut garder un reçu et prouver plus tard ce qu’il a écrit, sans l’avoir signé.',
+  'landing.mockSealedFor': 'Scellée pour vous',
+  'landing.mockOpensIn': 'S’ouvre dans 2 jours et 4 heures',
+  'landing.mockOpen': 'Ouvrir la lettre',
+  'landing.mockGuardians': '3 gardiens sur 5 nécessaires',
+  'landing.mockWishes': 'Vœux',
+  'landing.mockWish1': 'De longues années heureuses ensemble.',
+  'landing.mockWish2': 'Pour la lune de miel, avec amour.',
+  'landing.mockStrength': 'Niveau de confidentialité : bon',
+  'landing.mockInbox': 'Boîte de réception',
+  'landing.mockReply': 'Répondre',
+  'landing.mockMinimum': 'Minimum 0,05 TAZ',
+  'landing.faqTitle': 'Questions',
+  'landing.q1': 'Est-ce de l’argent réel ?',
+  'landing.a1':
+    'Non. Zealed fonctionne sur le réseau de test de Zcash, où les pièces sont gratuites sur un faucet et n’ont aucune valeur. Le réseau principal viendra quand NU7 y sera activé.',
+  'landing.q2': 'Zealed peut-il lire mes lettres ou mes messages ?',
+  'landing.a2':
+    'Non. Zealed n’a aucun serveur. Tout est chiffré dans votre navigateur avant de quitter votre appareil, et seule la personne destinataire peut le déchiffrer.',
+  'landing.q3': 'Et si j’oublie ma phrase secrète ?',
+  'landing.a3':
+    'Personne ne peut la réinitialiser. Effacez l’appareil et restaurez le portefeuille avec ses 24 mots : l’argent est en sécurité, mais les lettres et contacts gardés sur cet appareil sont perdus.',
+  'landing.q4': 'Combien ça coûte ?',
+  'landing.a4':
+    'Seulement les frais du réseau, en général 0,0001 à 0,0002 TAZ par transaction. Chaque écran les affiche avant l’envoi.',
+  'landing.q5': 'Faut-il installer quelque chose ?',
+  'landing.a5':
+    'Non. Zealed est une application web. Il faut un navigateur récent, et environ 55 Mo de code de portefeuille sont téléchargés la première fois que vous ouvrez un portefeuille.',
+  'landing.ctaTitle': 'Scellez votre première lettre en quelques minutes.',
+  'landing.ctaBody':
+    'Choisissez une phrase secrète, créez un portefeuille, obtenez de l’argent de test gratuit et essayez les trois fonctions.',
 }

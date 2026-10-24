@@ -6,6 +6,11 @@ export const es: Record<MessageKey, string> = {
   'shell.skip': 'Saltar al contenido',
   'shell.demo': 'Modo demostración',
   'shell.nav': 'Principal',
+  'shell.menu': 'Menú',
+  'shell.lock': 'Bloquear',
+  'shell.noWallet': 'Configura una cartera',
+  'shell.walletOpening': 'Abriendo la cartera…',
+  'shell.syncing': 'Poniéndose al día…',
   'nav.dashboard': 'Panel',
   'nav.contacts': 'Contactos',
   'nav.receive': 'Recibir',
@@ -98,8 +103,7 @@ export const es: Record<MessageKey, string> = {
   'receive.intro':
     'Tu dirección, para dársela a quien quiera enviarte dinero, una carta o un mensaje.',
   'receive.noWalletTitle': 'Aún no hay cartera',
-  'receive.noWallet':
-    'La cartera aún se está construyendo, así que todavía no hay dirección que mostrar.',
+  'receive.noWallet': 'Configura una cartera en la página Cartera para obtener tu dirección.',
   'receive.failed': 'No se pudo leer tu dirección.',
   'receive.yourAddress': 'Tu dirección',
   'receive.freshAddress': 'Una dirección nueva',
@@ -119,6 +123,8 @@ export const es: Record<MessageKey, string> = {
   'receive.linkLabel': 'Enlace de contacto',
   'receive.copyLink': 'Copiar enlace',
   'receive.linkCopied': 'Enlace copiado.',
+  'receive.share': 'Compartir enlace',
+  'receive.shareTitle': 'Añádeme en Zealed',
 
   'invite.title': 'Invitación de guardián',
   'invite.badTitle': 'Esta invitación no parece correcta',
@@ -141,7 +147,7 @@ export const es: Record<MessageKey, string> = {
   'invite.yourName': 'Tu nombre (opcional)',
   'invite.yourNameHint': 'Se le muestra como nombre de contacto sugerido.',
   'invite.noWallet':
-    'La cartera aún se está construyendo, así que todavía no hay dirección que enviar. Puedes volver a esta página más tarde.',
+    'Configura una cartera en la página Cartera para obtener una dirección que enviar. Esta invitación seguirá aquí.',
   'invite.newAddress': 'Usar una dirección nueva para esto',
   'invite.replyLabel': 'Enlace de respuesta',
   'invite.copyReply': 'Copiar enlace de respuesta',
@@ -205,4 +211,140 @@ export const es: Record<MessageKey, string> = {
   'wallet.receiveLink': 'Abrir Recibir',
   'wallet.backupLink': 'Respalda tu frase de recuperación en Ajustes',
   'wallet.details': 'Detalles técnicos',
+  'landing.open': 'Abrir Zealed',
+  'landing.navHow': 'Cómo funciona',
+  'landing.navPrivacy': 'Qué queda privado',
+  'landing.title': 'Dinero y mensajes privados para los momentos que importan.',
+  'landing.intro':
+    'Sella una carta que se abre en una fecha. Reúne regalos sin que nadie vea quién dio qué. Recibe mensajes de personas que siguen siendo anónimas. Construido sobre los pagos protegidos de Zcash, y funciona por completo en tu navegador.',
+  'landing.seePrivacy': 'Ver qué queda privado',
+  'landing.letterTo': 'Para Ada',
+  'landing.letterBody':
+    'Si estás leyendo esto, es tu cumpleaños. La llave de la caja azul está bajo el tercer escalón.',
+  'landing.letterSealed': 'Sellada. Se abre el 25 de diciembre de 2027, y no antes.',
+  'landing.letterLabel': 'Una carta que se está sellando. Se abre el 25 de diciembre de 2027.',
+  'landing.featuresTitle': 'Tres cosas que puedes hacer en privado',
+  'landing.legacyBody':
+    'Escribe una carta, añade dinero si quieres y elige cuándo se abre: en una fecha, o solo si dejas de dar señales. Hasta entonces nadie puede leerla: ni quien la recibe, ni tú, ni nosotros.',
+  'landing.legacyDate': 'En una fecha',
+  'landing.legacyDateBody':
+    'Cerrada hasta un momento concreto mediante la red drand. No puede abrirse antes, aunque todos quisieran.',
+  'landing.legacySilent': 'Si te quedas en silencio',
+  'landing.legacySilentBody':
+    'Amigos de confianza guardan cada uno un trozo de la clave. Si dejas de dar señales, suficientes de ellos juntos la entregan a la persona que elegiste.',
+  'landing.legacyCta': 'Sellar una carta',
+  'landing.potBody':
+    'Un bote de regalos compartido para una boda, un cumpleaños o una despedida. Los invitados dan en trozos de tamaño estándar, así que incluso el anfitrión ve solo el total y los deseos, nunca quién dio qué.',
+  'landing.potTotal': 'Total hasta ahora',
+  'landing.potCta': 'Crear un bote',
+  'landing.unsignedBody':
+    'Una tarjeta de contacto a la que se puede escribir sin decir quién eres. Pueden pagar para ser escuchados, y puedes responder sin saber su nombre.',
+  'landing.unsignedFrom': 'De alguien que no firmó',
+  'landing.unsignedMessage': 'El envío llegó el día 3. Los documentos están en la carpeta azul.',
+  'landing.unsignedPaid': 'Pagó 0,05 TAZ',
+  'landing.unsignedCta': 'Publicar una tarjeta',
+  'landing.privacyTitle': 'Quién puede ver qué',
+  'landing.privacyIntro':
+    'Los pagos protegidos de Zcash ocultan a quien envía, a quien recibe y la cantidad. Zealed añade el resto: todo lo que escribes se cifra antes de salir de tu dispositivo.',
+  'landing.colWhat': 'Qué',
+  'landing.colYou': 'Tú',
+  'landing.colOther': 'La otra persona',
+  'landing.colNetwork': 'La red Zcash',
+  'landing.colServer': 'El servidor de la cartera',
+  'landing.colZealed': 'Zealed',
+  'landing.rowText': 'Lo que dice una carta o un mensaje',
+  'landing.rowGiver': 'Quién dio a un bote',
+  'landing.rowAmount': 'Cuánto se envió',
+  'landing.rowUse': 'Que tu cartera está activa, y desde qué dirección IP',
+  'landing.yes': 'Sí',
+  'landing.no': 'No',
+  'landing.afterDate': 'Sí, cuando se abre',
+  'landing.ownGift': 'Solo su propio regalo',
+  'landing.whatTheyGot': 'Lo que recibió',
+  'landing.privacyNote':
+    'Zealed no tiene servidores propios. La aplicación es un conjunto de archivos que ejecuta tu navegador; tus datos se quedan en este dispositivo, cifrados con tu frase de acceso.',
+  'landing.howTitle': 'Para empezar',
+  'landing.step1': 'Elige una frase de acceso',
+  'landing.step1Body':
+    'Todo lo que guardas se cifra con ella, solo en este dispositivo. Nadie puede restablecerla por ti.',
+  'landing.step2': 'Crea una cartera',
+  'landing.step2Body':
+    'Recibes 24 palabras para apuntar. Son la única forma de recuperar la cartera.',
+  'landing.step3': 'Consigue dinero de prueba',
+  'landing.step3Body':
+    'Zealed funciona en la red de pruebas de Zcash. El dinero de prueba es gratis en un grifo y no tiene valor.',
+  'landing.step4': 'Sella, regala o escribe',
+  'landing.step4Body':
+    'Cada función explica qué se enviará y cuánto cuesta antes de que nada salga de tu cartera.',
+  'landing.footer': 'Zealed funciona en la red de pruebas de Zcash. Aquí no se usa dinero real.',
+  'landing.previewTo2': 'Para Tunde',
+  'landing.previewDate': 'Se abre el 25 de diciembre de 2027',
+  'landing.previewSilent': 'Se abre si dejo de dar señales, con 3 de 5 guardianes',
+  'landing.live': 'Funcionando en la red de pruebas NU7 de Zcash',
+  'landing.seeProof': 'Verlo funcionar en la red de pruebas',
+  'landing.navFeatures': 'Funciones',
+  'landing.navProof': 'Pruebas',
+  'landing.navFaq': 'Preguntas',
+  'landing.proofTitle': 'Funcionando en la red de pruebas real, no en una maqueta',
+  'landing.proofIntro':
+    'Cada función se ha probado de principio a fin en la red de pruebas NU7 de Zcash, entre dos carteras en dos navegadores. Estas son algunas de las transacciones. Cualquiera puede consultarlas; solo las personas implicadas pueden leerlas.',
+  'landing.proofMemos': 'Dos memos en una transacción',
+  'landing.proofMemosBody': 'Enviados desde el navegador y leídos de vuelta desde la cadena.',
+  'landing.proofZero': 'Mensajes sin dinero adjunto',
+  'landing.proofZeroBody': 'Así viajan las respuestas y las señales de vida.',
+  'landing.proofReceived': 'Un pago desde otra cartera',
+  'landing.proofReceivedBody': 'Recibido en el fondo Ironwood y luego gastado.',
+  'landing.proofBlock': 'Bloque {height}',
+  'landing.proofView': 'Ver en el explorador',
+  'landing.legacyGift': 'El dinero viaja con ella',
+  'landing.legacyGiftBody':
+    'Añade ZEC a una carta. Espera en una cartera que solo la carta puede abrir, y pasa a quien la recibe cuando la abre.',
+  'landing.potPoint1': 'Trozos de tamaño estándar',
+  'landing.potPoint1Body':
+    'Cada regalo se divide en cantidades comunes enviadas en momentos distintos, así que ningún pago señala a un invitado.',
+  'landing.potPoint2': 'Totales, no listas',
+  'landing.potPoint2Body':
+    'El anfitrión ve el total por tandas y los deseos, mezclados. Nunca una lista de quién dio qué.',
+  'landing.potPoint3': 'Un bote propio',
+  'landing.potPoint3Body':
+    'Cada bote es una cuenta aparte, que pasa a la cartera del anfitrión cuando se cierra.',
+  'landing.unsignedPoint1': 'Sin nombre',
+  'landing.unsignedPoint1Body':
+    'Quien escribe solo necesita una cartera de Zcash. Nada vincula un mensaje con quien lo envió.',
+  'landing.unsignedPoint2': 'De pago, así que sin spam',
+  'landing.unsignedPoint2Body':
+    'Tú fijas un pago mínimo. Los mensajes por debajo esperan en una carpeta aparte.',
+  'landing.unsignedPoint3': 'Pruebas sin exponerse',
+  'landing.unsignedPoint3Body':
+    'Quien escribe puede guardar un recibo y demostrar más tarde lo que escribió, sin haberlo firmado.',
+  'landing.mockSealedFor': 'Sellada para ti',
+  'landing.mockOpensIn': 'Se abre en 2 días y 4 horas',
+  'landing.mockOpen': 'Abrir carta',
+  'landing.mockGuardians': 'Hacen falta 3 de 5 guardianes',
+  'landing.mockWishes': 'Deseos',
+  'landing.mockWish1': 'Muchos años felices juntos.',
+  'landing.mockWish2': 'Para la luna de miel, con cariño.',
+  'landing.mockStrength': 'Nivel de privacidad: bueno',
+  'landing.mockInbox': 'Bandeja de entrada',
+  'landing.mockReply': 'Responder',
+  'landing.mockMinimum': 'Mínimo 0,05 TAZ',
+  'landing.faqTitle': 'Preguntas',
+  'landing.q1': '¿Es dinero real?',
+  'landing.a1':
+    'No. Zealed funciona en la red de pruebas de Zcash, donde las monedas son gratis en un grifo y no tienen valor. La red principal llegará cuando NU7 se active allí.',
+  'landing.q2': '¿Puede Zealed leer mis cartas o mensajes?',
+  'landing.a2':
+    'No. Zealed no tiene servidores. Todo se cifra en tu navegador antes de salir de tu dispositivo, y solo la persona a quien va dirigido puede descifrarlo.',
+  'landing.q3': '¿Y si olvido mi frase de acceso?',
+  'landing.a3':
+    'Nadie puede restablecerla. Borra el dispositivo y restaura la cartera con sus 24 palabras: el dinero está a salvo, pero las cartas y contactos guardados en ese dispositivo se pierden.',
+  'landing.q4': '¿Cuánto cuesta?',
+  'landing.a4':
+    'Solo la comisión de la red, normalmente de 0,0001 a 0,0002 TAZ por transacción. Cada pantalla la muestra antes de enviar.',
+  'landing.q5': '¿Tengo que instalar algo?',
+  'landing.a5':
+    'No. Zealed es una aplicación web. Necesita un navegador reciente y descarga unos 55 MB de código de cartera la primera vez que abres una cartera.',
+  'landing.ctaTitle': 'Sella tu primera carta en unos minutos.',
+  'landing.ctaBody':
+    'Elige una frase de acceso, crea una cartera, consigue dinero de prueba gratis y prueba las tres funciones.',
 }

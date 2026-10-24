@@ -1,3 +1,4 @@
+import { NoWalletNotice } from '../../components/NoWalletNotice.tsx'
 import { Link, useLocation } from 'react-router'
 import { BubbleIcon } from '../../components/Icons.tsx'
 import { EmptyState } from '../../components/EmptyState.tsx'
@@ -20,7 +21,7 @@ export function Send() {
         <EmptyState
           title="This link does not look right"
           action={
-            <Link to="/" className="underline underline-offset-4">
+            <Link to="/app" className="underline underline-offset-4">
               Back to home
             </Link>
           }
@@ -32,7 +33,7 @@ export function Send() {
   }
 
   return (
-    <div className="space-y-10 py-10">
+    <div className="max-w-3xl space-y-10 py-10">
       <div>
         <div className="flex items-center gap-3 text-seal">
           <BubbleIcon width={32} height={32} />
@@ -48,12 +49,7 @@ export function Send() {
         </p>
       </div>
 
-      {wallet === null && (
-        <p role="status" className="rounded-control border border-warn bg-warn-soft px-4 py-3">
-          The wallet is still being built, so messages cannot be sent yet. You can fill in the form
-          to see how it works.
-        </p>
-      )}
+      {wallet === null && <NoWalletNotice to="to send a message" />}
 
       <PrivacyGuidance />
 

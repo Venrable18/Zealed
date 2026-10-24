@@ -75,7 +75,7 @@ describe('ComposeLetter', () => {
     renderCompose(null)
     fillCompose()
     fireEvent.click(screen.getByRole('button', { name: 'Seal and send' }))
-    expect(screen.getByRole('alert').textContent).toContain('wallet is not available yet')
+    expect(screen.getByRole('alert').textContent).toContain('You need a wallet first')
     expect(useLegacy.getState().sent).toHaveLength(0)
   })
 

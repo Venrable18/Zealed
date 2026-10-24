@@ -1,3 +1,4 @@
+import { NoWalletNotice } from '../../components/NoWalletNotice.tsx'
 import { Link, useParams } from 'react-router'
 import { EmptyState } from '../../components/EmptyState.tsx'
 import { HostViewPanel } from '../../features/blindpot/HostViewPanel.tsx'
@@ -29,7 +30,7 @@ export function PotPage() {
   }
 
   return (
-    <div className="space-y-10 py-10">
+    <div className="max-w-3xl space-y-10 py-10">
       <div>
         <p className="text-sm">
           <Link to="/blind-pot" className="underline underline-offset-4">
@@ -45,9 +46,7 @@ export function PotPage() {
       </div>
 
       {wallet === null ? (
-        <p role="status" className="rounded-control border border-warn bg-warn-soft px-4 py-3">
-          The wallet is not available, so the total cannot be shown.
-        </p>
+        <NoWalletNotice to="to see the total" />
       ) : (
         <HostViewPanel
           pot={pot}

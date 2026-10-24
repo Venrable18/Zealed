@@ -19,7 +19,7 @@ test.describe('Unsigned (sender side; wallet not built yet)', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Ada — tips' })).toBeVisible()
     await expect(page.getByText('Tell me what you saw.')).toBeVisible()
     await expect(page.getByText(/at least 0.05 ZEC/)).toBeVisible()
-    await expect(page.getByText(/wallet is still being built/)).toBeVisible()
+    await expect(page.getByText(/You need a wallet/)).toBeVisible()
     await expect(page.getByRole('complementary', { name: 'Before you send' })).toBeVisible()
     await expect(page.getByText(/Use a separate wallet/)).toBeVisible()
     await expect(page.getByText(/Safest/)).toBeVisible()
@@ -61,7 +61,7 @@ test.describe('Unsigned (sender side; wallet not built yet)', () => {
     await page.getByLabel('Your message').fill('The documents are in the shed.')
     await page.getByLabel('Payment (ZEC)').fill('0.05')
     await page.getByRole('button', { name: 'Send message' }).click()
-    await expect(page.getByRole('alert')).toContainText('wallet is not available yet')
+    await expect(page.getByRole('alert')).toContainText('You need a wallet first')
     await expect(page.getByText('Nothing sent yet')).toBeVisible()
   })
 

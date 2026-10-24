@@ -8,9 +8,7 @@ test.describe('Legacy: if I go silent (guardians; wallet not built yet)', () => 
     await page.goto('/legacy')
     await page.getByRole('link', { name: /opens only if you go silent/ }).click()
     await expect(page.getByRole('heading', { level: 1, name: 'If I go silent' })).toBeVisible()
-    await expect(
-      page.getByRole('status').filter({ hasText: 'wallet is still being built' }),
-    ).toBeVisible()
+    await expect(page.getByRole('status').filter({ hasText: 'You need a wallet' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Check for messages' })).toBeDisabled()
     await expect(page.getByText('No letters yet')).toBeVisible()
     await expect(page.getByText('You are not guarding anyone')).toBeVisible()
@@ -84,7 +82,7 @@ test.describe('Legacy: if I go silent (guardians; wallet not built yet)', () => 
     await page.getByLabel('Guardian 3 address').fill(addr('three'))
     await page.getByLabel('Your letter').fill('The documents are in the blue folder.')
     await page.getByRole('button', { name: 'Seal and send' }).click()
-    await expect(page.getByRole('alert')).toContainText('wallet is not available yet')
+    await expect(page.getByRole('alert')).toContainText('You need a wallet first')
     await expect(page.getByText('No letters yet')).toBeVisible()
   })
 

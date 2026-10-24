@@ -304,7 +304,7 @@ export function Wallet() {
   else body = <Ready />
 
   return (
-    <div className="space-y-8 py-10">
+    <div className="max-w-3xl space-y-8 py-10">
       <div>
         <h1 className="text-3xl">{t('wallet.title')}</h1>
         <p className="mt-3 max-w-prose text-muted">{t('wallet.intro')}</p>

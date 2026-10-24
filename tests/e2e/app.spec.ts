@@ -5,13 +5,13 @@ test('demo mode turns on with ?demo=1, survives a reload and turns off with ?dem
 }) => {
   const badge = page.getByText('Demo mode')
 
-  await page.goto('/?demo=1')
+  await page.goto('/app?demo=1')
   await expect(badge).toBeVisible()
 
-  await page.goto('/')
+  await page.goto('/app')
   await expect(badge).toBeVisible()
 
-  await page.goto('/?demo=0')
+  await page.goto('/app?demo=0')
   await expect(page.getByRole('heading', { name: 'Zealed' })).toBeVisible()
   await expect(badge).toBeHidden()
 })

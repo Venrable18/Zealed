@@ -47,7 +47,7 @@ describe('Dashboard', () => {
     expect(screen.getByRole('note').textContent).toBe(
       'Your dashboard is computed on this device. We can’t see it.',
     )
-    expect(screen.getByText(/wallet is not available yet, so there is no balance/)).toBeTruthy()
+    expect(screen.getByText(/There is no wallet yet, so there is no balance/)).toBeTruthy()
     expect(screen.getByText('No pots yet.')).toBeTruthy()
     expect(within(card('Unsigned')).getByText('None yet')).toBeTruthy()
   })

@@ -59,10 +59,10 @@ export function DashboardView({ data }: { data: DashboardData }) {
       </p>
 
       <div className="grid gap-5 md:grid-cols-2">
-        <Card id="dash-wallet" title="Wallet" to="/settings">
+        <Card id="dash-wallet" title="Wallet" to="/wallet">
           {balance === 'unavailable' && (
             <p className="text-muted">
-              The wallet is not available yet, so there is no balance to show.
+              There is no wallet yet, so there is no balance to show. Set one up on the Wallet page.
             </p>
           )}
           {balance === 'loading' && <p role="status">Reading your balance…</p>}
@@ -93,7 +93,7 @@ export function DashboardView({ data }: { data: DashboardData }) {
           {pots.count === 0 && <p className="text-sm text-muted">No pots yet.</p>}
           {pots.count > 0 && potsState === 'unavailable' && (
             <p className="text-sm text-muted">
-              Totals need the wallet, which is not available yet.
+              Totals need a wallet. Set one up on the Wallet page.
             </p>
           )}
           {potsState === 'error' && (

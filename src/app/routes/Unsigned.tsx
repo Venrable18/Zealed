@@ -1,3 +1,4 @@
+import { NoWalletNotice } from '../../components/NoWalletNotice.tsx'
 import { BubbleIcon } from '../../components/Icons.tsx'
 import { CreateCardForm } from '../../features/unsigned/CreateCardForm.tsx'
 import { InboxPanel } from '../../features/unsigned/InboxPanel.tsx'
@@ -26,46 +27,54 @@ export function Unsigned() {
         </p>
       </div>
 
-      {wallet === null && (
-        <p role="status" className="rounded-control border border-warn bg-warn-soft px-4 py-3">
-          The wallet is still being built, so cards cannot be created and messages cannot arrive
-          yet. You can fill in the form to see how it works.
-        </p>
-      )}
+      {wallet === null && <NoWalletNotice to="to publish a card and receive messages" />}
 
-      <section className="space-y-4">
-        <h2 className="text-xl">
-          {card === null ? 'Create a contact card' : 'Replace your contact card'}
-        </h2>
-        {card !== null && (
-          <p className="text-sm text-muted">
-            A new card gets its own address and an empty inbox. The old card’s link keeps working.
-          </p>
-        )}
-        <CreateCardForm
-          onSubmit={async (input) => {
-            const result = await createCard(wallet, input)
-            if (result.ok) setCard(result.card)
-            return result
-          }}
-        />
-      </section>
-
-      {card !== null && (
-        <>
+      {card === null ? (
+        <div className="max-w-[40rem]">
           <section className="space-y-4">
-            <h2 className="text-xl">Your card</h2>
-            <ShareCard card={card} />
+            <h2 className="text-xl">Create a contact card</h2>
+            <CreateCardForm
+              onSubmit={async (input) => {
+                const result = await createCard(wallet, input)
+                if (result.ok) setCard(result.card)
+                return result
+              }}
+            />
           </section>
-          <section className="space-y-4">
-            <h2 className="text-xl">Inbox</h2>
-            <InboxPanel card={card} wallet={wallet} />
-          </section>
-          <section className="space-y-4">
-            <h2 className="text-xl">Verify a receipt</h2>
-            <VerifyReceipt messages={messages} />
-          </section>
-        </>
+        </div>
+      ) : (
+        <div className="grid items-start gap-12 xl:grid-cols-[minmax(0,40rem)_minmax(0,1fr)] xl:gap-16">
+          <div className="min-w-0 space-y-12">
+            <section className="space-y-4">
+              <h2 className="text-xl">Your card</h2>
+              <ShareCard card={card} />
+            </section>
+            <section className="space-y-4">
+              <h2 className="text-xl">Inbox</h2>
+              <InboxPanel card={card} wallet={wallet} />
+            </section>
+          </div>
+          <div className="min-w-0 space-y-12">
+            <section className="space-y-4">
+              <h2 className="text-xl">Verify a receipt</h2>
+              <VerifyReceipt messages={messages} />
+            </section>
+            <section className="space-y-4">
+              <h2 className="text-xl">Replace your contact card</h2>
+              <p className="text-sm text-muted">
+                A new card gets its own address and an empty inbox. The old card’s link keeps
+                working.
+              </p>
+              <CreateCardForm
+                onSubmit={async (input) => {
+                  const result = await createCard(wallet, input)
+                  if (result.ok) setCard(result.card)
+                  return result
+                }}
+              />
+            </section>
+          </div>
+        </div>
       )}
     </div>
   )

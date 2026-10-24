@@ -1,5 +1,14 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import {
+  cleanup,
+  fireEvent,
+  render as renderRaw,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
+import type { ReactElement } from 'react'
+import { MemoryRouter } from 'react-router'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { decodeMemo } from '../../zmp/index.ts'
 import { createMemoryContributionStore } from './contributionStore.ts'
@@ -9,6 +18,9 @@ import { beginSend, createContribution, type Contribution } from './queue.ts'
 import { splitContribution } from './splitter.ts'
 import type { SharedPot } from './shareLink.ts'
 import { decodeWish } from './wishes.ts'
+
+/** The gift screen links to the wallet page, so it needs a router around it. */
+const render = (ui: ReactElement) => renderRaw(ui, { wrapper: MemoryRouter })
 
 const pot: SharedPot = {
   id: 'd'.repeat(32),
@@ -133,10 +145,10 @@ describe('GiftFlow', () => {
 
   it('says plainly that there is no wallet and sends nothing', () => {
     renderFlow(null)
-    expect(screen.getByText(/wallet is still being built/)).toBeTruthy()
+    expect(screen.getByText(/You need a wallet/)).toBeTruthy()
     fill('0.05')
     fireEvent.click(screen.getByRole('button', { name: 'Send gift' }))
-    expect(screen.getByRole('alert').textContent).toContain('wallet is not available yet')
+    expect(screen.getByRole('alert').textContent).toContain('You need a wallet first')
   })
 
   it('does not take gifts after the last day', () => {

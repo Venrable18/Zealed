@@ -1,3 +1,4 @@
+import { NoWalletNotice } from '../../components/NoWalletNotice.tsx'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { Button } from '../../components/Button.tsx'
@@ -55,12 +56,7 @@ export function Silent() {
         </p>
       </div>
 
-      {wallet === null && (
-        <p role="status" className="rounded-control border border-warn bg-warn-soft px-4 py-3">
-          The wallet is still being built, so nothing can be sent or received yet. You can fill in
-          the form to see how it works.
-        </p>
-      )}
+      {wallet === null && <NoWalletNotice to="to seal and send a letter" />}
 
       <div>
         <Button
@@ -75,33 +71,38 @@ export function Silent() {
         </Button>
       </div>
 
-      <section className="space-y-4">
-        <h2 className="text-xl">Set up a letter</h2>
-        <SetupSilent
-          wallet={wallet}
-          defaultPeriodMs={checkInPeriodMs}
-          defaultGraceMs={gracePeriodMs}
-        />
-      </section>
+      <div className="grid items-start gap-12 xl:grid-cols-[minmax(0,40rem)_minmax(0,1fr)] xl:gap-16">
+        <div className="min-w-0 space-y-12">
+          <section className="space-y-4">
+            <h2 className="text-xl">Set up a letter</h2>
+            <SetupSilent
+              wallet={wallet}
+              defaultPeriodMs={checkInPeriodMs}
+              defaultGraceMs={gracePeriodMs}
+            />
+          </section>
+        </div>
+        <div className="min-w-0 space-y-12">
+          <section className="space-y-4">
+            <h2 className="text-xl">Your letters</h2>
+            <OwnerPanel wallet={wallet} />
+          </section>
 
-      <section className="space-y-4">
-        <h2 className="text-xl">Your letters</h2>
-        <OwnerPanel wallet={wallet} />
-      </section>
+          <section className="space-y-4">
+            <h2 className="text-xl">People you guard</h2>
+            <p className="max-w-prose text-sm text-muted">
+              Guardians act only when Zealed is open. Browsers cannot run it in the background, so
+              open it now and then.
+            </p>
+            <GuardianPanel wallet={wallet} autoRelease={demoMode} />
+          </section>
 
-      <section className="space-y-4">
-        <h2 className="text-xl">People you guard</h2>
-        <p className="max-w-prose text-sm text-muted">
-          Guardians act only when Zealed is open. Browsers cannot run it in the background, so open
-          it now and then.
-        </p>
-        <GuardianPanel wallet={wallet} autoRelease={demoMode} />
-      </section>
-
-      <section className="space-y-4">
-        <h2 className="text-xl">Waiting for you</h2>
-        <HeirPanel wallet={wallet} />
-      </section>
+          <section className="space-y-4">
+            <h2 className="text-xl">Waiting for you</h2>
+            <HeirPanel wallet={wallet} />
+          </section>
+        </div>
+      </div>
     </div>
   )
 }

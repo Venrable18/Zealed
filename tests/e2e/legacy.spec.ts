@@ -9,9 +9,7 @@ test.describe('Legacy (letters sealed until a date; wallet not built yet)', () =
   }) => {
     await page.goto('/legacy')
     await expect(page.getByRole('heading', { level: 1, name: 'Legacy' })).toBeVisible()
-    await expect(
-      page.getByRole('status').filter({ hasText: 'wallet is still being built' }),
-    ).toBeVisible()
+    await expect(page.getByRole('status').filter({ hasText: 'You need a wallet' })).toBeVisible()
     await expect(page.getByText('No sealed letters')).toBeVisible()
     await expect(page.getByText('Nothing sealed yet')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Check for sealed letters' })).toBeDisabled()
@@ -41,7 +39,7 @@ test.describe('Legacy (letters sealed until a date; wallet not built yet)', () =
     await page.getByLabel(/Recipient/).fill(RECIPIENT)
     await page.getByLabel('Your letter').fill('See you on the other side.')
     await page.getByRole('button', { name: 'Seal and send' }).click()
-    await expect(page.getByRole('alert')).toContainText('wallet is not available yet')
+    await expect(page.getByRole('alert')).toContainText('You need a wallet first')
     await expect(page.getByText('Nothing sealed yet')).toBeVisible()
   })
 

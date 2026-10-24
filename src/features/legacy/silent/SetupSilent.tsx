@@ -116,7 +116,9 @@ export function SetupSilent({ wallet, defaultPeriodMs, defaultGraceMs }: SetupSi
         setErrors(result.errors)
         break
       case 'wallet-unavailable':
-        setProblem('The wallet is not available yet, so nothing was sealed or sent.')
+        setProblem(
+          'You need a wallet first, so nothing was sealed or sent. Set one up on the Wallet page.',
+        )
         break
       case 'seal-failed':
         setProblem('The letter could not be sealed. Nothing was sent. Try again.')
@@ -146,7 +148,9 @@ export function SetupSilent({ wallet, defaultPeriodMs, defaultGraceMs }: SetupSi
         }
         setErrors({})
         if (wallet === null) {
-          setProblem('The wallet is not available yet, so nothing was sealed or sent.')
+          setProblem(
+            'You need a wallet first, so nothing was sealed or sent. Set one up on the Wallet page.',
+          )
           return
         }
         setConfirming(true)

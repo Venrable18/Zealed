@@ -1,3 +1,4 @@
+import { NoWalletNotice } from '../../components/NoWalletNotice.tsx'
 import { useEffect, useRef, useState } from 'react'
 import { AmountInput } from '../../components/AmountInput.tsx'
 import { Button } from '../../components/Button.tsx'
@@ -270,12 +271,7 @@ export function GiftFlow({
 
   return (
     <div className="space-y-6">
-      {wallet === null && (
-        <p role="status" className="rounded-control border border-warn bg-warn-soft px-4 py-3">
-          The wallet is still being built, so gifts cannot be sent yet. You can fill in the form to
-          see how it works.
-        </p>
-      )}
+      {wallet === null && <NoWalletNotice to="to send a gift" />}
 
       <AmountInput
         label="Gift amount (ZEC)"
@@ -329,7 +325,9 @@ export function GiftFlow({
         disabled={!ready}
         onClick={() => {
           if (wallet === null) {
-            setProblem('The wallet is not available yet, so nothing was sent.')
+            setProblem(
+              'You need a wallet first, so nothing was sent. Set one up on the Wallet page.',
+            )
             return
           }
           setConfirming(true)
