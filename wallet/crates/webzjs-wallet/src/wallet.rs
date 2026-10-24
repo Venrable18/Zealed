@@ -107,6 +107,8 @@ pub struct Wallet<W, T> {
     pub(crate) target_note_count: usize,
     /// Note management: the minimum allowed value for split change amounts
     pub(crate) min_split_output_value: u64,
+    /// Memos read from full transactions, by transaction, for this session.
+    pub(crate) memo_cache: Arc<RwLock<std::collections::HashMap<TxId, Vec<(u8, u32, [u8; 512])>>>>,
 }
 
 impl<W, T: Clone> Clone for Wallet<W, T> {
@@ -118,11 +120,18 @@ impl<W, T: Clone> Clone for Wallet<W, T> {
             min_confirmations: self.min_confirmations,
             target_note_count: self.target_note_count,
             min_split_output_value: self.min_split_output_value,
+            memo_cache: self.memo_cache.clone(),
         }
     }
 }
 
-impl<P: Parameters, T> Wallet<MemoryWalletDb<P>, T> {
+impl<P: Parameters, T> Wallet<MemoryWalletDb<P>, T>
+where
+    T: GrpcService<tonic::body::Body> + Clone,
+    T::Error: Into<StdError>,
+    T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+    <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
+{
     /// The account's current unified address (the most recently generated one), encoded.
     pub async fn current_address(
         &self,
@@ -157,46 +166,122 @@ impl<P: Parameters, T> Wallet<MemoryWalletDb<P>, T> {
     /// data" memo (first byte 0xFF, returned as all 512 bytes). When `only_to` is given, only
     /// notes sent to that Orchard receiver are returned, which tells apart payments to different
     /// addresses of the same account.
+    ///
+    /// Block scanning sees only the compact form of each output, which has no memo. So the first
+    /// time a transaction is seen, it is fetched in full from the server and its memos are
+    /// decrypted here, with the account's viewing key. (Like any light wallet, this tells the
+    /// server which transactions are the wallet's.) Results are kept for the session.
     pub async fn received_notes(
         &self,
         account_id: <MemoryWalletDb<P> as WalletRead>::AccountId,
         only_to: Option<orchard::Address>,
-    ) -> Vec<ReceivedNoteInfo> {
-        let db = self.db.read().await;
+    ) -> Result<Vec<ReceivedNoteInfo>, Error> {
+        let (rows, ufvk) = {
+            let db = self.db.read().await;
+            let ufvk = db
+                .get_account(account_id)?
+                .and_then(|account| account.ufvk().cloned());
+            (db.received_notes_of(account_id), ufvk)
+        };
         let mut found = Vec::new();
-        for note in db.received_notes().iter() {
-            if note.account_id() != account_id {
-                continue;
-            }
+        for (txid, output_index, mined_height, note, memo) in rows {
+            let pool = match &note {
+                zcash_client_backend::wallet::Note::Sapling(_) => 0u8,
+                zcash_client_backend::wallet::Note::Orchard { pool, .. } => match pool {
+                    orchard::ValuePool::Orchard => 1,
+                    orchard::ValuePool::Ironwood => 2,
+                },
+            };
             if let Some(wanted) = &only_to {
-                match note.note() {
+                match &note {
                     zcash_client_backend::wallet::Note::Orchard { note, .. }
                         if note.recipient() == *wanted => {}
                     _ => continue,
                 }
             }
-            let memo = if let zcash_protocol::memo::Memo::Arbitrary(bytes) = note.memo() {
-                let mut full = [0u8; 512];
-                full[0] = 0xFF;
-                full[1..].copy_from_slice(&bytes[..]);
-                Some(full)
-            } else {
-                None
+            let memo_bytes = match memo {
+                zcash_protocol::memo::Memo::Arbitrary(bytes) => {
+                    let mut full = [0u8; 512];
+                    full[0] = 0xFF;
+                    full[1..].copy_from_slice(&bytes[..]);
+                    Some(full)
+                }
+                // Empty can mean "not known yet": the note came from block scanning.
+                zcash_protocol::memo::Memo::Empty => match (&ufvk, mined_height) {
+                    (Some(ufvk), Some(height)) => self
+                        .memo_from_full_tx(account_id, ufvk, txid, height, pool, output_index)
+                        .await?,
+                    _ => None,
+                },
+                _ => None,
             };
-            let txid = note.txid();
-            let mined_height = db
-                .tx_table()
-                .get(&txid)
-                .and_then(|entry| entry.mined_height())
-                .map(u32::from);
             found.push(ReceivedNoteInfo {
                 txid,
-                mined_height,
-                value: note.note().value().into_u64(),
-                memo,
+                mined_height: mined_height.map(u32::from),
+                value: note.value().into_u64(),
+                memo: memo_bytes,
             });
         }
-        found
+        Ok(found)
+    }
+
+    /// The arbitrary-data memo of one output of a transaction, read from the full transaction.
+    async fn memo_from_full_tx(
+        &self,
+        account_id: <MemoryWalletDb<P> as WalletRead>::AccountId,
+        ufvk: &UnifiedFullViewingKey,
+        txid: TxId,
+        height: zcash_protocol::consensus::BlockHeight,
+        pool: u8,
+        output_index: u32,
+    ) -> Result<Option<[u8; 512]>, Error> {
+        let memos = {
+            let cache = self.memo_cache.read().await;
+            cache.get(&txid).cloned()
+        };
+        let memos = match memos {
+            Some(memos) => memos,
+            None => {
+                let mut client = self.client.clone();
+                let raw = client
+                    .get_transaction(service::TxFilter {
+                        block: None,
+                        index: 0,
+                        hash: txid.as_ref().to_vec(),
+                    })
+                    .await?
+                    .into_inner();
+                let branch = BranchId::for_height(self.db.read().await.params(), height);
+                let tx = zcash_primitives::transaction::Transaction::read(&raw.data[..], branch)
+                    .map_err(|e| Error::Generic(format!("could not read a transaction: {e}")))?;
+                let mut ufvks = std::collections::HashMap::new();
+                ufvks.insert(account_id, ufvk.clone());
+                let decrypted = zcash_client_backend::decrypt_transaction(
+                    self.db.read().await.params(),
+                    Some(height),
+                    None,
+                    &tx,
+                    &ufvks,
+                );
+                let mut memos: Vec<(u8, u32, [u8; 512])> = Vec::new();
+                for out in decrypted.sapling_outputs() {
+                    memos.push((0, out.index() as u32, *out.memo().as_array()));
+                }
+                for out in decrypted.orchard_outputs() {
+                    memos.push((1, out.index() as u32, *out.memo().as_array()));
+                }
+                for out in decrypted.ironwood_outputs() {
+                    memos.push((2, out.index() as u32, *out.memo().as_array()));
+                }
+                self.memo_cache.write().await.insert(txid, memos.clone());
+                memos
+            }
+        };
+        Ok(memos
+            .into_iter()
+            .find(|(p, i, _)| *p == pool && *i == output_index)
+            .map(|(_, _, memo)| memo)
+            .filter(|memo| memo[0] == 0xFF))
     }
 
     // Encodes the MemoryWallet into protobuf bytes
@@ -254,6 +339,7 @@ where
             min_confirmations,
             target_note_count: 4,
             min_split_output_value: 10000000,
+            memo_cache: Arc::new(RwLock::new(std::collections::HashMap::new())),
         })
     }
 
@@ -438,6 +524,7 @@ where
             // the tx version for the target height (v6 post-NU6.3 activation).
             &SpendPolicy::default(),
             None,
+            None,
         )
         .map_err(|_e| Error::Generic("something bad happened when calling propose transfer. Possibly insufficient balance..".to_string()))?;
         tracing::info!("Transfer proposal created");
@@ -497,6 +584,7 @@ where
             request,
             self.min_confirmations,
             &SpendPolicy::default(),
+            None,
             None,
         )
         .map_err(|e| Error::Generic(format!("could not propose the payments: {e:?}")))?;
@@ -626,6 +714,79 @@ where
         self.send_authorized_transactions(&txids).await
     }
 
+    /// Moves the account's transparent coins into the Ironwood pool in one signed, proved and
+    /// broadcast transaction. Zealed holds shielded money only, so this is how coins that arrive at
+    /// a transparent address (for example from a faucet that pays only those) become spendable.
+    pub async fn shield_transparent(
+        &self,
+        seed_phrase: &str,
+        account_hd_index: u32,
+        account_id: AccountId,
+    ) -> Result<Vec<TxId>, Error> {
+        let (usk, _) = usk_from_seed_str(seed_phrase, account_hd_index, &self.network)?;
+        let change_strategy = MultiOutputChangeStrategy::new(
+            StandardFeeRule::Zip317,
+            None,
+            ShieldedProtocol::Ironwood,
+            DustOutputPolicy::default(),
+            SplitPolicy::with_min_output_value(
+                NonZeroUsize::new(self.target_note_count)
+                    .ok_or(Error::FailedToCreateTransaction)?,
+                Zatoshis::from_u64(self.min_split_output_value)?,
+            ),
+        );
+        let input_selector = GreedyInputSelector::new();
+        let proposal = {
+            let mut db = self.db.write().await;
+            let max_height = db
+                .chain_height()?
+                .ok_or_else(|| Error::Generic("the wallet has not synced yet".to_string()))?;
+            let from_addrs = db
+                .get_transparent_balances(account_id, max_height.into(), self.min_confirmations)?
+                .into_keys()
+                .collect::<Vec<_>>();
+            propose_shielding::<_, _, _, _, <W as WalletCommitmentTrees>::Error>(
+                &mut *db,
+                &self.network,
+                &input_selector,
+                &change_strategy,
+                SHIELDING_THRESHOLD,
+                &from_addrs,
+                account_id,
+                self.min_confirmations,
+                CoinbaseFilter::AllTransparentOutputs,
+                None,
+            )
+            .map_err(|e| Error::Generic(format!("could not shield: {e:?}")))?
+        };
+        // A shielding proposal spends transparent coins only, so it has no shielded note
+        // references and cannot go through `create_proposed_transactions` above.
+        let prover = LocalTxProver::bundled();
+        let txids = {
+            let mut db = self.db.write().await;
+            create_proposed_transactions::<
+                _,
+                _,
+                <MemoryWalletDb<Network> as InputSource>::Error,
+                _,
+                <StandardFeeRule as FeeRule>::Error,
+                _,
+            >(
+                &mut *db,
+                &self.network,
+                &prover,
+                &prover,
+                &SpendingKeys::from_unified_spending_key(usk),
+                OvkPolicy::Sender,
+                &proposal,
+                None,
+            )
+            .map_err(|_| Error::FailedToCreateTransaction)?
+        };
+        self.send_authorized_transactions(&txids).await?;
+        Ok(txids.into_iter().collect())
+    }
+
     pub async fn pczt_shield(&self, account_id: AccountId) -> Result<Pczt, Error> {
         tracing::info!("pczt_shield: Starting for account {:?}", account_id);
 
@@ -720,6 +881,7 @@ where
             account_id,
             self.min_confirmations, // librustzcash operates under the assumption of zero or one conf being the same but that could change.
             CoinbaseFilter::AllTransparentOutputs, // shield all transparent outputs (preserves pre-0.23 behavior, before this filter existed)
+            None,
         )
         .map_err(|e| {
             tracing::error!("pczt_shield: propose_shielding failed: {:?}", e);
@@ -744,7 +906,7 @@ where
             // client_backend 0.24: explicit expiry height (None = builder default)
             // and the Orchard-pool bundle type for the created PCZT.
             None,
-            orchard::builder::BundleType::DEFAULT,
+            zcash_primitives::transaction::builder::BundlePadding::DEFAULT,
         )
         .map_err(|e| {
             tracing::error!("pczt_shield: create_pczt_from_proposal failed: {:?}", e);
@@ -821,6 +983,7 @@ where
             self.min_confirmations,
             &SpendPolicy::default(),
             None,
+            None,
         )
             .map_err(|e| Error::Generic(format!("something bad happened when calling propose transfer. Possibly insufficient balance... {e:?}")))?;
         tracing::info!("PCZT proposal created");
@@ -840,7 +1003,7 @@ where
             // client_backend 0.24: explicit expiry height (None = builder default)
             // and the Orchard-pool bundle type for the created PCZT.
             None,
-            orchard::builder::BundleType::DEFAULT,
+            zcash_primitives::transaction::builder::BundlePadding::DEFAULT,
         )
         .map_err(|e| {
             tracing::error!("pczt_create: create_pczt_from_proposal failed: {:?}", e);

@@ -1,4 +1,6 @@
 import { randomBytes } from 'node:crypto'
+import { createReadStream, existsSync, statSync } from 'node:fs'
+import { extname, join, normalize } from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import type { Plugin } from 'vite'
@@ -20,6 +22,42 @@ function headersFile(): Plugin {
   }
 }
 
+const WALLET_TYPES: Record<string, string> = {
+  '.js': 'text/javascript',
+  '.wasm': 'application/wasm',
+  '.ts': 'text/plain',
+}
+
+/**
+ * Dev server only: serves the built wallet (public/wallet) exactly as the production host does.
+ * Vite would otherwise refuse, because the app imports it at run time from `public/`, which Vite's
+ * dev server does not allow for scripts.
+ */
+function serveWalletInDev(): Plugin {
+  return {
+    name: 'zealed:serve-wallet-in-dev',
+    apply: 'serve',
+    configureServer(server) {
+      const root = join(server.config.root, 'public', 'wallet')
+      server.middlewares.use((req, res, next) => {
+        const path = (req.url ?? '').split('?')[0] ?? ''
+        if (!path.startsWith('/wallet/')) {
+          next()
+          return
+        }
+        const file = normalize(join(root, path.slice('/wallet/'.length)))
+        if (!file.startsWith(root) || !existsSync(file) || !statSync(file).isFile()) {
+          next()
+          return
+        }
+        res.setHeader('Content-Type', WALLET_TYPES[extname(file)] ?? 'application/octet-stream')
+        res.setHeader('Cross-Origin-Resource-Policy', 'same-origin')
+        createReadStream(file).pipe(res)
+      })
+    },
+  }
+}
+
 export default defineConfig(({ command, isPreview }) => {
   // The dev server injects inline scripts/styles (React Refresh, HMR). Vite stamps them with
   // this per-run nonce so the dev CSP never needs 'unsafe-inline'.
@@ -27,7 +65,7 @@ export default defineConfig(({ command, isPreview }) => {
     command === 'serve' && isPreview !== true ? randomBytes(16).toString('base64') : undefined
 
   return {
-    plugins: [react(), tailwindcss(), headersFile()],
+    plugins: [react(), tailwindcss(), headersFile(), serveWalletInDev()],
     ...(devNonce === undefined ? {} : { html: { cspNonce: devNonce } }),
     server: {
       headers: buildSecurityHeaders(devNonce === undefined ? {} : { devNonce }),

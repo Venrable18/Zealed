@@ -1,0 +1,86 @@
+--- a/src/types/memory_wallet/mod.rs	2026-10-10 14:28:00
++++ b/src/types/memory_wallet/mod.rs	2026-10-24 20:47:12
+@@ -157,6 +157,37 @@
+ }
+ 
+ impl<P: consensus::Parameters> MemoryWalletDb<P> {
++    /// Every shielded note `account` has received, in public types: the transaction, the output
++    /// index within its pool, the height it was mined at (if it is), the note and its memo. (Added for Zealed, which lists received
++    /// memos; the tables themselves are private to this crate.)
++    pub fn received_notes_of(
++        &self,
++        account: AccountId,
++    ) -> Vec<(
++        TxId,
++        u32,
++        Option<BlockHeight>,
++        zcash_client_backend::wallet::Note,
++        zcash_protocol::memo::Memo,
++    )> {
++        self.received_notes
++            .0
++            .iter()
++            .filter(|note| note.account_id == account)
++            .map(|note| {
++                (
++                    note.txid,
++                    note.output_index,
++                    self.tx_table
++                        .get(&note.txid)
++                        .and_then(|entry| entry.mined_height()),
++                    note.note.clone(),
++                    note.memo.clone(),
++                )
++            })
++            .collect()
++    }
++
+     pub fn new(params: P, max_checkpoints: usize) -> Self {
+         Self {
+             accounts: Accounts::new(),
+--- a/src/wallet_read.rs	2026-10-10 14:28:00
++++ b/src/wallet_read.rs	2026-10-24 20:31:51
+@@ -803,12 +803,9 @@
+             .get_account(account_id)?
+             .ok_or(Error::AccountUnknown(account_id))?;
+ 
+-        if _include_change {
+-            unimplemented!("include_change is not yet supported");
+-        }
+-        if _include_standalone {
+-            unimplemented!("include_standalone is not yet supported");
+-        }
++        // (Zealed) Only external receiving addresses are tracked here; change and standalone
++        // addresses are not, so those flags return the external addresses alone instead of
++        // panicking (as the red-dev fork of this crate does).
+ 
+         let t_addresses = account
+             .addresses()
+@@ -913,15 +910,23 @@
+ 
+     fn get_last_generated_address_matching(
+         &self,
+-        _account: Self::AccountId,
++        account: Self::AccountId,
+         _address_filter: UnifiedAddressRequest,
+     ) -> Result<Option<UnifiedAddress>, Self::Error> {
+-        todo!()
++        // (Zealed, from the red-dev fork) The most recently generated address of the account.
++        Ok(self
++            .accounts
++            .get(account)
++            .and_then(|acc| acc.addresses().values().last().cloned()))
+     }
+ 
+     #[cfg(feature = "transparent-inputs")]
+-    fn utxo_query_height(&self, _account: Self::AccountId) -> Result<BlockHeight, Self::Error> {
+-        todo!()
++    fn utxo_query_height(&self, account: Self::AccountId) -> Result<BlockHeight, Self::Error> {
++        // (Zealed, from the red-dev fork) Query UTXOs from the account's birthday.
++        self.accounts
++            .get(account)
++            .map(|acc| acc.birthday().height())
++            .ok_or(Error::AccountUnknown(account))
+     }
+ 
+     fn get_received_outputs(

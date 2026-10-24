@@ -1,0 +1,21 @@
+--- a/src/sync.rs	2026-10-24 20:25:56
++++ b/src/sync.rs	2026-10-24 20:25:56
+@@ -122,7 +122,17 @@
+             "Refreshing UTXOs for {:?} from height {}",
+             account_id, start_height,
+         );
+-        refresh_utxos(params, client, db_data, account_id, start_height).await?;
++        // Zealed holds shielded money only, and some gRPC-web servers cannot stream transparent
++        // UTXOs ("malformed response"), which would otherwise stop every sync. So a failure to
++        // refresh them is not an error.
++        let _ = refresh_utxos::<_, _, _, CaT::Error, CaT::Error>(
++            params,
++            client,
++            db_data,
++            account_id,
++            start_height,
++        )
++        .await;
+     }
+ 
+     // 5) Get the suggested scan ranges from the wallet database

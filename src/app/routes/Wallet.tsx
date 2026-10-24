@@ -242,6 +242,7 @@ export function Wallet() {
   const vault = useVaultStatus((state) => state.status)
   const hasSeed = useWalletData((state) => state.seed !== null)
   const status = useWalletRuntime((state) => state.status)
+  const detail = useWalletRuntime((state) => state.detail)
 
   let body
   if (vault !== 'unlocked') {
@@ -264,6 +265,14 @@ export function Wallet() {
         <p role="alert" className="rounded-control border border-bad bg-bad-soft px-4 py-3">
           {t('wallet.failed')}
         </p>
+        {detail !== null && (
+          <details className="text-sm text-muted">
+            <summary className="min-h-11 cursor-pointer py-2">{t('wallet.details')}</summary>
+            <p className="break-all font-mono" data-testid="open-detail">
+              {detail}
+            </p>
+          </details>
+        )}
         <div className="flex flex-wrap gap-3">
           <Button
             onClick={() => {

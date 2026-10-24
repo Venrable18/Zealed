@@ -321,7 +321,9 @@ real fees. Those need the WebZjs tooling and the wallet (Phase 3).
   passphrase is confirmed in Settings.
 - **What the server learns**: the usual light-wallet exposure. It sees which blocks the wallet
   downloads and when, the wallet's IP address, and transactions it broadcasts. It also sees single
-  block lookups the wallet makes to learn a note's time. It does not see the keys, balances or
+  block lookups the wallet makes to learn a note's time, and, because block scanning carries no
+  memos, a request for the full transaction of every payment the wallet receives: so the server
+  learns which transactions are the wallet's (as with any light wallet that reads memos). It does not see the keys, balances or
   memos. Using a proxy or a VPN is outside Zealed.
 - **Code run in the page**: the wallet is 60 MB of WebAssembly built from third-party code plus our
   patches (`wallet/patches`). It is served from the same origin and the CSP still forbids `eval`,

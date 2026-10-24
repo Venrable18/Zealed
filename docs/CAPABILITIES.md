@@ -65,27 +65,30 @@ yet), **unsupported** (checked and missing; see workaround).
 | WebAssembly under CSP                                             | configured                | `script-src` includes `'wasm-unsafe-eval'` (allows WASM compilation only, not JS `eval`). Exercised in Phase 2.                                                                                                                       |
 | Workers under CSP                                                 | **verified (2026-10-24)** | `worker-src 'self' blob:`. The wallet's proving threads are started from `blob:` scripts, so `blob:` was added (not to `script-src`). `eval` and `new Function` stay forbidden: `wasm_thread` used `eval` and is patched (see below). |
 
-## Update 2026-10-24: the gate is passed for sync; sending is built but unproven
+## Update 2026-10-24: the gate is passed. Send and receive with memos work on the NU7 testnet
 
-Zealed now carries its own copy of the wallet, in `wallet/` (see `wallet/README.md`), instead of
-waiting for WebZjs:
+Zealed carries its own copy of the wallet in `wallet/` (see `wallet/README.md` for every change and
+its reason). Verified on the live testnet, natively and in Chromium through the app:
 
-- **NU7.** A 9-line patch to the librustzcash revision WebZjs already builds on adds NU7's real branch
-  id (`0x77190AD9`) and testnet height (4,465,026). NU7 uses the same v6 transaction format as NU6.3,
-  so nothing else was needed to talk to the network. A native run (`examples/probe.rs`) and a
-  Chromium run both sync the live NU7 testnet. Moving to the newly released NU7 crates
-  (`zcash_client_backend` 0.25, 2026-10-21) would be cleaner but changes the storage traits
-  `zcash_client_memory` implements (about 200 compile errors); not done.
-- **Memos and many outputs.** `send_payments` (one transaction, several recipients, each with an
-  optional 512-byte memo, change to Ironwood) and `received_notes` (every received note, with
-  arbitrary-data memos as raw bytes and the block's time) were added to the WebZjs bindings.
-- **Three more fixes found by running it in a browser**: `wasm_thread` called `eval` (forbidden by our
-  CSP), so it is vendored and patched; the thread pool needs `blob:` workers; and the testnet's
-  gRPC-web server answers the transparent-UTXO stream with "malformed response", which stopped every
-  sync, so that step is allowed to fail (Zealed holds only shielded money).
-- **Not yet proven**: that a memo payment is accepted by a testnet node and read back. That needs a
-  funded wallet. Until then the send path is covered only by tests against a fake wallet. Zero-value
-  outputs (used to carry memos with no payment) are the main thing to confirm.
+- **Receive**: 0.05 TAZ from another wallet, an Ironwood output in an NU7 v6 transaction
+  (`98659b05…ba4f`, height 4,536,826), is found and counted as spendable.
+- **Send with memos, several outputs**: one transaction with two memo outputs to itself
+  (`7cee099c…2026`, height 4,536,932); both memos read back from the chain.
+- **Zero-value memo outputs** (used for replies and check-ins): two in one transaction
+  (`9e81283d…489b`, height 4,536,966); both read back.
+- **In the app**: `tests/e2e/wallet.send.live.spec.ts` restores a funded wallet, sends two memos
+  through the app's own wallet object and reads them back (2.4 minutes, mostly waiting for blocks).
+
+What it took, found by running it (each is in `wallet/patches` or `wallet/Cargo.lock`): NU7's branch
+id and height; a wallet database with Ironwood support (zcash/zcash_client_memory#17, plus a few of
+its unfinished functions); memo send and receive bindings, with memos read from the full transaction
+because block scanning sees no memos; no `eval` in `wasm_thread`; `blob:` workers; a sync that
+survives the testnet server's broken transparent-UTXO stream; and `tonic` held at 0.14.3, as 0.14.6
+rejects that server's responses.
+
+Not yet exercised on testnet: a payment to _another_ Zealed wallet (same code path as to itself),
+gift-wallet sweeps, pot withdrawals and shielding. The Blind Pot / Legacy / Unsigned screens have
+not been driven end to end against the real wallet yet; only through the simulated one.
 
 ## Gate result (Phase 2, original, 2026-10-07): FAILED, stopped. Kept for the record; see the update above
 

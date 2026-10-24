@@ -1,0 +1,29 @@
+--- a/src/consensus.rs	2026-10-24 20:25:56
++++ b/src/consensus.rs	2026-10-24 20:25:56
+@@ -536,7 +536,7 @@
+             NetworkUpgrade::Nu6_2 => Some(BlockHeight(4_052_000)),
+             NetworkUpgrade::Nu6_3 => Some(BlockHeight(4_134_000)),
+             #[cfg(zcash_unstable = "nu7")]
+-            NetworkUpgrade::Nu7 => None,
++            NetworkUpgrade::Nu7 => Some(BlockHeight(4_465_026)),
+             #[cfg(zcash_unstable = "nutachyon")]
+             NetworkUpgrade::NuTachyon => None,
+         }
+@@ -773,7 +773,7 @@
+             0x5437_f330 => Ok(BranchId::Nu6_2),
+             0x37a5_165b => Ok(BranchId::Nu6_3),
+             #[cfg(zcash_unstable = "nu7")]
+-            0xffff_ffff => Ok(BranchId::Nu7),
++            0x7719_0ad9 => Ok(BranchId::Nu7),
+             #[cfg(zcash_unstable = "nutachyon")]
+             0xffff_fffc => Ok(BranchId::NuTachyon),
+             _ => Err("Unknown consensus branch ID"),
+@@ -796,7 +796,7 @@
+             BranchId::Nu6_2 => 0x5437_f330,
+             BranchId::Nu6_3 => 0x37a5_165b,
+             #[cfg(zcash_unstable = "nu7")]
+-            BranchId::Nu7 => 0xffff_ffff,
++            BranchId::Nu7 => 0x7719_0ad9,
+             #[cfg(zcash_unstable = "nutachyon")]
+             BranchId::NuTachyon => 0xffff_fffc,
+         }

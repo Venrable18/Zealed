@@ -22,7 +22,6 @@ multicore = ["zcash_proofs/multicore", "zcash_primitives/multicore", "zcash_clie
 wasm = ["console_error_panic_hook", "dep:tracing-web"]
 wasm-parallel = ["wasm", "wasm-bindgen-rayon", "multicore"]
 native = ["tonic/channel", "tonic/gzip", "tonic/tls-webpki-roots", "tokio/macros", "tokio/rt", "tokio/rt-multi-thread"]
-sqlite-db = ["dep:zcash_client_sqlite"]
 console_error_panic_hook = ["dep:console_error_panic_hook"]
 no-bundler = ["wasm-bindgen-rayon?/no-bundler", "wasm_thread/no-bundler"]
 
@@ -64,7 +63,7 @@ zcash_proofs = { workspace = true, default-features = false, features = ["bundle
 zip321 = { workspace = true }
 zip32 = { workspace = true }
 pczt = { workspace = true, default-features = false, features = ["orchard", "sapling", "transparent"] }
-orchard = { version = "0.15", default-features = false }
+orchard = { version = "0.15.5", default-features = false }
 sapling = { workspace = true }
 bip32.workspace = true
 ## gRPC Web dependencies
@@ -73,7 +72,6 @@ tonic = { version = "0.14", default-features = false, features = ["codegen"] }
 
 # Used in Native tests
 tokio.workspace = true
-zcash_client_sqlite = { workspace = true, optional = true }
 
 getrandom = { workspace = true, features = ["js"] }
 thiserror.workspace = true
@@ -106,4 +104,5 @@ serde-wasm-bindgen.workspace = true
 workspace = true
 
 [dev-dependencies]
+zcash_note_encryption = "0.4"
 rustls = { version = "0.23", default-features = false, features = ["ring", "std"] }

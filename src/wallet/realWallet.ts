@@ -134,11 +134,21 @@ export class RealWallet
     if (Date.now() - this.lastSync > maxAgeMs) await this.sync()
   }
 
-  async chainTip(): Promise<number> {
+  /** Outside `exclusive`: only for use inside a task that already holds the queue. */
+  private async chainTipNow(): Promise<number> {
     return Number(await this.wallet.get_latest_block())
   }
 
-  private async balances(accountId: number): Promise<Balances> {
+  /**
+   * Every read of the wallet's database also waits its turn. While a sync or a send runs, the
+   * database is held by a worker thread; a read from the page's main thread would block that
+   * thread, and the worker needs the main thread to start its own helpers, so the page would hang.
+   */
+  private balances(accountId: number): Promise<Balances> {
+    return this.exclusive(() => this.balancesNow(accountId))
+  }
+
+  private async balancesNow(accountId: number): Promise<Balances> {
     const summary = await this.wallet.get_wallet_summary()
     const rows = (summary?.account_balances ?? []) as [number, WasmBalances][]
     summary?.free()
@@ -153,8 +163,11 @@ export class RealWallet
     }
   }
 
-  private async notes(accountId: number, address?: string): Promise<NoteRecord[]> {
-    return JSON.parse(await this.wallet.received_notes(accountId, address ?? null)) as NoteRecord[]
+  private notes(accountId: number, address?: string): Promise<NoteRecord[]> {
+    return this.exclusive(
+      async () =>
+        JSON.parse(await this.wallet.received_notes(accountId, address ?? null)) as NoteRecord[],
+    )
   }
 
   /** Sends from an account of this wallet. Resolves to the transaction ids. */
@@ -279,7 +292,7 @@ export class RealWallet
       const hdIndex =
         1 + Math.max(0, ...data.accounts.filter((a) => a.kind === 'pot').map((a) => a.hdIndex))
       // A pot only needs to see what arrives from now on.
-      const birthday = Math.max(NU7_TESTNET_ACTIVATION, (await this.chainTip()) - 10)
+      const birthday = Math.max(NU7_TESTNET_ACTIVATION, (await this.chainTipNow()) - 10)
       const id = await this.wallet.create_account(label, this.seed, hdIndex, birthday)
       const address = await this.wallet.get_current_address(id)
       useWalletData.getState().set({
@@ -373,7 +386,7 @@ export class RealWallet
   createGiftWallet(): Promise<{ seed: string; address: string }> {
     return this.exclusive(async () => {
       const seed = this.wasm.generate_seed_phrase()
-      const id = await this.wallet.create_account('gift', seed, 0, await this.chainTip())
+      const id = await this.wallet.create_account('gift', seed, 0, await this.chainTipNow())
       const address = await this.wallet.get_current_address(id)
       useWalletData.getState().set({
         accounts: [

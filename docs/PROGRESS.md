@@ -783,8 +783,14 @@ French (light and dark), and a two-actor scenario for the full invite-and-reply 
 opens, syncs the live NU7 testnet and shows its address (`LIVE_TESTNET=1`, about 7 s). Lint, format,
 typecheck, build, 566 unit tests, 320 quick browser tests and 10 scenarios pass.
 
-**Not proven, and why it matters**: no memo payment has been sent on testnet yet, because no funded
-wallet was available. Everything that sends (Legacy, Blind Pot gifts, Unsigned) therefore remains
+**Update, same day: real payments work.** After a real payment exposed that the wallet database
+could not store Ironwood notes, the wallet was moved to the Ironwood-capable database
+(zcash/zcash_client_memory#17) on the released 0.24.0 stack. Receiving, sending two memos in one
+transaction, and zero-value memo outputs are now verified on the NU7 testnet, natively and through
+the app in Chromium. Transactions and details: `wallet/README.md`, "Evidence".
+
+**Still not exercised on the real chain**: the feature screens themselves (Legacy, Blind Pot, Unsigned)
+end to end with the real wallet; gift sweeps; pot withdrawals. Everything that sends (Legacy, Blind Pot gifts, Unsigned) therefore remains
 unproven against a real node, and zero-value outputs are the likeliest thing to need a fix. A
 funded wallet closes this: `PROBE_DIR=... SEND=1` runs `examples/probe.rs` natively.
 
