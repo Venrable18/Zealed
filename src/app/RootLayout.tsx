@@ -32,17 +32,15 @@ interface NavItem {
   Icon: IconType
 }
 
-/** The three things Zealed does, then what supports them. */
-const FEATURE_ITEMS: readonly NavItem[] = FEATURES.map(({ path, title, Icon }) => ({
-  path,
-  name: title,
-  Icon,
-}))
+/** The dashboard, then the three things Zealed does, then what supports them. */
+const FEATURE_ITEMS: readonly NavItem[] = [
+  { path: '/app', key: 'nav.dashboard', Icon: ChartIcon },
+  ...FEATURES.map(({ path, title, Icon }) => ({ path, name: title, Icon })),
+]
 const ACCOUNT_ITEMS: readonly NavItem[] = [
   { path: '/wallet', key: 'nav.wallet', Icon: WalletIcon },
   { path: '/receive', key: 'nav.receive', Icon: ReceiveIcon },
   { path: '/contacts', key: 'nav.contacts', Icon: PeopleIcon },
-  { path: '/dashboard', key: 'nav.dashboard', Icon: ChartIcon },
   { path: '/settings', key: 'nav.settings', Icon: SlidersIcon },
 ]
 
@@ -54,6 +52,7 @@ function NavList({ items }: { items: readonly NavItem[] }) {
         <li key={path}>
           <NavLink
             to={path}
+            end={path === '/app'}
             className={({ isActive }) =>
               `flex min-h-11 items-center gap-3 rounded-control px-3 text-[0.9375rem] ${
                 isActive

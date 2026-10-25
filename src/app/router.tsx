@@ -4,7 +4,6 @@ import { RootLayout } from './RootLayout.tsx'
 import { BlindPot } from './routes/BlindPot.tsx'
 import { Give } from './routes/Give.tsx'
 import { Components } from './routes/Components.tsx'
-import { Home } from './routes/Home.tsx'
 import { Landing } from './routes/Landing.tsx'
 import { NotFound } from './routes/NotFound.tsx'
 import { PotPage } from './routes/PotPage.tsx'
@@ -24,7 +23,11 @@ export const router = createBrowserRouter([
     element: <RootLayout />,
     HydrateFallback: Loading,
     children: [
-      { path: 'app', element: <Home /> },
+      {
+        path: 'app',
+        // The first screen of the app. Loaded on demand like /dashboard, which stays as an alias.
+        lazy: async () => ({ Component: (await import('./routes/Dashboard.tsx')).Dashboard }),
+      },
       {
         path: 'legacy',
         // Loaded on demand: it pulls in the timelock and encryption libraries (about 275 kB).

@@ -61,9 +61,6 @@ pub enum Error {
     #[error("Error decoding memo: {0}")]
     MemoDecoding(#[from] zcash_protocol::memo::Error),
 
-    #[cfg(feature = "sqlite-db")]
-    #[error("Sqlite error: {0}")]
-    Sqlite(#[from] zcash_client_sqlite::error::SqliteClientError),
     #[error("Invalid seed phrase")]
     InvalidSeedPhrase,
     #[error("Failed when creating transaction")]

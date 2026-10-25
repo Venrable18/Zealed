@@ -3,7 +3,7 @@ import { expect, test, type Page } from '@playwright/test'
 
 const ROUTES = [
   { path: '/', heading: 'Private money and messages for the moments that matter.' },
-  { path: '/app', heading: 'Zealed' },
+  { path: '/app', heading: 'Dashboard' },
   { path: '/legacy', heading: 'Legacy' },
   { path: '/legacy/silent', heading: 'If I go silent' },
   { path: '/blind-pot', heading: 'Blind Pot' },

@@ -7,6 +7,7 @@
 pub mod bindgen;
 
 mod error;
+pub mod frost;
 pub mod init;
 pub mod validation;
 

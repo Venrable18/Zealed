@@ -47,7 +47,7 @@ time = { version = "0.3.22", features = ["wasm-bindgen"] }
 
 ## Zcash dependencies
 
-zcash_keys = { workspace = true, features = ["transparent-inputs", "orchard", "sapling", "unstable"] }
+zcash_keys = { workspace = true, features = ["transparent-inputs", "orchard", "sapling", "unstable", "unstable-frost"] }
 zcash_client_backend = { workspace = true, default-features = false, features = [
     "sync",
     "lightwalletd-tonic",
@@ -64,6 +64,11 @@ zip321 = { workspace = true }
 zip32 = { workspace = true }
 pczt = { workspace = true, default-features = false, features = ["orchard", "sapling", "transparent"] }
 orchard = { version = "0.15.5", default-features = false }
+# Threshold signing for shared pots (see src/frost.rs).
+reddsa = { version = "0.5.2", default-features = false, features = ["frost", "std"] }
+frost-rerandomized = { version = "3.0.0" }
+rand_core = { version = "0.6", features = ["getrandom"] }
+ff = "0.13"
 sapling = { workspace = true }
 bip32.workspace = true
 ## gRPC Web dependencies

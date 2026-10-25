@@ -1013,6 +1013,62 @@ where
     }
 
     ///
+    /// The unsigned transaction that moves `value` out of a shared pot (an account the wallet can
+    /// only view) to `to`, with change back to the pot in the Ironwood pool. Nothing in it is
+    /// signed: the co-hosts sign it with FROST. The sync check of `pczt_create` applies.
+    ///
+    pub async fn pot_withdrawal_pczt(
+        &self,
+        account_id: AccountId,
+        to_address: ZcashAddress,
+        value: u64,
+    ) -> Result<Pczt, Error> {
+        let change_strategy = MultiOutputChangeStrategy::new(
+            StandardFeeRule::Zip317,
+            None,
+            ShieldedProtocol::Ironwood,
+            DustOutputPolicy::default(),
+            SplitPolicy::single_output(),
+        );
+        let input_selector = GreedyInputSelector::new();
+        let request = TransactionRequest::new(vec![Payment::without_memo(
+            to_address,
+            Zatoshis::from_u64(value)?,
+        )])?;
+        let mut db = self.db.write().await;
+        let proposal = propose_transfer::<_, _, _, _, <W as WalletCommitmentTrees>::Error>(
+            &mut *db,
+            &self.network,
+            account_id,
+            &input_selector,
+            &change_strategy,
+            request,
+            self.min_confirmations,
+            &SpendPolicy::default(),
+            None,
+            None,
+        )
+        .map_err(|e| Error::Generic(format!("could not propose the withdrawal: {e:?}")))?;
+        create_pczt_from_proposal::<
+            _,
+            _,
+            <MemoryWalletDb<Network> as InputSource>::Error,
+            _,
+            <StandardFeeRule as FeeRule>::Error,
+            _,
+        >(
+            &mut *db,
+            &self.network,
+            account_id,
+            OvkPolicy::Sender,
+            &proposal,
+            None,
+            zcash_primitives::transaction::builder::BundlePadding::DEFAULT,
+        )
+        .map_err(|e| Error::PcztCreate(format!("{e:?}")))
+    }
+
+    ///
     /// Prove a PCZT
     ///
     pub async fn pczt_prove(
@@ -1060,23 +1116,27 @@ where
             pczt
         };
 
-        // orchard 0.15 (NU6.3) requires an explicit circuit version. Derive it from the
-        // PCZT's target consensus branch, mirroring zcash_primitives' transaction builder:
-        // Nu6_3 -> PostNu6_3 (the Ironwood-era circuit that enforces the disableCrossAddress
-        // constraint sealing the Orchard pool); everything current (Nu6_2) -> FixedPostNu6_2.
-        // The same version must build the verifying key when extracting the transaction below.
-        let orchard_circuit_version = match BranchId::try_from(*pczt.global().consensus_branch_id())
-        {
-            Ok(BranchId::Nu6_3) => orchard::circuit::OrchardCircuitVersion::PostNu6_3,
-            _ => orchard::circuit::OrchardCircuitVersion::FixedPostNu6_2,
-        };
-
+        // The Orchard and Ironwood circuit version follows the transaction's consensus branch
+        // (NU6.3 and NU7 both use the post-NU6.3 circuit). The builder derives it the same way.
+        let orchard_circuit_version = circuit_version_for(&pczt)?;
+        let proving_key = orchard::circuit::ProvingKey::build(orchard_circuit_version);
         let prover = LocalTxProver::bundled();
-        let pczt = Prover::new(pczt)
-            .create_orchard_proof(&orchard::circuit::ProvingKey::build(
-                orchard_circuit_version,
-            ))
-            .map_err(|e| Error::PcztProve(format!("Failed to create Orchard proof: {e:?}")))?
+        let proving = Prover::new(pczt);
+        let proving = if proving.requires_orchard_proof() {
+            proving
+                .create_orchard_proof(&proving_key)
+                .map_err(|e| Error::PcztProve(format!("Failed to create Orchard proof: {e:?}")))?
+        } else {
+            proving
+        };
+        let proving = if proving.requires_ironwood_proof() {
+            proving
+                .create_ironwood_proof(&proving_key)
+                .map_err(|e| Error::PcztProve(format!("Failed to create Ironwood proof: {e:?}")))?
+        } else {
+            proving
+        };
+        let pczt = proving
             .create_sapling_proofs(&prover, &prover)
             .map_err(|e| Error::PcztProve(format!("Failed to create Sapling proofs: {e:?}")))?
             .finish();
@@ -1123,14 +1183,7 @@ where
             ));
         }
 
-        // Build the Orchard verifying key with the circuit version for this PCZT's target
-        // branch (Nu6_3 -> PostNu6_3, else FixedPostNu6_2), matching how the proof was
-        // created. See the proving-key derivation in the pczt_prove path.
-        let orchard_circuit_version = match BranchId::try_from(*pczt.global().consensus_branch_id())
-        {
-            Ok(BranchId::Nu6_3) => orchard::circuit::OrchardCircuitVersion::PostNu6_3,
-            _ => orchard::circuit::OrchardCircuitVersion::FixedPostNu6_2,
-        };
+        let orchard_circuit_version = circuit_version_for(&pczt)?;
         let prover = LocalTxProver::bundled();
         let (spend_vk, output_vk) = prover.verifying_keys();
         let mut db = self.db.write().await;
@@ -1157,6 +1210,58 @@ where
             .combine()
             .map_err(|e| Error::PcztCombine(format!("Failed to combine PCZT: {e:?}")))
     }
+}
+
+/// The Orchard/Ironwood circuit for a PCZT's consensus branch, as the transaction builder picks it.
+fn circuit_version_for(pczt: &Pczt) -> Result<orchard::circuit::OrchardCircuitVersion, Error> {
+    let branch = BranchId::try_from(*pczt.global().consensus_branch_id())
+        .map_err(|e| Error::Generic(format!("unknown consensus branch: {e}")))?;
+    zcash_primitives::transaction::components::orchard::bundle_version_for_branch(
+        branch,
+        orchard::ValuePool::Orchard,
+    )
+    .map(|version| version.circuit_version())
+    .ok_or_else(|| Error::Generic("this branch has no Orchard circuit".to_string()))
+}
+
+/// What the co-hosts of a shared pot sign for one transaction: the shielded sighash, and each
+/// Ironwood spend that still needs a signature, with its index and its randomizer `alpha`.
+pub struct SigningRequest {
+    pub sighash: [u8; 32],
+    pub spends: Vec<(usize, [u8; 32])>,
+}
+
+/// Reads a PCZT for the co-hosts to sign.
+pub fn pczt_signing_request(pczt: &Pczt) -> Result<SigningRequest, Error> {
+    let sighash = pczt::roles::signer::Signer::new(pczt.clone())
+        .map_err(|e| Error::Generic(format!("cannot sign this transaction: {e:?}")))?
+        .shielded_sighash();
+    let mut spends = Vec::new();
+    pczt::roles::low_level_signer::Signer::new(pczt.clone())
+        .sign_ironwood_with(|_, bundle, _| {
+            for (index, action) in bundle.actions().iter().enumerate() {
+                // Dummy spends were already signed when the transaction was put together.
+                if action.spend().spend_auth_sig().is_none() {
+                    if let Some(alpha) = action.spend().alpha() {
+                        use ff::PrimeField;
+                        spends.push((index, alpha.to_repr()));
+                    }
+                }
+            }
+            Ok::<(), pczt::roles::low_level_signer::OrchardParseError>(())
+        })
+        .map_err(|e| Error::Generic(format!("cannot read the spends: {e:?}")))?;
+    Ok(SigningRequest { sighash, spends })
+}
+
+/// Puts an aggregated co-host signature on one Ironwood spend. It is checked before it is kept.
+pub fn pczt_apply_ironwood_signature(pczt: Pczt, index: usize, signature: [u8; 64]) -> Result<Pczt, Error> {
+    let mut signer = pczt::roles::signer::Signer::new(pczt)
+        .map_err(|e| Error::Generic(format!("cannot sign this transaction: {e:?}")))?;
+    signer
+        .apply_ironwood_signature(index, orchard::primitives::redpallas::Signature::from(signature))
+        .map_err(|e| Error::Generic(format!("the signature does not verify: {e:?}")))?;
+    Ok(signer.finish())
 }
 
 pub(crate) fn usk_from_seed_str(
