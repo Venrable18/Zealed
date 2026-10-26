@@ -2,9 +2,16 @@
 
 **Private money and messages for the moments that matter.**
 
+Most Zcash apps ask why you would send shielded money. Zealed answers with reasons people already
+have: a letter and an inheritance for someone you love, a gift pot where nobody sees who gave, and
+a tip line where a source can reach a journalist and stay unknown. Each one is a moment where the
+privacy of a shielded transaction is the point, not a side effect.
+
 Zealed is a privacy-first progressive web app (PWA) built on Zcash. It lets people leave a sealed
 letter and money for someone, collect gifts without exposing who gave, and receive anonymous
 messages, all from the browser, with no application server holding anyone's data.
+
+**ZECATHON track: Wildcard** ("anything that makes a shielded transaction worth making").
 
 > **Network:** Zcash **testnet** (NU7) only. Zealed does not handle real funds.
 
@@ -23,6 +30,7 @@ messages, all from the browser, with no application server holding anyone's data
 9. [Roadmap](#roadmap)
 10. [Hackathon disclosure](#hackathon-disclosure)
 11. [Acknowledgements](#acknowledgements)
+12. [License](#license)
 
 ---
 
@@ -31,7 +39,8 @@ messages, all from the browser, with no application server holding anyone's data
 Money and messages between people are most fragile at the moments that matter most: when someone
 dies, when a family gathers, when a community supports a cause, when a relative abroad sends help
 home. In much of Africa, and in Nigeria in particular, the tools people have for these moments are
-exposed, expensive, or controlled by someone else. Zealed started from six problems.
+exposed, expensive, or controlled by someone else. Zealed started from six problems, and each one
+is a reason to make a shielded transaction.
 
 ### 1. Inheritance issues and disputes
 
@@ -163,8 +172,9 @@ npm run dev
 
 Open the address Vite prints. The landing page is at `/`, the app at `/app`.
 
-The prebuilt wallet package is served from `public/wallet`. You only need `npm run wallet:build`
-(about 10 minutes the first time) if you change the Rust code.
+The WebAssembly wallet (about 60 MB) is not stored in the repository. Run `npm run wallet:build`
+once (about 10 minutes the first time; see [wallet/README.md](wallet/README.md) for the tools it
+needs) before `npm run dev`, or use the deployed app.
 
 ### Demo mode
 
@@ -207,7 +217,6 @@ src/
   config/       Network allow-list, timers, security headers
 wallet/         Rust sources and patches for the WebAssembly wallet
 tests/e2e/      Playwright tests
-docs/           Capabilities, threat model, progress log, privacy checklist
 ```
 
 ---
@@ -238,10 +247,11 @@ docs/           Capabilities, threat model, progress log, privacy checklist
   money cannot move. A pot with co-hosts shows its total to every co-host.
 - A Blind Pot paid from an outside wallet in a single payment has weaker privacy than one given
   through Zealed.
-- Zealed protects against servers and observers of the network. It cannot protect against a
-  compromised browser, device or extension.
-
-See [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) for the full analysis.
+- The light-wallet server cannot read amounts, addresses or memos, but it does see your IP
+  address, the block range you sync (which hints at when the wallet was created), which of your
+  transactions you fetch to read their memos, and which transactions you send. Using Tor or a
+  light-wallet server you run yourself reduces this; the endpoint is set in `src/config/network.ts`.
+- Zealed cannot protect against a compromised browser, device or extension.
 
 ---
 
@@ -266,21 +276,20 @@ Timelock keys come from the live drand network. Timers are shortened only in dem
 
 Ideas that follow from the problems above, in rough order:
 
-1. **Ajo / esusu savings circles** on top of Blind Pot: rotating group savings, a long-standing
-   practice across Africa, without a single organiser holding everyone's money.
-2. **"Send home" flow** for the diaspora: money plus a message, optionally released on a date.
-3. **Local-currency display** (for example Naira) next to ZEC amounts.
-4. **More languages**, such as Pidgin, Yoruba, Hausa and Swahili.
-5. **Encrypted backup** of contacts and history so wiping a device does not lose them.
-6. **Human-readable names** for addresses through a memo-based registry, designed to avoid
+1. **Encrypted backup** of contacts and history so wiping a device does not lose them.
+2. **Human-readable names** for addresses through a memo-based registry, designed to avoid
    linking a public name to a single address.
-7. **Mainnet**, after an independent security review.
+3. **Less exposure to the light-wallet server:** fetch decoy transactions alongside real ones,
+   send through a different connection than the one used to sync, and document running Zealed
+   over Tor.
+4. **Mainnet**, after an independent security review.
 
 ---
 
 ## Hackathon disclosure
 
-Zealed is a submission to **ZECATHON** (window: 28 September to 28 October 2026).
+Zealed is a submission to **ZECATHON** (window: 28 September to 28 October 2026) in the
+**Wildcard** track.
 
 - **Existed before the window:** the open-source libraries Zealed builds on, including WebZjs and
   the Zcash Rust crates, `tlock-js`, drand, and the packages listed in `package.json`.
@@ -298,3 +307,11 @@ Zealed is a submission to **ZECATHON** (window: 28 September to 28 October 2026)
   red.dev teams for the browser wallet
 - [drand](https://drand.love) and `tlock-js` for time-lock encryption
 - The Zcash Foundation and Electric Coin Company ecosystem, and the ZECATHON organisers
+
+---
+
+## License
+
+Zealed is released under the [MIT License](LICENSE).
+
+The WebAssembly wallet in `wallet/` is derived from [WebZjs](https://github.com/ZcashCommunityGrants/WebZjs) and keeps its own licenses (Apache-2.0 and MIT, see `wallet/LICENSE-APACHE` and `wallet/LICENSE-MIT`).

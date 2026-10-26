@@ -1,6 +1,7 @@
 {
   "name": "zealed",
   "private": true,
+  "license": "MIT",
   "version": "0.0.0",
   "description": "Private money and messages for the moments that matter. A Zcash privacy PWA (testnet).",
   "type": "module",

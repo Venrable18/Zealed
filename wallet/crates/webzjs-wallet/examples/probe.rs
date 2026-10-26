@@ -113,6 +113,31 @@ async fn main() {
             Err(e) => println!("ZERO-FAILED {e}"),
         }
     }
+    // SWEEP_TO=<address>: sends everything spendable, less the fee, to that address.
+    if let Ok(target) = env::var("SWEEP_TO") {
+        let to = ZcashAddress::from_str(&target).unwrap();
+        let spendable: u64 = summary
+            .as_ref()
+            .and_then(|s| s.account_balances().get(&account))
+            .map(|b| u64::from(b.spendable_value()))
+            .unwrap_or(0);
+        let mut sent = false;
+        // The fee depends on how many notes are spent; try a few amounts, each a little lower.
+        for actions in 2..=12u64 {
+            let Some(amount) = spendable.checked_sub(5_000 * actions).filter(|a| *a > 0) else { break };
+            match wallet.send_payments(&seed, 0, account, vec![(to.clone(), amount, None)]).await {
+                Ok(t) => {
+                    println!("SWEPT {amount} {:?}", t);
+                    sent = true;
+                    break;
+                }
+                Err(e) => println!("SWEEP-TRY {amount} failed: {e}"),
+            }
+        }
+        if !sent {
+            println!("SWEEP-FAILED");
+        }
+    }
     if env::var("SEND").is_ok() {
         let to = ZcashAddress::from_str(&addr.clone().unwrap()).unwrap();
         let mut m1 = [0u8; 512]; m1[0] = 0xFF; m1[1..14].copy_from_slice(b"zealed-probe1");
