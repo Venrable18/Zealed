@@ -2,6 +2,8 @@ import { useState, type SubmitEvent } from 'react'
 import { Button } from '../../components/Button.tsx'
 import { TextInput } from '../../components/Field.tsx'
 import { describeInterval } from './batching.ts'
+import { sharedPotProblem } from './shared/engine.ts'
+import { CohostFields, type CohostChoice } from './shared/CohostFields.tsx'
 import { POT_NAME_MAX_CHARS, type PotInput, type PotInputField } from './pot.ts'
 import type { CreatePotResult } from './service.ts'
 import type { Pot } from './types.ts'
@@ -10,6 +12,11 @@ interface CreatePotFormProps {
   batchIntervalMs: number
   onSubmit: (input: PotInput) => Promise<CreatePotResult>
   onCreated: (pot: Pot) => void
+  /** Starts a pot with co-hosts; resolves to field errors, a problem, or nothing when invites went out. */
+  onSubmitShared?: (
+    input: PotInput,
+    choice: { cohosts: string[]; threshold: number },
+  ) => Promise<{ errors?: Partial<Record<PotInputField, string>>; problem?: string } | null>
 }
 
 const MESSAGES = {
@@ -17,11 +24,19 @@ const MESSAGES = {
   'wallet-error': 'The wallet could not create the pot. Nothing was created. Try again.',
 } as const
 
-export function CreatePotForm({ batchIntervalMs, onSubmit, onCreated }: CreatePotFormProps) {
+export function CreatePotForm({
+  batchIntervalMs,
+  onSubmit,
+  onCreated,
+  onSubmitShared,
+}: CreatePotFormProps) {
   const [input, setInput] = useState<PotInput>({ name: '', cover: '', eventDate: '', endDate: '' })
   const [errors, setErrors] = useState<Partial<Record<PotInputField, string>>>({})
   const [problem, setProblem] = useState<string | undefined>()
   const [busy, setBusy] = useState(false)
+  const [cohost, setCohost] = useState<CohostChoice>({ on: false, cohosts: [], threshold: 2 })
+  const [cohostError, setCohostError] = useState<string | undefined>()
+  const [invited, setInvited] = useState(false)
 
   const set = (field: PotInputField) => (event: { target: { value: string } }) => {
     setInput((current) => ({ ...current, [field]: event.target.value }))
@@ -29,8 +44,28 @@ export function CreatePotForm({ batchIntervalMs, onSubmit, onCreated }: CreatePo
 
   async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
-    setBusy(true)
     setProblem(undefined)
+    setInvited(false)
+    if (cohost.on && onSubmitShared !== undefined) {
+      const choice = { cohosts: cohost.cohosts.map((a) => a.trim()), threshold: cohost.threshold }
+      const bad = choice.cohosts.some((a) => a === '')
+        ? 'Fill in every co-host address, or remove it.'
+        : sharedPotProblem(choice)
+      setCohostError(bad ?? undefined)
+      if (bad !== null) return
+      setBusy(true)
+      const outcome = await onSubmitShared(input, choice)
+      setBusy(false)
+      setErrors(outcome?.errors ?? {})
+      setProblem(outcome?.problem)
+      if (outcome === null) {
+        setInvited(true)
+        setInput({ name: '', cover: '', eventDate: '', endDate: '' })
+        setCohost({ on: false, cohosts: [], threshold: 2 })
+      }
+      return
+    }
+    setBusy(true)
     const result = await onSubmit(input)
     setBusy(false)
     if (result.ok) onCreated(result.pot)
@@ -88,6 +123,14 @@ export function CreatePotForm({ batchIntervalMs, onSubmit, onCreated }: CreatePo
         <strong className="font-medium text-ink">{describeInterval(batchIntervalMs)}</strong>. You
         will never see who gave or how much each gift was.
       </p>
+      {onSubmitShared !== undefined && (
+        <CohostFields value={cohost} onChange={setCohost} error={cohostError} />
+      )}
+      {invited && (
+        <p role="status" className="rounded-control border border-line bg-sunken px-4 py-3 text-sm">
+          Invitations sent. The pot opens under Your pots once every co-host has accepted.
+        </p>
+      )}
       {problem !== undefined && (
         <p
           role="alert"
@@ -97,7 +140,7 @@ export function CreatePotForm({ batchIntervalMs, onSubmit, onCreated }: CreatePo
         </p>
       )}
       <Button type="submit" busy={busy}>
-        Create pot
+        {cohost.on ? 'Invite co-hosts' : 'Create pot'}
       </Button>
     </form>
   )

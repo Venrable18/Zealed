@@ -505,6 +505,49 @@ impl WebWallet {
             .map_err(|e| Error::Generic(format!("the notes could not be listed: {e}")))
     }
 
+    /// The unsigned transaction that withdraws `zat` from a shared pot (a view-only account) to
+    /// `to_address`, as PCZT bytes. The co-hosts then sign it.
+    pub async fn pot_withdrawal_pczt(
+        &self,
+        account_id: u32,
+        to_address: String,
+        zat: u64,
+    ) -> Result<Vec<u8>, Error> {
+        let to = ZcashAddress::try_from_encoded(&to_address)?;
+        let pczt = self
+            .inner
+            .pot_withdrawal_pczt(AccountId::from(account_id), to, zat)
+            .await?;
+        pczt.serialize()
+            .map_err(|e| Error::Generic(format!("{e:?}")))
+    }
+
+    /// Proves a fully signed PCZT and broadcasts it. Proving runs on its own thread.
+    pub async fn pczt_prove_and_send(&self, pczt_bytes: Vec<u8>) -> Result<(), Error> {
+        assert!(!thread::is_web_worker_thread());
+        let pczt = pczt::Pczt::parse(&pczt_bytes)
+            .map_err(|e| Error::Generic(format!("not a transaction: {e:?}")))?;
+        let db = self.inner.clone();
+        let handle = thread::Builder::new()
+            .name("pczt_prove".to_string())
+            .spawn_async(move || async move {
+                db.pczt_prove(pczt, None)
+                    .await
+                    .and_then(|p| p.serialize().map_err(|e| Error::Generic(format!("{e:?}"))))
+                    .map_err(|e| e.to_string())
+            })
+            .unwrap_throw()
+            .join_async();
+        let proved = match handle.await {
+            Ok(Ok(bytes)) => bytes,
+            Ok(Err(reason)) => return Err(Error::Generic(reason)),
+            Err(panic) => return Err(Error::Generic(format!("proving panicked: {panic:?}"))),
+        };
+        let pczt = pczt::Pczt::parse(&proved)
+            .map_err(|e| Error::Generic(format!("not a transaction: {e:?}")))?;
+        self.inner.pczt_send(pczt).await
+    }
+
     /// Make a fresh unified address for an account.
     pub async fn new_address(&self, account_id: u32) -> Result<String, Error> {
         self.inner.new_address(AccountId::from(account_id)).await

@@ -1254,6 +1254,37 @@ pub fn pczt_signing_request(pczt: &Pczt) -> Result<SigningRequest, Error> {
     Ok(SigningRequest { sighash, spends })
 }
 
+/// The PCZT a co-host needs to check and sign: everything the signature commits to (so they can
+/// recompute the sighash themselves) and each output's recipient and value (so they can see where
+/// the money goes), without proofs, Merkle paths or note secrets.
+pub fn pczt_for_signers(pczt: Pczt) -> Pczt {
+    use pczt::roles::redactor::Redactor;
+    Redactor::new(pczt)
+        .redact_ironwood_with(|mut r| {
+            r.clear_zkproof();
+            r.clear_bsk();
+            r.redact_actions(|mut a| {
+                a.clear_spend_witness();
+                a.clear_spend_fvk();
+                a.clear_spend_rho();
+                a.clear_spend_rseed();
+                a.clear_spend_dummy_sk();
+                a.clear_spend_zip32_derivation();
+                a.clear_spend_proprietary();
+                a.clear_output_rseed();
+                a.clear_output_ock();
+                a.clear_output_zip32_derivation();
+                a.clear_output_proprietary();
+                a.clear_rcv();
+            });
+        })
+        .redact_orchard_with(|mut r| {
+            r.clear_zkproof();
+            r.clear_bsk();
+        })
+        .finish()
+}
+
 /// Puts an aggregated co-host signature on one Ironwood spend. It is checked before it is kept.
 pub fn pczt_apply_ironwood_signature(pczt: Pczt, index: usize, signature: [u8; 64]) -> Result<Pczt, Error> {
     let mut signer = pczt::roles::signer::Signer::new(pczt)

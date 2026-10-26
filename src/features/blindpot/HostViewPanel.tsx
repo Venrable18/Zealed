@@ -8,6 +8,7 @@ import { formatZec } from '../../lib/zec.ts'
 import { describeInterval } from './batching.ts'
 import { buildHostView } from './hostView.ts'
 import { closePot } from './service.ts'
+import { SharedWithdraw } from './shared/SharedWithdraw.tsx'
 import { STRENGTH_TEXT } from './strength.ts'
 import type { HostView, Pot } from './types.ts'
 import type { PotWalletPort } from './walletPort.ts'
@@ -120,7 +121,10 @@ export function HostViewPanel({ pot, wallet, onClosed }: HostViewPanelProps) {
         )}
       </section>
 
-      {!pot.closed && (
+      {!pot.closed && pot.sharedId !== undefined && (
+        <SharedWithdraw sharedId={pot.sharedId} onSent={onClosed} />
+      )}
+      {!pot.closed && pot.sharedId === undefined && (
         <section className="space-y-3">
           <h2 className="text-xl">Close the pot</h2>
           <p className="text-muted">

@@ -5,6 +5,10 @@ import { PotIcon } from '../../components/Icons.tsx'
 import { CreatePotForm } from '../../features/blindpot/CreatePotForm.tsx'
 import { usePots } from '../../features/blindpot/potStore.ts'
 import { createPot } from '../../features/blindpot/service.ts'
+import { todayString, validatePotInput } from '../../features/blindpot/pot.ts'
+import { createSharedPot } from '../../features/blindpot/shared/engine.ts'
+import { SharedPotsPanel } from '../../features/blindpot/shared/SharedPotsPanel.tsx'
+import { actShared, useSharedPotPort } from '../../features/blindpot/shared/store.ts'
 import { usePotWallet } from '../../features/blindpot/walletPort.ts'
 import { getTimers } from '../../config/demo.ts'
 import { useSettings } from '../settingsStore.ts'
@@ -15,6 +19,7 @@ export function BlindPot() {
   const pots = usePots((state) => state.pots)
   const addPot = usePots((state) => state.add)
   const navigate = useNavigate()
+  const sharedPort = useSharedPotPort()
   const { potBatchIntervalMs } = getTimers(demoMode)
 
   return (
@@ -40,6 +45,35 @@ export function BlindPot() {
               onSubmit={(input) =>
                 createPot(wallet, input, { nowMs: Date.now(), batchIntervalMs: potBatchIntervalMs })
               }
+              onSubmitShared={async (input, choice) => {
+                const nowMs = Date.now()
+                const checked = validatePotInput(input, todayString(nowMs))
+                if (!checked.ok) return { errors: checked.errors }
+                if (sharedPort === null)
+                  return { problem: 'You need a wallet first. Set one up on the Wallet page.' }
+                try {
+                  await actShared(sharedPort, async (s) => {
+                    const made = await createSharedPot(
+                      sharedPort,
+                      s,
+                      {
+                        name: checked.value.name,
+                        cohosts: choice.cohosts,
+                        threshold: choice.threshold,
+                        details: { input: checked.value, batchIntervalMs: potBatchIntervalMs },
+                      },
+                      nowMs,
+                    )
+                    return made.state
+                  })
+                  return null
+                } catch {
+                  return {
+                    problem:
+                      'The invitations could not be sent. Check the addresses and your balance, then try again.',
+                  }
+                }
+              }}
               onCreated={(pot) => {
                 addPot(pot)
                 void navigate(`/blind-pot/${pot.id}`)
@@ -48,6 +82,7 @@ export function BlindPot() {
           </section>
         </div>
         <div className="min-w-0 space-y-12">
+          <SharedPotsPanel />
           <section className="space-y-4">
             <h2 className="text-xl">Your pots</h2>
             {pots.length === 0 ? (

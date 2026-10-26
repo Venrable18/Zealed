@@ -1,5 +1,5 @@
 --- a/src/types/memory_wallet/mod.rs	2026-10-10 14:28:00
-+++ b/src/types/memory_wallet/mod.rs	2026-10-24 20:47:12
++++ b/src/types/memory_wallet/mod.rs	2026-10-26 00:17:50
 @@ -157,6 +157,37 @@
  }
  
@@ -38,8 +38,34 @@
      pub fn new(params: P, max_checkpoints: usize) -> Self {
          Self {
              accounts: Accounts::new(),
+@@ -1599,11 +1630,24 @@
+                 entry.get_mut().txout = output.txout().clone();
+             }
+             Entry::Vacant(entry) => {
++                // (Zealed) An address is either one of the account's ephemeral (ZIP 320) addresses
++                // or one of its external receiving addresses; change addresses are not tracked.
++                let ephemeral = self
++                    .accounts
++                    .get(*receiving_account)
++                    .map(|account| account.ephemeral_addresses())
++                    .transpose()?
++                    .is_some_and(|known| known.iter().any(|(a, _)| a == address));
++                let key_scope = if ephemeral {
++                    ::transparent::keys::TransparentKeyScope::EPHEMERAL
++                } else {
++                    ::transparent::keys::TransparentKeyScope::EXTERNAL
++                };
+                 entry.insert(ReceivedTransparentOutput::new(
+                     txid,
+                     *receiving_account,
+                     *address,
+-                    todo!("look up the key scope for the address"),
++                    key_scope,
+                     output.txout().clone(),
+                     max_observed_unspent.unwrap_or(BlockHeight::from(0)),
+                 ));
 --- a/src/wallet_read.rs	2026-10-10 14:28:00
-+++ b/src/wallet_read.rs	2026-10-24 20:31:51
++++ b/src/wallet_read.rs	2026-10-26 00:17:50
 @@ -803,12 +803,9 @@
              .get_account(account_id)?
              .ok_or(Error::AccountUnknown(account_id))?;
@@ -56,7 +82,38 @@
  
          let t_addresses = account
              .addresses()
-@@ -913,15 +910,23 @@
+@@ -832,6 +829,30 @@
+         Ok(t_addresses)
+     }
+ 
++    /// (Zealed) The trait's default panics; shielding transparent coins needs it. Looks in the
++    /// account's external receiving addresses, then its ephemeral ones.
++    #[cfg(feature = "transparent-inputs")]
++    fn get_transparent_address_metadata(
++        &self,
++        account_id: Self::AccountId,
++        address: &TransparentAddress,
++    ) -> Result<Option<TransparentAddressMetadata>, Self::Error> {
++        if let Some(found) = self
++            .get_transparent_receivers(account_id, false, false)?
++            .get(address)
++        {
++            return Ok(Some(found.clone()));
++        }
++        let account = self
++            .get_account(account_id)?
++            .ok_or(Error::AccountUnknown(account_id))?;
++        Ok(account
++            .ephemeral_addresses()?
++            .into_iter()
++            .find(|(a, _)| a == address)
++            .map(|(_, metadata)| metadata))
++    }
++
+     /// Returns a mapping from each transparent receiver associated with the specified account
+     /// to its not-yet-shielded UTXO balance, including only the effects of transactions mined
+     /// at a block height less than or equal to `summary_height`.
+@@ -913,15 +934,23 @@
  
      fn get_last_generated_address_matching(
          &self,
@@ -84,3 +141,48 @@
      }
  
      fn get_received_outputs(
+--- a/src/wallet_write.rs	2026-10-10 14:28:00
++++ b/src/wallet_write.rs	2026-10-26 00:17:50
+@@ -984,7 +984,8 @@
+                     );
+                 }
+                 TransferType::Incoming => {
+-                    todo!("store decrypted tx sapling incoming")
++                    // (Zealed) Block scanning already stored this note, with its position in the
++                    // note commitment tree, which a full transaction alone does not give.
+                 }
+                 TransferType::WalletInternal => unreachable!(
+                     "TransferType::WalletInternal is only produced for transparent outputs"
+@@ -1061,7 +1062,8 @@
+                     );
+                 }
+                 TransferType::Incoming => {
+-                    todo!("store decrypted tx orchard incoming")
++                    // (Zealed) Block scanning already stored this note, with its position in the
++                    // note commitment tree, which a full transaction alone does not give.
+                 }
+                 TransferType::WalletInternal => unreachable!(
+                     "TransferType::WalletInternal is only produced for transparent outputs"
+@@ -1138,7 +1140,8 @@
+                     );
+                 }
+                 TransferType::Incoming => {
+-                    todo!("store decrypted tx ironwood incoming")
++                    // (Zealed) Block scanning already stored this note, with its position in the
++                    // note commitment tree, which a full transaction alone does not give.
+                 }
+                 TransferType::WalletInternal => unreachable!(
+                     "TransferType::WalletInternal is only produced for transparent outputs"
+@@ -1648,6 +1651,12 @@
+         // TODO: We need to implement first_unsafe_index to make sure we dont violate gap invarient
+ 
+         use transparent::keys::NonHardenedChildIndex;
++        // (Zealed) Building a transaction asks for none when it pays no ZIP 320 address. An
++        // account with no transparent keys (a shared pot, controlled by FROST) has none to give,
++        // and would otherwise fail here.
++        if n == 0 {
++            return Ok(Vec::new());
++        }
+         let first_unsafe = self.first_unsafe_index(account_id)?;
+         if let Some(account) = self.accounts.get_mut(account_id) {
+             let first_unreserved = account.first_unreserved_index()?;

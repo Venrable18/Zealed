@@ -7,6 +7,8 @@ import { useSilent } from '../features/legacy/silent/stores.ts'
 import { useLegacy } from '../features/legacy/stores.ts'
 import { useSentMessages, useUnsigned } from '../features/unsigned/stores.ts'
 import { useWalletData, validWalletData } from '../wallet/walletData.ts'
+import { EMPTY_SHARED_STATE } from '../features/blindpot/shared/engine.ts'
+import { useSharedPots, validSharedState } from '../features/blindpot/shared/store.ts'
 import type { Vault } from './vault.ts'
 import type { Contribution } from '../features/blindpot/queue.ts'
 
@@ -42,6 +44,18 @@ export const BINDINGS: readonly Binding[] = [
     subscribe: (listener) => useWalletData.subscribe(listener),
     reset: () => {
       useWalletData.getState().reset()
+    },
+  },
+  {
+    name: 'sharedPots.v1',
+    read: () => useSharedPots.getState().state,
+    write: (data) => {
+      const valid = validSharedState(data)
+      if (valid !== null) useSharedPots.setState({ state: valid })
+    },
+    subscribe: (listener) => useSharedPots.subscribe(listener),
+    reset: () => {
+      useSharedPots.setState({ state: EMPTY_SHARED_STATE })
     },
   },
   {

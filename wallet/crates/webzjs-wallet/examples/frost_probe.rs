@@ -83,6 +83,15 @@ async fn main() {
         let ids = w.send_payments(phrase.trim(), 0, main, vec![(to, 300_000, None)]).await.unwrap();
         println!("FUNDED {:?}", ids);
     }
+    if env::var("MEASURE").is_ok() {
+        let to = ZcashAddress::from_str(&pot_address).unwrap();
+        let pczt = w.pot_withdrawal_pczt(main, to, 100_000).await.unwrap();
+        let full = pczt.clone().serialize().unwrap().len();
+        let req_full = wallet::pczt_signing_request(&pczt).unwrap();
+        let small = wallet::pczt_for_signers(pczt);
+        let req_small = wallet::pczt_signing_request(&small).unwrap();
+        println!("SIZE full={} for_signers={} same_sighash={} spends={}", full, small.clone().serialize().unwrap().len(), req_full.sighash == req_small.sighash, req_full.spends.len());
+    }
     if env::var("WITHDRAW").is_ok() {
         let spendable = bal(pot).unwrap().1;
         let to = ZcashAddress::from_str(&main_address).unwrap();
@@ -110,7 +119,7 @@ async fn main() {
             let mut shares = BTreeMap::new();
             for s in signers {
                 let key = hexr(&format!("{dir}/key{s}.hex")).unwrap();
-                shares.insert(s, frost::sign_round2(&key, &nonces[&s], &package, &alpha).unwrap());
+                shares.insert(s, frost::sign_round2(&key, &nonces[&s], &package, &alpha, &request.sighash).unwrap());
             }
             let signature = frost::aggregate(&package, &shares, &public, &alpha).unwrap();
             pczt = wallet::pczt_apply_ironwood_signature(pczt, index, signature).unwrap();

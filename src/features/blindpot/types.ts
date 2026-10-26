@@ -17,6 +17,8 @@ export interface Pot {
   /** The pot's receiving address (unified, shielded). */
   address: string
   closed: boolean
+  /** Set for a pot co-hosted with FROST: withdrawals need co-hosts' approval. The shared pot's id. */
+  sharedId?: string
 }
 
 /** Everything the host screen may show. There is deliberately no per-payment field. */

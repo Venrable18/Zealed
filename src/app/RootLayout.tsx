@@ -20,6 +20,7 @@ import { initVault, lockVault, useVaultStatus } from '../storage/vaultState.ts'
 import { WalletProviders } from '../wallet/WalletProviders.tsx'
 import { useWalletBoot, useWalletRuntime } from '../wallet/runtime.ts'
 import { useBalance } from '../wallet/useBalance.ts'
+import { useSharedPotsLoop } from '../features/blindpot/shared/useSharedPotsLoop.ts'
 import { FEATURES } from './features.tsx'
 import { useSettings } from './settingsStore.ts'
 
@@ -138,6 +139,7 @@ export function RootLayout() {
   const vaultStatus = useVaultStatus((state) => state.status)
   useAutoLock()
   useWalletBoot()
+  useSharedPotsLoop()
   const t = useT()
   const language = useLanguage()
   const { pathname } = useLocation()

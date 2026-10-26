@@ -24,6 +24,14 @@ export interface WasmWallet {
     payments: string,
   ): Promise<string[]>
   db_to_bytes(): Promise<Uint8Array>
+  /** Adds an account the wallet can see but not spend from (a shared pot). */
+  create_account_view_ufvk(
+    name: string,
+    ufvk: string,
+    birthdayHeight?: number | null,
+  ): Promise<number>
+  pot_withdrawal_pczt(accountId: number, to: string, zat: bigint): Promise<Uint8Array>
+  pczt_prove_and_send(pczt: Uint8Array): Promise<void>
   get_latest_block(): Promise<bigint>
   free(): void
 }
@@ -49,6 +57,29 @@ export interface WasmModule {
   default: (input?: unknown) => Promise<unknown>
   initThreadPool: (threads: number) => Promise<unknown>
   generate_seed_phrase: () => string
+  // Shared pots: FROST key generation and signing. Values are hex; maps are JSON by co-host number.
+  frost_dkg_part1: (me: number, max: number, min: number) => string
+  frost_dkg_part2: (secret: string, round1Json: string) => string
+  frost_dkg_part3: (secret: string, round1Json: string, round2Json: string) => string
+  frost_pot_ufvk: (network: string, publicKeyPackage: string, viewingSeed: string) => string
+  frost_sign_round1: (keyPackage: string) => string
+  frost_signing_package: (commitmentsJson: string, sighash: string) => string
+  frost_sign_round2: (
+    keyPackage: string,
+    nonces: string,
+    signingPackage: string,
+    alpha: string,
+    sighash: string,
+  ) => string
+  frost_aggregate: (
+    signingPackage: string,
+    sharesJson: string,
+    publicKeyPackage: string,
+    alpha: string,
+  ) => string
+  pczt_signing_request: (network: string, pczt: Uint8Array, knownAddressesJson: string) => string
+  pczt_for_signers: (pczt: Uint8Array) => Uint8Array
+  pczt_apply_signature: (pczt: Uint8Array, index: number, signature: string) => Uint8Array
   WebWallet: new (
     network: string,
     lightwalletdUrl: string,

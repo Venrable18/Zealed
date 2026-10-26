@@ -69,10 +69,10 @@ describe('wire format', () => {
     expect(CHUNK_PAYLOAD_MAX).toBe(MEMO_BYTES - HEADER_BYTES)
   })
 
-  it('has a distinct code for each of the eight message types', () => {
+  it('has a distinct code for each of the sixteen message types', () => {
     const codes = Object.values(MESSAGE_TYPES)
-    expect(codes).toHaveLength(8)
-    expect(new Set(codes).size).toBe(8)
+    expect(codes).toHaveLength(16)
+    expect(new Set(codes).size).toBe(16)
   })
 
   it('keeps trailing zero bytes in the payload', () => {

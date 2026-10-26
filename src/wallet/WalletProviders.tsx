@@ -4,6 +4,7 @@ import { PotWalletContext } from '../features/blindpot/walletPort.ts'
 import { DashboardWalletContext } from '../features/dashboard/walletPort.ts'
 import { LegacyWalletContext } from '../features/legacy/walletPort.ts'
 import { ReceiveWalletContext } from '../features/receive/walletPort.ts'
+import { SharedPotContext } from '../features/blindpot/shared/store.ts'
 import { SeedContext } from '../features/settings/seedPort.ts'
 import { UnsignedWalletContext } from '../features/unsigned/walletPort.ts'
 import { useWalletRuntime } from './runtime.ts'
@@ -22,6 +23,7 @@ export function WalletProviders({ children }: { children: ReactNode }) {
   const dashboard = useContext(DashboardWalletContext)
   const receive = useContext(ReceiveWalletContext)
   const seed = useContext(SeedContext)
+  const shared = useContext(SharedPotContext)
   return (
     <PotWalletContext.Provider value={wallet ?? pot}>
       <ContributorWalletContext.Provider value={wallet ?? contributor}>
@@ -29,7 +31,11 @@ export function WalletProviders({ children }: { children: ReactNode }) {
           <UnsignedWalletContext.Provider value={wallet ?? unsigned}>
             <DashboardWalletContext.Provider value={wallet ?? dashboard}>
               <ReceiveWalletContext.Provider value={wallet ?? receive}>
-                <SeedContext.Provider value={wallet ?? seed}>{children}</SeedContext.Provider>
+                <SeedContext.Provider value={wallet ?? seed}>
+                  <SharedPotContext.Provider value={wallet ?? shared}>
+                    {children}
+                  </SharedPotContext.Provider>
+                </SeedContext.Provider>
               </ReceiveWalletContext.Provider>
             </DashboardWalletContext.Provider>
           </UnsignedWalletContext.Provider>

@@ -151,17 +151,25 @@ pub fn signing_package(
 }
 
 /// Signing, round 2: this co-host's signature share for one spend, re-randomized with `alpha`.
+/// Refuses unless the package signs exactly `sighash`, which the co-host computed themselves from
+/// the transaction they checked, so a coordinator cannot get a signature for anything else.
 #[allow(deprecated)]
 pub fn sign_round2(
     key_package: &[u8],
     nonces: &[u8],
     signing_package: &[u8],
     alpha: &[u8; 32],
+    sighash: &[u8; 32],
 ) -> Result<Vec<u8>, Error> {
     let key = frost::keys::KeyPackage::deserialize(key_package).map_err(err("read key share"))?;
     let nonces = frost::round1::SigningNonces::deserialize(nonces).map_err(err("read nonces"))?;
     let package =
         frost::SigningPackage::deserialize(signing_package).map_err(err("read signing package"))?;
+    if package.message().as_slice() != sighash.as_slice() {
+        return Err(Error::Generic(
+            "the signing package is not for the transaction that was checked".to_string(),
+        ));
+    }
     let randomizer = Randomizer::deserialize(alpha).map_err(err("read randomizer"))?;
     let share = frost_rerandomized::sign::<frost::PallasBlake2b512>(&package, &nonces, &key, randomizer)
         .map_err(err("sign"))?;

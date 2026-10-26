@@ -43,6 +43,15 @@ export const MESSAGE_TYPES = {
   REVOKE: 6,
   NUDGE: 7,
   UNSIGNED_MSG: 8,
+  // Shared pots (Blind Pot with co-hosts): FROST key generation and signing between co-hosts.
+  POT_INVITE: 9,
+  POT_DKG1: 10,
+  POT_DKG2: 11,
+  POT_DECLINE: 12,
+  POT_SIGN_REQUEST: 13,
+  POT_COMMIT: 14,
+  POT_PACKAGE: 15,
+  POT_SHARE: 16,
 } as const
 
 export type MessageType = keyof typeof MESSAGE_TYPES

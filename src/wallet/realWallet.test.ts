@@ -86,6 +86,9 @@ function fake(): { module: WasmModule; state: FakeState } {
       return Promise.resolve([`tx${String(state.sends.length)}`])
     },
     db_to_bytes: () => Promise.resolve(new Uint8Array([1, 2, 3])),
+    create_account_view_ufvk: () => Promise.reject(new Error('not in this test')),
+    pot_withdrawal_pczt: () => Promise.reject(new Error('not in this test')),
+    pczt_prove_and_send: () => Promise.reject(new Error('not in this test')),
     get_latest_block: () => Promise.resolve(5_000_000n),
     free: () => undefined,
   }
@@ -93,10 +96,30 @@ function fake(): { module: WasmModule; state: FakeState } {
     default: () => Promise.resolve(),
     initThreadPool: () => Promise.resolve(),
     generate_seed_phrase: () => 'gift seed words',
+    ...Object.fromEntries(
+      [
+        'frost_dkg_part1',
+        'frost_dkg_part2',
+        'frost_dkg_part3',
+        'frost_pot_ufvk',
+        'frost_sign_round1',
+        'frost_signing_package',
+        'frost_sign_round2',
+        'frost_aggregate',
+        'pczt_signing_request',
+        'pczt_for_signers',
+        'pczt_apply_signature',
+      ].map((name) => [
+        name,
+        () => {
+          throw new Error('not in this test')
+        },
+      ]),
+    ),
     WebWallet: function WebWallet() {
       return wallet
     } as unknown as WasmModule['WebWallet'],
-  } satisfies WasmModule
+  } as unknown as WasmModule
   return { module, state }
 }
 

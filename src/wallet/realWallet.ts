@@ -6,6 +6,7 @@ import type {
 import type { DashboardWalletPort } from '../features/dashboard/walletPort.ts'
 import type { LegacyWalletPort, SweepResult } from '../features/legacy/walletPort.ts'
 import type { ReceiveWalletPort } from '../features/receive/walletPort.ts'
+import type { ByIndex, SharedPotPort, SigningRequest } from '../features/blindpot/shared/port.ts'
 import type { SeedPort } from '../features/settings/seedPort.ts'
 import type { ReceivedTx, UnsignedWalletPort } from '../features/unsigned/walletPort.ts'
 import { verifyVaultPassphrase } from '../storage/vaultState.ts'
@@ -41,7 +42,8 @@ export class RealWallet
     UnsignedWalletPort,
     DashboardWalletPort,
     ReceiveWalletPort,
-    SeedPort
+    SeedPort,
+    SharedPotPort
 {
   /** How long to wait between checks while change from an earlier send confirms. */
   static retryDelayMs = 15_000
@@ -118,9 +120,12 @@ export class RealWallet
   }
 
   private account(kind: WalletAccount['kind'], id?: number): WalletAccount {
-    const found = useWalletData
-      .getState()
-      .accounts.find((a) => a.kind === kind && (id === undefined || a.id === id))
+    const found = useWalletData.getState().accounts.find(
+      (a) =>
+        // A pot with co-hosts is an account of its own kind, read and shown like any other pot.
+        (a.kind === kind || (kind === 'pot' && a.kind === 'shared')) &&
+        (id === undefined || a.id === id),
+    )
     if (found === undefined) throw new Error('That account does not exist.')
     return found
   }
@@ -491,6 +496,120 @@ export class RealWallet
     } catch {
       return { ok: false, reason: 'failed' }
     }
+  }
+
+  // --- Shared pots (FROST) -------------------------------------------------------------------
+
+  /** One transaction carrying memos to several co-hosts, each memo a zero-value output. */
+  async sendMemosTo(batch: { to: string; memos: Uint8Array[] }[]): Promise<{ txid: string }> {
+    await this.fresh(5_000)
+    const txids = await this.sendWhenSpendable(
+      this.main,
+      batch.flatMap(({ to, memos }) => memos.map((memo) => ({ address: to, zat: 0n, memo }))),
+    )
+    return { txid: txids[0] ?? '' }
+  }
+
+  private pair(json: string): { secret: string; public: string } {
+    return JSON.parse(json) as { secret: string; public: string }
+  }
+
+  dkgPart1(me: number, max: number, min: number) {
+    return Promise.resolve(this.pair(this.wasm.frost_dkg_part1(me, max, min)))
+  }
+
+  dkgPart2(secret: string, round1: ByIndex) {
+    return Promise.resolve(
+      JSON.parse(this.wasm.frost_dkg_part2(secret, JSON.stringify(round1))) as {
+        secret: string
+        packages: ByIndex
+      },
+    )
+  }
+
+  dkgPart3(secret: string, round1: ByIndex, round2: ByIndex) {
+    return Promise.resolve(
+      this.pair(this.wasm.frost_dkg_part3(secret, JSON.stringify(round1), JSON.stringify(round2))),
+    )
+  }
+
+  potUfvk(publicKeyPackage: string, viewingSeed: string) {
+    return Promise.resolve(this.wasm.frost_pot_ufvk('test', publicKeyPackage, viewingSeed))
+  }
+
+  importPot(name: string, ufvk: string): Promise<{ accountId: string; address: string }> {
+    return this.exclusive(async () => {
+      // Gifts can only arrive after the pot exists; a margin covers co-hosts finishing at different times.
+      const birthday = Math.max(NU7_TESTNET_ACTIVATION, (await this.chainTipNow()) - 200)
+      const id = await this.wallet.create_account_view_ufvk(name, ufvk, birthday)
+      const address = await this.wallet.get_current_address(id)
+      useWalletData.getState().set({
+        accounts: [
+          ...useWalletData.getState().accounts,
+          { id, kind: 'shared', label: name, hdIndex: -1, address },
+        ],
+      })
+      await this.save()
+      return { accountId: String(id), address }
+    })
+  }
+
+  async potSpendableZat(accountId: string): Promise<bigint> {
+    await this.fresh()
+    return (await this.balances(Number(accountId))).spendable
+  }
+
+  potWithdrawalPczt(accountId: string, to: string, zat: bigint): Promise<Uint8Array> {
+    return this.exclusive(() => this.wallet.pot_withdrawal_pczt(Number(accountId), to, zat))
+  }
+
+  pcztForSigners(pczt: Uint8Array) {
+    return Promise.resolve(this.wasm.pczt_for_signers(pczt))
+  }
+
+  signingRequest(pczt: Uint8Array, known: string[]) {
+    return Promise.resolve(
+      JSON.parse(
+        this.wasm.pczt_signing_request('test', pczt, JSON.stringify(known)),
+      ) as SigningRequest,
+    )
+  }
+
+  signRound1(keyPackage: string) {
+    return Promise.resolve(this.pair(this.wasm.frost_sign_round1(keyPackage)))
+  }
+
+  signingPackage(commitments: ByIndex, sighash: string) {
+    return Promise.resolve(this.wasm.frost_signing_package(JSON.stringify(commitments), sighash))
+  }
+
+  signRound2(
+    keyPackage: string,
+    nonces: string,
+    signingPackage: string,
+    alpha: string,
+    sighash: string,
+  ) {
+    return Promise.resolve(
+      this.wasm.frost_sign_round2(keyPackage, nonces, signingPackage, alpha, sighash),
+    )
+  }
+
+  aggregate(signingPackage: string, shares: ByIndex, publicKeyPackage: string, alpha: string) {
+    return Promise.resolve(
+      this.wasm.frost_aggregate(signingPackage, JSON.stringify(shares), publicKeyPackage, alpha),
+    )
+  }
+
+  applySignature(pczt: Uint8Array, index: number, signature: string) {
+    return Promise.resolve(this.wasm.pczt_apply_signature(pczt, index, signature))
+  }
+
+  proveAndSend(pczt: Uint8Array): Promise<void> {
+    return this.exclusive(async () => {
+      await this.wallet.pczt_prove_and_send(pczt)
+      await this.save()
+    })
   }
 
   // --- Settings --------------------------------------------------------------------------------

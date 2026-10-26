@@ -74,6 +74,34 @@ describe('CreatePotForm', () => {
     expect((await screen.findByRole('alert')).textContent).toContain('You need a wallet first')
   })
 
+  it('asks for co-hosts and passes them with the approvals needed', async () => {
+    let sent: { cohosts: string[]; threshold: number } | undefined
+    render(
+      <CreatePotForm
+        batchIntervalMs={60 * MINUTE}
+        onSubmit={noWallet}
+        onCreated={() => undefined}
+        onSubmitShared={(_input, choice) => {
+          sent = choice
+          return Promise.resolve(null)
+        }}
+      />,
+    )
+    fireEvent.click(screen.getByLabelText(/Require co-hosts/))
+    fireEvent.click(screen.getByRole('button', { name: 'Invite co-hosts' }))
+    expect(await screen.findByText('Fill in every co-host address, or remove it.')).toBeTruthy()
+    expect(sent).toBeUndefined()
+    fireEvent.change(screen.getByLabelText('Co-host 1 address'), { target: { value: 'utest1bob' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Add a co-host' }))
+    fireEvent.change(screen.getByLabelText('Co-host 2 address'), { target: { value: 'utest1cy' } })
+    fireEvent.change(screen.getByLabelText('Approvals needed to move the money'), {
+      target: { value: '3' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Invite co-hosts' }))
+    expect(await screen.findByText(/Invitations sent/)).toBeTruthy()
+    expect(sent).toEqual({ cohosts: ['utest1bob', 'utest1cy'], threshold: 3 })
+  })
+
   it('creates the pot when the wallet works', async () => {
     const wallet = new FakeWallet()
     let created: Pot | undefined

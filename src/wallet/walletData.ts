@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 
-export type WalletAccountKind = 'main' | 'pot' | 'gift'
+/** `shared` is a pot co-hosted with FROST: the wallet can see it but cannot spend from it alone. */
+export type WalletAccountKind = 'main' | 'pot' | 'gift' | 'shared'
 
 /** One account in the wallet's database. */
 export interface WalletAccount {
@@ -58,7 +59,7 @@ export function validWalletData(data: unknown): WalletData | null {
       typeof (a as WalletAccount).id === 'number' &&
       typeof (a as WalletAccount).address === 'string' &&
       typeof (a as WalletAccount).hdIndex === 'number' &&
-      ['main', 'pot', 'gift'].includes((a as WalletAccount).kind),
+      ['main', 'pot', 'gift', 'shared'].includes((a as WalletAccount).kind),
   )
   return {
     seed: d['seed'],

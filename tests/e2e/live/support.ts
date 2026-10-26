@@ -36,26 +36,37 @@ export async function setUp(page: Page, { demo = false }: { demo?: boolean } = {
   await expect(page.getByText('Your data is now saved on this device, encrypted.')).toBeVisible()
 }
 
-export async function createWallet(page: Page) {
+/** Creates a wallet and returns its recovery phrase, so test money sent to it can be recovered. */
+export async function createWallet(page: Page): Promise<string> {
   await nav(page, 'Wallet')
   await page.getByRole('button', { name: 'Create a new wallet' }).click()
-  await expect(page.getByTestId('seed-words').getByRole('listitem')).toHaveCount(24, {
-    timeout: 5 * 60_000,
-  })
+  const words = page.getByTestId('seed-words').getByRole('listitem')
+  await expect(words).toHaveCount(24, { timeout: 5 * 60_000 })
+  const phrase = (await words.allTextContents())
+    .map((word) => word.replace(/^\s*\d+\.?\s*/, '').trim())
+    .join(' ')
   await page.getByLabel('I have written the 24 words down').check()
   await page.getByRole('button', { name: 'Create the wallet' }).click()
   await expect(page.getByText(/Up to date/)).toBeVisible({ timeout: BLOCKS })
+  return phrase
 }
 
-export async function restoreFundedWallet(page: Page) {
+/** Restores a wallet from its phrase and waits until it has spendable money. */
+export async function restoreWallet(page: Page, phrase: string, birthday: string) {
   await nav(page, 'Wallet')
-  await page.getByLabel('Recovery phrase').fill(readFileSync(SEED_FILE ?? '', 'utf8').trim())
-  await page
-    .getByLabel('Starting block (optional)')
-    .fill(process.env['LIVE_TESTNET_BIRTHDAY'] ?? '')
+  await page.getByLabel('Recovery phrase').fill(phrase)
+  await page.getByLabel('Starting block (optional)').fill(birthday)
   await page.getByRole('button', { name: 'Restore this wallet' }).click()
   await expect(page.getByText(/Up to date/)).toBeVisible({ timeout: BLOCKS })
   await expect(page.getByTestId('spendable')).not.toHaveText(/^0 TAZ$/, { timeout: 60_000 })
+}
+
+export async function restoreFundedWallet(page: Page) {
+  await restoreWallet(
+    page,
+    readFileSync(SEED_FILE ?? '', 'utf8').trim(),
+    process.env['LIVE_TESTNET_BIRTHDAY'] ?? '',
+  )
 }
 
 /** The wallet's address, from the Receive page. */
