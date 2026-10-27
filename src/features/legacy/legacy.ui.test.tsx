@@ -92,7 +92,7 @@ describe('ComposeLetter', () => {
     expect(screen.getByText(/on top of the 0.25 ZEC gift/)).toBeTruthy()
 
     fireEvent.click(screen.getByRole('button', { name: 'Seal and send' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Seal this letter?' })
+    const dialog = await screen.findByRole('dialog', { name: /^Seal it until/ })
     expect(within(dialog).getByText(/utest1reci…/)).toBeTruthy()
     expect(within(dialog).getByText(/includes 0.25 ZEC/)).toBeTruthy()
     expect(wallet.events).toEqual([])

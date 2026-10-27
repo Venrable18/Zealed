@@ -4,6 +4,7 @@ import { FIXTURE_ROUNDS, fixtureClient } from '../../crypto/testClient.ts'
 import { timeOfRound } from '../../crypto/tlock.ts'
 import { decodeMemo, encodeChunk, splitMessage } from '../../zmp/index.ts'
 import { FakeLegacyWallet } from './fakeWallet.ts'
+import { describeFromNow } from './format.ts'
 import { findSealedLetters, openLetter, sweepGift } from './inbox.ts'
 import { bundleToMemos, previewFee, retryDelivery, sealAndSend } from './seal.ts'
 import { MAX_LEAD_MS, MIN_GIFT_ZAT, MIN_LEAD_MS, validateSeal } from './validate.ts'
@@ -347,5 +348,22 @@ describe('the recipient: inbox, opening, sweeping', () => {
     const seed = opened.ok ? opened.content.giftSeed : undefined
     expect(seed).toBeDefined()
     expect((await sweepGift(wallet, seed ?? '')).ok).toBe(true)
+  })
+})
+
+describe('describeFromNow', () => {
+  const NOW = Date.UTC(2026, 9, 27)
+  const DAY_MS = 24 * 60 * 60 * 1000
+  it('says how far ahead a time is, in the unit a person would check', () => {
+    expect(describeFromNow(NOW + 30_000, NOW)).toBe('in about 1 minute')
+    expect(describeFromNow(NOW + 5 * 60_000, NOW)).toBe('in about 5 minutes')
+    expect(describeFromNow(NOW + 3 * 60 * 60_000, NOW)).toBe('in about 3 hours')
+    expect(describeFromNow(NOW + 3 * DAY_MS, NOW)).toBe('in about 3 days')
+    expect(describeFromNow(NOW + 365 * DAY_MS, NOW)).toBe('in about 12 months')
+    expect(describeFromNow(NOW + 5 * 365 * DAY_MS, NOW)).toBe('in about 5 years')
+  })
+  it('says nothing for a time that has passed or is not a time', () => {
+    expect(describeFromNow(NOW - 1, NOW)).toBe('')
+    expect(describeFromNow(Number.NaN, NOW)).toBe('')
   })
 })

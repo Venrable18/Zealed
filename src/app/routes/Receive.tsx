@@ -94,7 +94,9 @@ export function Receive() {
             <h2 id="address-title" className="text-xl">
               {fresh ? t('receive.freshAddress') : t('receive.yourAddress')}
             </h2>
-            <QrDisplay value={`zcash:${address}`} label={t('receive.qr')} />
+            {/* The bare address, not a zcash: link: phone cameras show it as text to copy, and every
+                Zcash wallet and Zealed's own scanner read it. */}
+            <QrDisplay value={address} label={t('receive.qr')} level="L" />
             <p
               className="break-all rounded-control border border-line bg-surface p-3 font-mono text-sm"
               data-testid="own-address"

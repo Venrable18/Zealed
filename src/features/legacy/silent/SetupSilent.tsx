@@ -3,6 +3,7 @@ import { AddressInput } from '../../../components/AddressInput.tsx'
 import { AmountInput } from '../../../components/AmountInput.tsx'
 import { Button } from '../../../components/Button.tsx'
 import { ConfirmDialog } from '../../../components/ConfirmDialog.tsx'
+import { trackWork } from '../../../storage/inflight.ts'
 import { TextArea, TextInput } from '../../../components/Field.tsx'
 import { useToasts } from '../../../components/toastStore.ts'
 import { LEGACY_LETTER_MAX_BYTES } from '../../../config/constants.ts'
@@ -102,7 +103,7 @@ export function SetupSilent({ wallet, defaultPeriodMs, defaultGraceMs }: SetupSi
     setConfirming(false)
     setBusy(true)
     setProblem(undefined)
-    const result = await setupSilentLetter(wallet, input, { nowMs: currentTime() })
+    const result = await trackWork(() => setupSilentLetter(wallet, input, { nowMs: currentTime() }))
     setBusy(false)
     if (result.ok) {
       upsertOwned(result.record)

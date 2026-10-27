@@ -70,7 +70,7 @@ async function seal(
   await sp.getByLabel('Gift amount (ZEC)').fill('0.25')
   await expect(sp.getByText(/Network fee:/)).toBeVisible()
   await sp.getByRole('button', { name: 'Seal and send' }).click()
-  const dialog = sp.getByRole('dialog', { name: 'Seal this letter?' })
+  const dialog = sp.getByRole('dialog', { name: /^Seal it until/ })
   await expect(dialog).toContainText('0.25 ZEC')
   await dialog.getByRole('button', { name: 'Seal and send' }).click()
   await expect(sp.getByText('Your letter was sealed and sent.')).toBeVisible({ timeout: 20_000 })

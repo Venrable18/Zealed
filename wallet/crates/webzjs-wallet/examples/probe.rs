@@ -113,6 +113,20 @@ async fn main() {
             Err(e) => println!("ZERO-FAILED {e}"),
         }
     }
+    // PAY=<address>:<zatoshis>,<address>:<zatoshis>: pays each address in one transaction.
+    if let Ok(list) = env::var("PAY") {
+        let payments: Vec<(ZcashAddress, u64, Option<[u8; 512]>)> = list
+            .split(',')
+            .map(|item| {
+                let (address, zat) = item.split_once(':').expect("address:zatoshis");
+                (ZcashAddress::from_str(address).expect("address"), zat.parse().expect("zatoshis"), None)
+            })
+            .collect();
+        match wallet.send_payments(&seed, 0, account, payments).await {
+            Ok(t) => println!("PAID {:?}", t),
+            Err(e) => println!("PAY-FAILED {e}"),
+        }
+    }
     // SWEEP_TO=<address>: sends everything spendable, less the fee, to that address.
     if let Ok(target) = env::var("SWEEP_TO") {
         let to = ZcashAddress::from_str(&target).unwrap();

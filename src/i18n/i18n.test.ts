@@ -40,6 +40,9 @@ describe('catalogues', () => {
               'landing.colZealed',
               'landing.navFaq',
               'landing.faqTitle',
+              // Product names.
+              'landing.floatPot',
+              'landing.flowZcash',
             ].includes(key),
         )
         expect(same).toEqual([])

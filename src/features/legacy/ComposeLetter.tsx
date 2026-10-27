@@ -4,11 +4,18 @@ import { AddressInput } from '../../components/AddressInput.tsx'
 import { AmountInput } from '../../components/AmountInput.tsx'
 import { Button } from '../../components/Button.tsx'
 import { ConfirmDialog } from '../../components/ConfirmDialog.tsx'
+import { trackWork } from '../../storage/inflight.ts'
 import { TextArea, TextInput } from '../../components/Field.tsx'
 import { useToasts } from '../../components/toastStore.ts'
 import { LEGACY_LETTER_MAX_BYTES } from '../../config/constants.ts'
 import { formatZec } from '../../lib/zec.ts'
-import { formatDateTime, fromLocalInput, shortAddress, toLocalInput } from './format.ts'
+import {
+  describeFromNow,
+  formatDateTime,
+  fromLocalInput,
+  shortAddress,
+  toLocalInput,
+} from './format.ts'
 import { previewFee, sealAndSend } from './seal.ts'
 import { useLegacy } from './stores.ts'
 import type { SealField } from './types.ts'
@@ -78,13 +85,16 @@ export function ComposeLetter({
     setConfirming(false)
     setBusy(true)
     setProblem(undefined)
-    const result = await sealAndSend(
-      wallet,
-      { recipient, letter, amountZat: giftZat, unlockMs },
-      {
-        nowMs: currentTime(),
-        ...(client === undefined ? {} : { client }),
-      },
+    // Locking waits for the send, or its record would be lost (see storage/inflight.ts).
+    const result = await trackWork(() =>
+      sealAndSend(
+        wallet,
+        { recipient, letter, amountZat: giftZat, unlockMs },
+        {
+          nowMs: currentTime(),
+          ...(client === undefined ? {} : { client }),
+        },
+      ),
     )
     setBusy(false)
 
@@ -171,11 +181,13 @@ export function ComposeLetter({
         onChange={(event) => {
           setUnlock(event.target.value)
         }}
-        hint={
+        hint={`${
+          Number.isNaN(unlockMs) ? '' : `Opens ${describeFromNow(unlockMs, currentTime())}. `
+        }${
           demoMode
             ? 'Demo mode: it starts 30 seconds from now.'
             : 'Nobody, including you, can open it earlier. This uses the drand network’s clock.'
-        }
+        }`}
         {...(errors.unlock === undefined ? {} : { error: errors.unlock })}
       />
 
@@ -226,7 +238,11 @@ export function ComposeLetter({
 
       <ConfirmDialog
         open={confirming}
-        title="Seal this letter?"
+        title={
+          checked.ok
+            ? `Seal it until ${formatDateTime(checked.value.unlockMs)}?`
+            : 'Seal this letter?'
+        }
         confirmLabel="Seal and send"
         onCancel={() => {
           setConfirming(false)
@@ -236,7 +252,7 @@ export function ComposeLetter({
         }}
       >
         {checked.ok
-          ? `It goes to ${shortAddress(checked.value.recipient)} and opens on ${formatDateTime(checked.value.unlockMs)}.${giftZat === null ? '' : ` It includes ${formatZec(giftZat)} ZEC.`}${fee === undefined ? '' : ` The network fee is ${formatZec(fee)} ZEC.`} A sealed letter cannot be taken back.`
+          ? `It goes to ${shortAddress(checked.value.recipient)} and opens ${describeFromNow(checked.value.unlockMs, currentTime())}, on ${formatDateTime(checked.value.unlockMs)}.${giftZat === null ? '' : ` It includes ${formatZec(giftZat)} ZEC.`}${fee === undefined ? '' : ` The network fee is ${formatZec(fee)} ZEC.`} A sealed letter cannot be taken back.`
           : ''}
       </ConfirmDialog>
     </form>

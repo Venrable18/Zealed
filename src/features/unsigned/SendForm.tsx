@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { trackWork } from '../../storage/inflight.ts'
 import { AmountInput } from '../../components/AmountInput.tsx'
 import { Button } from '../../components/Button.tsx'
 import { ConfirmDialog } from '../../components/ConfirmDialog.tsx'
@@ -69,10 +70,12 @@ export function SendForm({ card, wallet }: { card: Card; wallet: UnsignedWalletP
     setConfirming(false)
     setBusy(true)
     setProblem(undefined)
-    const result = await sendMessage(wallet, card, input, {
-      nowMs: currentTime(),
-      ...(fee === undefined ? {} : { feeZat: fee }),
-    })
+    const result = await trackWork(() =>
+      sendMessage(wallet, card, input, {
+        nowMs: currentTime(),
+        ...(fee === undefined ? {} : { feeZat: fee }),
+      }),
+    )
     setBusy(false)
     if (result.ok) {
       addSent(result.sent)

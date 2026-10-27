@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { trackWork } from '../../storage/inflight.ts'
 import type { ChainClient } from 'tlock-js'
 import { Button } from '../../components/Button.tsx'
 import { CountdownTimer } from '../../components/CountdownTimer.tsx'
@@ -57,7 +58,7 @@ function InboxCard({
   async function sweep(seed: string, birthday?: number) {
     if (wallet === null) return
     setBusy(true)
-    const result = await sweepGift(wallet, seed, birthday)
+    const result = await trackWork(() => sweepGift(wallet, seed, birthday))
     setBusy(false)
     if (result.ok) {
       setSwept(result.sweptZat)

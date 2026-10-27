@@ -44,7 +44,7 @@ test('Legacy on the NU7 testnet: seal a letter with a gift, open it on time, mov
   await expect(sender.getByText(/Network fee:/)).toBeVisible()
   await sender.getByRole('button', { name: 'Seal and send' }).click()
   await sender
-    .getByRole('dialog', { name: 'Seal this letter?' })
+    .getByRole('dialog', { name: /^Seal it until/ })
     .getByRole('button', { name: 'Seal and send' })
     .click()
   // Funding the gift wallet and sending the letter are two transactions; the second waits for change.

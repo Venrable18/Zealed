@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useSettings } from '../app/settingsStore.ts'
 import { useWalletRuntime } from '../wallet/runtime.ts'
+import { isWorking } from './inflight.ts'
 import { lockVault, useVaultStatus } from './vaultState.ts'
 
 /** How often to try again when the wallet is busy at the moment the lock is due. */
@@ -23,7 +24,7 @@ export function useAutoLock(): void {
     // Locking closes the wallet. Never in the middle of a send: a letter's gift could be funded and
     // the letter itself never sent. So a lock that falls due while the wallet is busy waits for it.
     const lock = () => {
-      if (useWalletRuntime.getState().wallet?.busy === true) {
+      if (useWalletRuntime.getState().wallet?.busy === true || isWorking()) {
         clearTimeout(timer)
         timer = setTimeout(lock, BUSY_RETRY_MS)
         return

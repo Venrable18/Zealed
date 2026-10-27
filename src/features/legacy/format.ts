@@ -19,3 +19,22 @@ export function fromLocalInput(value: string): number {
 export function formatDateTime(ms: number): string {
   return new Date(ms).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'medium' })
 }
+
+const MINUTE = 60_000
+const HOUR = 60 * MINUTE
+const DAY = 24 * HOUR
+
+/**
+ * How far ahead a time is, in words a person checks against what they meant: "in about 3 days",
+ * "in about 12 months". Returns an empty string for a time that is not in the future.
+ */
+export function describeFromNow(targetMs: number, nowMs: number): string {
+  const gap = targetMs - nowMs
+  if (!Number.isFinite(gap) || gap <= 0) return ''
+  const plural = (n: number, unit: string) => `${String(n)} ${unit}${n === 1 ? '' : 's'}`
+  if (gap < HOUR) return `in about ${plural(Math.max(1, Math.round(gap / MINUTE)), 'minute')}`
+  if (gap < DAY) return `in about ${plural(Math.round(gap / HOUR), 'hour')}`
+  if (gap < 60 * DAY) return `in about ${plural(Math.round(gap / DAY), 'day')}`
+  if (gap < 2 * 365 * DAY) return `in about ${plural(Math.round(gap / (30.44 * DAY)), 'month')}`
+  return `in about ${plural(Math.round(gap / (365.25 * DAY)), 'year')}`
+}

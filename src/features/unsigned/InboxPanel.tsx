@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { trackWork } from '../../storage/inflight.ts'
 import { Button } from '../../components/Button.tsx'
 import { EmptyState } from '../../components/EmptyState.tsx'
 import { TextArea } from '../../components/Field.tsx'
@@ -62,7 +63,7 @@ function ReplyBox({
     }
     setError(undefined)
     setBusy(true)
-    const result = await sendReply(wallet, replyTo, text)
+    const result = await trackWork(() => sendReply(wallet, replyTo, text))
     setBusy(false)
     if (result.ok) {
       markReplied(message.id)

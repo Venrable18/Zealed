@@ -1,4 +1,3 @@
-import { GettingStarted } from '../../components/GettingStarted.tsx'
 import { NotSavedNotice } from '../../storage/NotSavedNotice.tsx'
 import { DashboardView } from '../../features/dashboard/DashboardView.tsx'
 import { useDashboard } from '../../features/dashboard/useDashboard.ts'
@@ -12,7 +11,6 @@ export function Dashboard() {
         <p className="mt-2 max-w-prose text-muted">Your own numbers, worked out on this device.</p>
       </div>
       <NotSavedNotice />
-      <GettingStarted />
       <DashboardView data={data} />
     </div>
   )

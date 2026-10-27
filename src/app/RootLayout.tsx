@@ -10,6 +10,7 @@ import {
   SlidersIcon,
   WalletIcon,
 } from '../components/Icons.tsx'
+import { GettingStarted } from '../components/GettingStarted.tsx'
 import { Mark } from '../components/Mark.tsx'
 import { ToastViewport } from '../components/Toasts.tsx'
 import { ZCASH_NETWORK } from '../config/network.ts'
@@ -237,6 +238,7 @@ export function RootLayout() {
       </aside>
       <main id="main" className="min-w-0 px-5 pb-24 sm:px-8 lg:px-12">
         <div className="max-w-5xl">
+          <GettingStarted />
           <WalletProviders>
             <Outlet />
           </WalletProviders>

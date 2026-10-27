@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { createIndexedDbBackend, createMemoryBackend } from './backend.ts'
 import { resetSensitiveData, startPersistence, type Persistence } from './persistence.ts'
+import { whenIdle } from './inflight.ts'
 import { Vault, VaultError } from './vault.ts'
 
 /**
@@ -125,6 +126,9 @@ export async function unlockVault(
 
 /** Saves what is pending, forgets the key, and removes all private data from memory. */
 export async function lockVault(): Promise<void> {
+  if (useVaultStatus.getState().status !== 'unlocked') return
+  // A send still in flight would add its record after memory is cleared, and lose it.
+  await whenIdle()
   if (useVaultStatus.getState().status !== 'unlocked') return
   const active = persistence
   persistence = undefined

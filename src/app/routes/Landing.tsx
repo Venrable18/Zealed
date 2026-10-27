@@ -1,6 +1,13 @@
-import { useEffect, useState, type ComponentType, type ReactNode, type SVGProps } from 'react'
+import {
+  Fragment,
+  useEffect,
+  useState,
+  type ComponentType,
+  type ReactNode,
+  type SVGProps,
+} from 'react'
 import { Link } from 'react-router'
-import { BubbleIcon, LetterIcon, PotIcon } from '../../components/Icons.tsx'
+import { ArrowIcon, BubbleIcon, LetterIcon, PotIcon, ShieldIcon } from '../../components/Icons.tsx'
 import { Mark } from '../../components/Mark.tsx'
 import { useLanguage, useT, type MessageKey } from '../../i18n/index.ts'
 
@@ -377,6 +384,140 @@ function DeepDive({
   )
 }
 
+const FLOW: readonly { title: MessageKey; points: readonly MessageKey[]; carrier?: boolean }[] = [
+  {
+    title: 'landing.flowYou',
+    points: ['landing.flowYou1', 'landing.flowYou2', 'landing.flowYou3'],
+  },
+  {
+    title: 'landing.flowZcash',
+    points: ['landing.flowZcash1', 'landing.flowZcash2', 'landing.flowZcash3'],
+    carrier: true,
+  },
+  {
+    title: 'landing.flowThem',
+    points: ['landing.flowThem1', 'landing.flowThem2', 'landing.flowThem3'],
+  },
+]
+
+/** You, Zcash, them: who does what, with nobody in the middle. The carrier is the envelope. */
+function Flow() {
+  const t = useT()
+  return (
+    <div className="mt-12 grid items-stretch gap-3 lg:grid-cols-[1fr_auto_1fr_auto_1fr]">
+      {FLOW.map(({ title, points, carrier = false }, index) => (
+        <Fragment key={title}>
+          {index > 0 && (
+            <div aria-hidden="true" className="flex items-center justify-center text-seal">
+              <ArrowIcon width={28} height={28} className="rotate-90 lg:rotate-0" />
+            </div>
+          )}
+          <section
+            aria-labelledby={`flow-${title}`}
+            className={`rounded-card p-6 ${carrier ? 'airmail-frame' : 'border border-line bg-surface'}`}
+          >
+            <h3 id={`flow-${title}`} className="text-2xl">
+              {t(title)}
+            </h3>
+            <ul className="mt-4 space-y-2.5">
+              {points.map((point) => (
+                <li key={point} className="flex gap-2.5 text-muted">
+                  <span
+                    aria-hidden="true"
+                    className="mt-2.5 size-1.5 shrink-0 rounded-full bg-seal"
+                  />
+                  {t(point)}
+                </li>
+              ))}
+            </ul>
+          </section>
+        </Fragment>
+      ))}
+    </div>
+  )
+}
+
+const MOMENTS: readonly {
+  name: string
+  Icon: ComponentType<SVGProps<SVGSVGElement>>
+  cells: readonly (readonly [MessageKey, MessageKey])[]
+}[] = [
+  {
+    name: 'Legacy',
+    Icon: LetterIcon,
+    cells: [
+      ['landing.exLegacy1', 'landing.exLegacy1b'],
+      ['landing.exLegacy2', 'landing.exLegacy2b'],
+      ['landing.exLegacy3', 'landing.exLegacy3b'],
+      ['landing.exLegacy4', 'landing.exLegacy4b'],
+    ],
+  },
+  {
+    name: 'Blind Pot',
+    Icon: PotIcon,
+    cells: [
+      ['landing.exPot1', 'landing.exPot1b'],
+      ['landing.exPot2', 'landing.exPot2b'],
+      ['landing.exPot3', 'landing.exPot3b'],
+      ['landing.exPot4', 'landing.exPot4b'],
+    ],
+  },
+  {
+    name: 'Unsigned',
+    Icon: BubbleIcon,
+    cells: [
+      ['landing.exUnsigned1', 'landing.exUnsigned1b'],
+      ['landing.exUnsigned2', 'landing.exUnsigned2b'],
+      ['landing.exUnsigned3', 'landing.exUnsigned3b'],
+      ['landing.exUnsigned4', 'landing.exUnsigned4b'],
+    ],
+  },
+]
+
+/** Pick a feature, see what it keeps private: the privacy model as four plain answers. */
+function Explainer() {
+  const t = useT()
+  const [chosen, setChosen] = useState(0)
+  const moment = MOMENTS[chosen] ?? MOMENTS[0]
+  return (
+    <div className="mt-10 grid gap-8 rounded-card border border-line bg-surface p-5 sm:p-8 lg:grid-cols-[minmax(0,16rem)_1fr] lg:gap-12">
+      <div className="flex flex-wrap gap-1 self-start rounded-card bg-sunken p-1.5 lg:flex-col">
+        {MOMENTS.map(({ name, Icon }, index) => (
+          <button
+            key={name}
+            type="button"
+            aria-pressed={index === chosen}
+            onClick={() => {
+              setChosen(index)
+            }}
+            className={`flex min-h-11 flex-1 items-center gap-2.5 rounded-control px-4 font-semibold transition-colors ${
+              index === chosen
+                ? 'bg-seal text-seal-ink'
+                : 'text-muted hover:bg-surface hover:text-ink'
+            }`}
+          >
+            <Icon width={20} height={20} />
+            {name}
+          </button>
+        ))}
+      </div>
+      <div aria-live="polite">
+        <p className="text-sm font-semibold text-muted">
+          {moment?.name}: {t('landing.explainLabel')}
+        </p>
+        <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+          {moment?.cells.map(([value, caption]) => (
+            <div key={value} className="rounded-control border border-line bg-page p-5">
+              <dt className="text-3xl font-bold tracking-[-0.03em]">{t(value)}</dt>
+              <dd className="mt-1 text-muted">{t(caption)}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </div>
+  )
+}
+
 /** The public front page: what Zealed is, proof that it works, what it keeps private, and how to start. */
 export function Landing() {
   const t = useT()
@@ -387,7 +528,7 @@ export function Landing() {
   const number = new Intl.NumberFormat(language)
 
   return (
-    <div className="min-h-dvh bg-page text-ink">
+    <div className="min-h-dvh overflow-x-clip bg-page text-ink">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-control focus:bg-surface focus:px-4 focus:py-2"
@@ -395,8 +536,8 @@ export function Landing() {
         {t('shell.skip')}
       </a>
       <div className="airmail-edge h-1.5" aria-hidden="true" />
-      <header className="sticky top-0 z-40 border-b border-line bg-page/90 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center gap-8 px-5 py-4 sm:px-8">
+      <header className="sticky top-3 z-40 mt-3 px-3 sm:px-5">
+        <div className="mx-auto flex max-w-7xl items-center gap-8 rounded-full border border-line bg-surface/85 py-2 pl-5 pr-2 shadow-[0_16px_40px_-24px_rgba(20,28,51,0.45)] backdrop-blur">
           <Link
             to="/"
             className="flex items-center gap-2.5 font-display text-2xl font-bold tracking-[-0.03em]"
@@ -420,7 +561,7 @@ export function Landing() {
           </nav>
           <Link
             to="/app"
-            className="ml-auto inline-flex min-h-11 items-center rounded-control bg-seal px-4 font-semibold text-seal-ink hover:bg-seal-hover"
+            className="ml-auto inline-flex min-h-11 items-center rounded-full bg-seal px-5 font-semibold text-seal-ink hover:bg-seal-hover"
           >
             {t('landing.open')}
           </Link>
@@ -438,7 +579,7 @@ export function Landing() {
               <span className="size-2 rounded-full bg-good" aria-hidden="true" />
               {t('landing.live')}
             </a>
-            <h1 className="mt-7 max-w-[15ch] font-display text-[clamp(2.75rem,6.4vw,5.25rem)] font-bold leading-[0.98] tracking-[-0.045em]">
+            <h1 className="mt-7 max-w-[17ch] font-display text-[clamp(2.75rem,6vw,5rem)] font-bold leading-[0.98] tracking-[-0.045em]">
               {t('landing.title')}
             </h1>
             <p className="mt-7 max-w-[36rem] text-lg leading-relaxed text-muted sm:text-xl">
@@ -455,17 +596,58 @@ export function Landing() {
                 {t('landing.seeProof')}
               </a>
             </div>
+            <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted">
+              {(['landing.trust1', 'landing.trust2', 'landing.trust3'] as const).map((key) => (
+                <li key={key} className="flex items-center gap-2">
+                  <ShieldIcon width={18} height={18} className="text-good" />
+                  {t(key)}
+                </li>
+              ))}
+            </ul>
           </div>
           <div className="relative lg:pl-6">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute -inset-16 -z-0 rounded-full bg-[radial-gradient(closest-side,var(--seal-soft),transparent)] opacity-90"
+            />
             <SealingLetter />
+            <div
+              aria-hidden="true"
+              className="absolute -bottom-36 -left-8 hidden w-72 rounded-card border border-line bg-surface p-4 shadow-[0_20px_40px_-24px_rgba(20,28,51,0.45)] xl:block"
+            >
+              <p className="flex items-center gap-2 text-sm font-semibold text-seal">
+                <PotIcon width={16} height={16} />
+                {t('landing.floatPot')}
+              </p>
+              <p className="mt-1 text-sm text-muted">{t('landing.floatPotBody')}</p>
+            </div>
             <div
               aria-hidden="true"
               className="absolute -right-4 -top-10 hidden w-64 rounded-card border border-line bg-surface p-4 shadow-[0_20px_40px_-24px_rgba(20,28,51,0.45)] xl:block"
             >
-              <p className="text-sm text-muted">{t('landing.unsignedFrom')}</p>
+              <p className="flex items-center gap-2 text-sm font-semibold text-seal">
+                <BubbleIcon width={16} height={16} />
+                Unsigned
+              </p>
+              <p className="mt-1 text-sm text-muted">{t('landing.unsignedFrom')}</p>
               <p className="mt-1 text-sm font-medium text-good">{t('landing.unsignedPaid')}</p>
             </div>
           </div>
+        </section>
+
+        {/* How it travels */}
+        <section
+          id="travel"
+          aria-labelledby="travel-title"
+          className="mx-auto max-w-7xl px-5 pb-20 pt-6 sm:px-8 lg:pb-28"
+        >
+          <h2 id="travel-title" className={`${H2} max-w-[22ch]`}>
+            {t('landing.flowTitle')}
+          </h2>
+          <p className="mt-5 max-w-2xl text-lg leading-relaxed text-muted">
+            {t('landing.flowIntro')}
+          </p>
+          <Flow />
         </section>
 
         {/* Proof */}
@@ -579,12 +761,22 @@ export function Landing() {
           className="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:py-28"
         >
           <h2 id="privacy-title" className={H2}>
-            {t('landing.privacyTitle')}
+            {t('landing.explainTitle')}
           </h2>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-muted">
-            {t('landing.privacyIntro')}
+            {t('landing.explainIntro')}
           </p>
-          <PrivacyTable />
+          <Explainer />
+          <details className="group mt-6">
+            <summary className="inline-flex min-h-11 cursor-pointer list-none items-center gap-2 font-semibold text-seal underline-offset-4 hover:underline [&::-webkit-details-marker]:hidden">
+              <span aria-hidden="true" className="transition-transform group-open:rotate-90">
+                ›
+              </span>
+              {t('landing.fullTable')}
+            </summary>
+            <p className="mt-3 max-w-2xl text-muted">{t('landing.privacyIntro')}</p>
+            <PrivacyTable />
+          </details>
           <p className="mt-5 max-w-2xl text-muted">{t('landing.privacyNote')}</p>
         </section>
 
@@ -614,19 +806,22 @@ export function Landing() {
             <h2 id="faq-title" className={H2}>
               {t('landing.faqTitle')}
             </h2>
-            <div className="divide-y divide-line border-y border-line">
+            <div className="space-y-3">
               {FAQ.map(([question, answer]) => (
-                <details key={question} className="group py-1">
-                  <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-6 py-3 text-lg font-medium [&::-webkit-details-marker]:hidden">
+                <details
+                  key={question}
+                  className="group rounded-card border border-line bg-surface open:border-seal"
+                >
+                  <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-6 px-5 py-4 text-lg font-semibold [&::-webkit-details-marker]:hidden">
                     {t(question)}
                     <span
                       aria-hidden="true"
-                      className="text-2xl leading-none text-seal transition-transform group-open:rotate-45"
+                      className="flex size-8 shrink-0 items-center justify-center rounded-full bg-sunken text-xl leading-none text-seal transition-transform group-open:rotate-45"
                     >
                       +
                     </span>
                   </summary>
-                  <p className="max-w-prose pb-5 leading-relaxed text-muted">{t(answer)}</p>
+                  <p className="max-w-prose px-5 pb-5 leading-relaxed text-muted">{t(answer)}</p>
                 </details>
               ))}
             </div>
@@ -634,8 +829,8 @@ export function Landing() {
         </section>
 
         {/* Closing call */}
-        <section aria-labelledby="cta-title" className="bg-seal text-seal-ink">
-          <div className="mx-auto flex max-w-7xl flex-col items-start gap-8 px-5 py-20 sm:px-8 lg:flex-row lg:items-end lg:justify-between">
+        <section aria-labelledby="cta-title" className="px-3 pb-16 sm:px-5">
+          <div className="mx-auto flex max-w-7xl flex-col items-start gap-8 rounded-[1.75rem] bg-seal px-6 py-16 text-seal-ink sm:px-12 lg:flex-row lg:items-end lg:justify-between lg:py-20">
             <div>
               <h2
                 id="cta-title"
@@ -647,7 +842,7 @@ export function Landing() {
             </div>
             <Link
               to="/app"
-              className="inline-flex min-h-12 shrink-0 items-center rounded-control bg-surface px-6 font-semibold text-ink hover:bg-sunken"
+              className="inline-flex min-h-12 shrink-0 items-center rounded-full bg-surface px-7 font-semibold text-ink hover:bg-sunken"
             >
               {t('landing.open')}
             </Link>
@@ -655,11 +850,20 @@ export function Landing() {
         </section>
       </main>
 
-      <footer>
+      <footer className="overflow-hidden border-t border-line">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-2 px-5 py-8 text-sm text-muted sm:px-8">
-          <span className="font-display text-lg text-ink">Zealed</span>
+          <span className="flex items-center gap-2 font-display text-lg font-bold text-ink">
+            <Mark width={22} height={22} />
+            Zealed
+          </span>
           <span>{t('landing.footer')}</span>
         </div>
+        <p
+          aria-hidden="true"
+          className="pointer-events-none -mb-[0.18em] select-none text-center font-display text-[clamp(6rem,24vw,22rem)] font-bold leading-none tracking-[-0.06em] text-transparent [-webkit-text-stroke:1.5px_var(--line-strong)] opacity-40"
+        >
+          Zealed
+        </p>
       </footer>
     </div>
   )

@@ -7,9 +7,11 @@ import { DEFAULT_AUTO_LOCK_MINUTES, useSettings } from '../app/settingsStore.ts'
 import { ToastViewport } from '../components/Toasts.tsx'
 import { useToasts } from '../components/toastStore.ts'
 import { useContacts } from '../features/contacts/contacts.ts'
+import { useLegacy } from '../features/legacy/stores.ts'
 import { VaultSettings } from '../features/settings/VaultSettings.tsx'
 import { createMemoryBackend } from './backend.ts'
 import { useAutoLock } from './autoLock.ts'
+import { trackWork } from './inflight.ts'
 import { LockScreen } from './LockScreen.tsx'
 import { NotSavedNotice } from './NotSavedNotice.tsx'
 import { resetSensitiveData } from './persistence.ts'
@@ -22,6 +24,7 @@ import {
   createVault,
   initVault,
   lockVault,
+  unlockVault,
   useVaultStatus,
 } from './vaultState.ts'
 
@@ -290,6 +293,43 @@ describe('auto-lock', () => {
     } finally {
       useWalletRuntime.setState({ wallet: null })
     }
+  })
+
+  it('waits for a send in flight, so its record is saved and is there after unlocking', async () => {
+    await unlockedAndWatching(1)
+    let finish!: () => void
+    const sending = trackWork(
+      () =>
+        new Promise<void>((resolve) => {
+          finish = resolve
+        }),
+    ).then(() => {
+      // What a finished send does: adds its record to the list.
+      useLegacy.getState().addSent({
+        id: 'a'.repeat(64),
+        bundleIdHex: 'a'.repeat(64),
+        recipient: A,
+        unlockMs: 2_000_000_000_000,
+        createdAtMs: 1_000_000_000_000,
+        amountZat: null,
+        status: 'sent',
+      })
+    })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5 * 60_000)
+    })
+    // Well past the limit, but the send has not finished: still unlocked.
+    expect(useVaultStatus.getState().status).toBe('unlocked')
+    finish()
+    await sending
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(6_000)
+    })
+    await untilStatus('locked')
+    expect(useLegacy.getState().sent).toEqual([])
+    vi.useRealTimers()
+    await unlockVault(PASS)
+    expect(useLegacy.getState().sent.map((item) => item.id)).toEqual(['a'.repeat(64)])
   })
 
   it('locks straight away when the page comes back after being away longer than the limit', async () => {
