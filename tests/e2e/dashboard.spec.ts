@@ -42,8 +42,8 @@ test.describe('Dashboard', () => {
     page,
     baseURL,
   }) => {
-    await page.goto('/app')
-    await expect(page.getByRole('heading', { level: 1, name: 'Zealed' })).toBeVisible()
+    await page.goto('/settings')
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
     const own = new URL(baseURL ?? '').origin
 
     const seen = watch(page)

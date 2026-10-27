@@ -40,7 +40,7 @@ function Stat({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-4 border-t border-line py-2 first:border-t-0">
       <dt className="text-sm text-muted">{label}</dt>
-      <dd className="text-right font-medium tabular-nums">{value}</dd>
+      <dd className="text-right font-medium">{value}</dd>
     </div>
   )
 }
@@ -54,7 +54,8 @@ export function DashboardView({ data }: { data: DashboardData }) {
 
   return (
     <div className="space-y-6">
-      <p role="note" className="rounded-control border border-line bg-sunken px-4 py-3 text-sm">
+      <p role="note" className="flex items-center gap-2 text-sm text-muted">
+        <span aria-hidden="true" className="inline-block size-2 rounded-full bg-good" />
         Your dashboard is computed on this device. We can’t see it.
       </p>
 
@@ -69,9 +70,7 @@ export function DashboardView({ data }: { data: DashboardData }) {
           {balance === 'error' && <p role="alert">The balance could not be read.</p>}
           {wallet !== null && (
             <>
-              <p className="font-display text-3xl font-semibold tabular-nums">
-                {zec(wallet.spendableZat)}
-              </p>
+              <p className="font-display text-3xl font-semibold">{zec(wallet.spendableZat)}</p>
               <dl>
                 <Stat label="Spendable now" value={zec(wallet.spendableZat)} />
                 <Stat label="Pending" value={zec(wallet.pendingZat)} />
@@ -111,8 +110,9 @@ export function DashboardView({ data }: { data: DashboardData }) {
                   </p>
                   {line.totalZat !== null && line.strength !== null && (
                     <p className="text-muted">
-                      {zec(line.totalZat)} · privacy{' '}
-                      {STRENGTH_TEXT[line.strength].label.toLowerCase()}
+                      {line.strength === 'none'
+                        ? STRENGTH_TEXT.none.label
+                        : `${zec(line.totalZat)} in the pot, ${STRENGTH_TEXT[line.strength].label.toLowerCase()} privacy`}
                     </p>
                   )}
                 </li>

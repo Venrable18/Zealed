@@ -49,14 +49,28 @@ export function SharePot({ pot }: { pot: Pot }) {
         </Button>
       </section>
 
-      <section className="space-y-3 rounded-card border border-warn bg-warn-soft p-4">
-        <h2 className="text-xl">Guests with another Zcash wallet</h2>
-        <p>
-          <strong>Weaker privacy.</strong> A guest who pays this way sends one payment that is not
-          split, so you could tell it apart from other gifts. Prefer the pot link above.
-        </p>
-        <QrDisplay value={zip321} label={`Payment request QR code for the ${pot.name} pot`} />
-      </section>
+      {/* The weaker way in stays out of the way: open only when a guest asks for it. */}
+      <details className="group rounded-card border border-line bg-surface">
+        <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-3 px-4 py-3">
+          <span>
+            <span className="block font-semibold">Guests with another Zcash wallet</span>
+            <span className="block text-sm text-muted">Weaker privacy. Prefer the pot link.</span>
+          </span>
+          <span
+            aria-hidden="true"
+            className="text-muted transition-transform group-open:rotate-180"
+          >
+            ⌄
+          </span>
+        </summary>
+        <div className="space-y-3 border-t border-line p-4">
+          <p className="rounded-control bg-warn-soft px-3 py-2 text-sm">
+            <strong>Weaker privacy.</strong> A guest who pays this way sends one payment that is not
+            split, so you could tell it apart from other gifts. Prefer the pot link above.
+          </p>
+          <QrDisplay value={zip321} label={`Payment request QR code for the ${pot.name} pot`} />
+        </div>
+      </details>
     </div>
   )
 }

@@ -8,7 +8,7 @@ interface EmptyStateProps {
 
 export function EmptyState({ title, children, action }: EmptyStateProps) {
   return (
-    <div className="rounded-card border border-dashed border-line-strong px-6 py-10 text-center">
+    <div className="rounded-card bg-sunken px-6 py-10 text-center">
       <h2 className="text-lg">{title}</h2>
       {children !== undefined && (
         <div className="mx-auto mt-2 max-w-prose text-muted">{children}</div>

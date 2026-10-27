@@ -1,6 +1,7 @@
 import { useEffect, useState, type ComponentType, type ReactNode, type SVGProps } from 'react'
 import { Link } from 'react-router'
 import { BubbleIcon, LetterIcon, PotIcon } from '../../components/Icons.tsx'
+import { Mark } from '../../components/Mark.tsx'
 import { useLanguage, useT, type MessageKey } from '../../i18n/index.ts'
 
 /** Characters a sealed letter turns into: what an encrypted letter looks like to anyone else. */
@@ -60,7 +61,7 @@ function SealingLetter() {
     >
       <div
         aria-hidden="true"
-        className="rounded-card border border-line bg-surface px-7 pb-16 pt-8 shadow-[0_1px_0_var(--line),0_24px_48px_-28px_rgba(28,25,23,0.45)] sm:px-9"
+        className="airmail-frame rounded-card px-7 pb-16 pt-8 shadow-[0_24px_48px_-28px_rgba(20,28,51,0.45)] sm:px-9"
       >
         <p className="font-display text-xl">{t('landing.letterTo')}</p>
         <p
@@ -71,9 +72,9 @@ function SealingLetter() {
       </div>
       <div
         aria-hidden="true"
-        className={`absolute -bottom-7 right-8 flex size-24 items-center justify-center rounded-full bg-seal text-seal-ink shadow-[inset_0_-6px_0_rgba(0,0,0,0.18),0_10px_20px_-8px_rgba(140,47,57,0.55)] transition-[opacity,transform] duration-500 ease-out ${done ? 'scale-100 opacity-100' : 'scale-125 opacity-0'}`}
+        className={`absolute -bottom-7 right-8 flex size-24 items-center justify-center rounded-full bg-stamp text-surface shadow-[inset_0_-6px_0_rgba(0,0,0,0.18),0_10px_20px_-8px_rgba(196,38,56,0.55)] transition-[opacity,transform] duration-500 ease-out ${done ? 'scale-100 opacity-100' : 'scale-125 opacity-0'}`}
       >
-        <span className="font-display text-4xl font-semibold">Z</span>
+        <span className="font-display text-4xl font-bold">Z</span>
       </div>
       <figcaption
         aria-hidden="true"
@@ -209,7 +210,7 @@ function Screen({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div
       aria-hidden="true"
-      className="overflow-hidden rounded-card border border-line bg-surface shadow-[0_30px_60px_-36px_rgba(28,25,23,0.5)]"
+      className="overflow-hidden rounded-card border border-line bg-surface shadow-[0_30px_60px_-36px_rgba(20,28,51,0.5)]"
     >
       <div className="flex items-center gap-3 border-b border-line bg-sunken px-5 py-3">
         <span className="font-display text-base font-semibold">Zealed</span>
@@ -263,12 +264,12 @@ function PotScreen() {
       <p className="font-display text-lg">Ada and Tunde</p>
       <div className="rounded-control bg-sunken p-4">
         <p className="text-sm text-muted">{t('landing.potTotal')}</p>
-        <p className="font-display text-4xl tabular-nums">0.85 TAZ</p>
+        <p className="font-display text-4xl">0.85 TAZ</p>
         <div className="mt-3 flex flex-wrap gap-1.5">
           {pieces.map((piece, index) => (
             <span
               key={index}
-              className="rounded-full border border-line bg-surface px-2.5 py-0.5 text-sm tabular-nums"
+              className="rounded-full border border-line bg-surface px-2.5 py-0.5 text-sm"
             >
               {piece}
             </span>
@@ -393,9 +394,14 @@ export function Landing() {
       >
         {t('shell.skip')}
       </a>
+      <div className="airmail-edge h-1.5" aria-hidden="true" />
       <header className="sticky top-0 z-40 border-b border-line bg-page/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center gap-8 px-5 py-4 sm:px-8">
-          <Link to="/" className="font-display text-2xl font-semibold tracking-tight">
+          <Link
+            to="/"
+            className="flex items-center gap-2.5 font-display text-2xl font-bold tracking-[-0.03em]"
+          >
+            <Mark width={30} height={30} />
             Zealed
           </Link>
           <nav aria-label={t('shell.nav')} className="hidden gap-7 text-[0.9375rem] md:flex">
@@ -432,7 +438,7 @@ export function Landing() {
               <span className="size-2 rounded-full bg-good" aria-hidden="true" />
               {t('landing.live')}
             </a>
-            <h1 className="mt-7 max-w-[15ch] font-display text-[clamp(2.75rem,6.4vw,5.25rem)] font-semibold leading-[1] tracking-[-0.03em]">
+            <h1 className="mt-7 max-w-[15ch] font-display text-[clamp(2.75rem,6.4vw,5.25rem)] font-bold leading-[0.98] tracking-[-0.045em]">
               {t('landing.title')}
             </h1>
             <p className="mt-7 max-w-[36rem] text-lg leading-relaxed text-muted sm:text-xl">
@@ -454,7 +460,7 @@ export function Landing() {
             <SealingLetter />
             <div
               aria-hidden="true"
-              className="absolute -right-4 -top-10 hidden w-64 rounded-card border border-line bg-surface p-4 shadow-[0_20px_40px_-24px_rgba(28,25,23,0.45)] xl:block"
+              className="absolute -right-4 -top-10 hidden w-64 rounded-card border border-line bg-surface p-4 shadow-[0_20px_40px_-24px_rgba(20,28,51,0.45)] xl:block"
             >
               <p className="text-sm text-muted">{t('landing.unsignedFrom')}</p>
               <p className="mt-1 text-sm font-medium text-good">{t('landing.unsignedPaid')}</p>

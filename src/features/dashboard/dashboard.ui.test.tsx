@@ -80,7 +80,7 @@ describe('Dashboard', () => {
     await waitFor(() => {
       expect(pots.textContent).toContain('0.6 ZEC')
     })
-    expect(pots.textContent).toContain('privacy weak')
+    expect(pots.textContent).toContain('weak privacy')
     expect(pots.textContent).toContain('Old pot')
     expect(pots.textContent).not.toContain('5.6')
 

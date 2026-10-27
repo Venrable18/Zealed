@@ -113,7 +113,7 @@ export function Contacts() {
   return (
     <div className="max-w-3xl space-y-10 py-10">
       <div>
-        <h1 className="text-3xl">{t('contacts.title')}</h1>
+        <h1 className="text-4xl">{t('contacts.title')}</h1>
         <p className="mt-3 max-w-prose text-muted">{t('contacts.intro')}</p>
       </div>
       <NotSavedNotice />

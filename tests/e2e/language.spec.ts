@@ -41,15 +41,12 @@ test.describe('browser language is not offered', () => {
 test.describe('browser language is Spanish', () => {
   test.use({ locale: 'es-ES' })
 
-  test('the navigation, home and contacts change language; feature names do not', async ({
-    page,
-  }) => {
+  test('the navigation and contacts change language; feature names do not', async ({ page }) => {
     await page.goto('/app')
     const nav = page.getByRole('navigation', { name: 'Principal' })
     await expect(nav.getByRole('link', { name: 'Ajustes' })).toBeVisible()
     await expect(nav.getByRole('link', { name: 'Legacy' })).toBeVisible()
     await expect(nav.getByRole('link', { name: 'Blind Pot' })).toBeVisible()
-    await expect(page.getByText('Solo red de pruebas.')).toBeVisible()
     await nav.getByRole('link', { name: 'Contactos' }).click()
     await expect(h1(page, 'Contactos')).toBeVisible()
     await page.getByLabel('Nombre', { exact: true }).fill('Ada')

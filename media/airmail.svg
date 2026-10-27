@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="10" viewBox="0 0 1200 10" role="img" aria-label="">
+  <defs>
+    <pattern id="airmail" width="36" height="10" patternUnits="userSpaceOnUse" patternTransform="skewX(-45)">
+      <rect width="12" height="10" fill="#c42638"/>
+      <rect x="18" width="12" height="10" fill="#1f3fae"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="10" fill="url(#airmail)"/>
+</svg>

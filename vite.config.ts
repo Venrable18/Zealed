@@ -73,6 +73,11 @@ export default defineConfig(({ command, isPreview }) => {
     preview: {
       headers: buildSecurityHeaders(),
     },
+    build: {
+      // The CSP allows fonts from the app's own origin only (`font-src 'self'`), so a font must
+      // never be inlined as a data: URL, however small.
+      assetsInlineLimit: (file: string) => (file.endsWith('.woff2') ? false : undefined),
+    },
     test: {
       include: ['src/**/*.test.{ts,tsx}'],
       // The seeded fuzz tests are heavier than a normal unit test and run alongside others.

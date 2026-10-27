@@ -34,7 +34,7 @@ export function Give() {
   return (
     <div className="max-w-3xl space-y-8 py-10">
       <div>
-        <h1 className="text-3xl">
+        <h1 className="text-4xl">
           {pot.cover} {pot.name}
         </h1>
         <p className="mt-2 text-muted">

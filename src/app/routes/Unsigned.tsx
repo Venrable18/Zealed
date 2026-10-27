@@ -17,9 +17,11 @@ export function Unsigned() {
   return (
     <div className="space-y-12 py-10">
       <div>
-        <div className="flex items-center gap-3 text-seal">
-          <BubbleIcon width={32} height={32} />
-          <h1 className="text-3xl text-ink">Unsigned</h1>
+        <div className="flex items-center gap-4">
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-control bg-seal text-seal-ink">
+            <BubbleIcon width={26} height={26} />
+          </span>
+          <h1 className="text-4xl text-ink">Unsigned</h1>
         </div>
         <p className="mt-3 max-w-prose text-muted">
           An anonymous contact line. People send you a message with a payment, and you never learn

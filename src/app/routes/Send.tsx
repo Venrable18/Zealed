@@ -35,9 +35,11 @@ export function Send() {
   return (
     <div className="max-w-3xl space-y-10 py-10">
       <div>
-        <div className="flex items-center gap-3 text-seal">
-          <BubbleIcon width={32} height={32} />
-          <h1 className="text-3xl text-ink">{card.name}</h1>
+        <div className="flex items-center gap-4">
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-control bg-seal text-seal-ink">
+            <BubbleIcon width={26} height={26} />
+          </span>
+          <h1 className="text-4xl text-ink">{card.name}</h1>
         </div>
         {card.bio !== '' && (
           <p className="mt-3 max-w-prose whitespace-pre-wrap break-words text-muted">{card.bio}</p>

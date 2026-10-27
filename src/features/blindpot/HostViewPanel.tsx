@@ -74,7 +74,7 @@ export function HostViewPanel({ pot, wallet, onClosed }: HostViewPanelProps) {
     <div className="space-y-8">
       <section className="space-y-2 rounded-card border border-line bg-surface p-5">
         <h2 className="text-lg text-muted">Total so far</h2>
-        <p className="font-display text-4xl font-semibold tabular-nums">
+        <p className="font-display text-4xl font-semibold">
           {formatZec(view.totalZat)} <span className="text-xl font-medium text-muted">ZEC</span>
         </p>
         {!pot.closed && (

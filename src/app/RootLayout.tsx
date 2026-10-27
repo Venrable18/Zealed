@@ -10,6 +10,7 @@ import {
   SlidersIcon,
   WalletIcon,
 } from '../components/Icons.tsx'
+import { Mark } from '../components/Mark.tsx'
 import { ToastViewport } from '../components/Toasts.tsx'
 import { ZCASH_NETWORK } from '../config/network.ts'
 import { useLanguage, useT, type MessageKey } from '../i18n/index.ts'
@@ -57,7 +58,7 @@ function NavList({ items }: { items: readonly NavItem[] }) {
             className={({ isActive }) =>
               `flex min-h-11 items-center gap-3 rounded-control px-3 text-[0.9375rem] ${
                 isActive
-                  ? 'bg-seal-soft font-semibold text-ink'
+                  ? 'bg-seal-soft font-semibold text-seal'
                   : 'text-muted hover:bg-sunken hover:text-ink'
               }`
             }
@@ -82,19 +83,23 @@ function WalletGlance() {
     <div className="space-y-3 border-t border-line pt-4">
       <Link
         to="/wallet"
-        className="block rounded-control border border-line bg-surface px-3 py-2.5 hover:border-line-strong"
+        className={`block rounded-control border px-3 py-2.5 ${
+          status === 'ready'
+            ? 'border-line bg-surface hover:border-line-strong'
+            : 'border-seal/40 bg-seal-soft text-seal hover:border-seal'
+        }`}
       >
         {status === 'ready' ? (
           <>
             <span className="block text-sm text-muted">
               {syncing ? t('shell.syncing') : t('wallet.spendable')}
             </span>
-            <span className="block text-lg font-semibold tabular-nums" data-testid="glance-balance">
+            <span className="block text-lg font-semibold" data-testid="glance-balance">
               {balance === undefined ? '…' : `${formatZec(balance.spendableZat)} TAZ`}
             </span>
           </>
         ) : (
-          <span className="block text-sm">
+          <span className="block text-sm font-semibold">
             {status === 'opening' ? t('shell.walletOpening') : t('shell.noWallet')}
           </span>
         )}
@@ -120,11 +125,17 @@ function Brand() {
   const demoMode = useSettings((state) => state.demoMode)
   return (
     <div className="flex items-center justify-between gap-3">
-      <Link to="/app" className="font-display text-2xl font-semibold tracking-tight">
+      <Link
+        to="/app"
+        className="flex items-center gap-2.5 font-display text-[1.375rem] font-bold tracking-[-0.03em]"
+      >
+        <Mark width={28} height={28} className="shrink-0" />
         Zealed
       </Link>
       <span className="flex gap-1.5 text-xs">
-        <span className="rounded-full border border-line-strong px-2 py-0.5">{ZCASH_NETWORK}</span>
+        <span className="rounded-full border border-line-strong px-2 py-0.5 text-muted">
+          {ZCASH_NETWORK}
+        </span>
         {demoMode && (
           <span className="rounded-full bg-warn-soft px-2 py-0.5 font-medium text-warn">
             {t('shell.demo')}
@@ -167,6 +178,7 @@ export function RootLayout() {
     return (
       <div className="min-h-dvh bg-page text-ink">
         {skip}
+        <div className="airmail-edge h-1.5" aria-hidden="true" />
         <header className="px-5 pt-5 sm:px-8">
           <div className="max-w-md">
             <Brand />
@@ -181,10 +193,11 @@ export function RootLayout() {
   }
 
   return (
-    <div className="min-h-dvh bg-page text-ink lg:grid lg:grid-cols-[16.5rem_minmax(0,1fr)]">
+    <div className="min-h-dvh bg-page text-ink lg:grid lg:grid-cols-[16.5rem_minmax(0,1fr)] lg:grid-rows-[auto_1fr]">
       {skip}
+      <div className="airmail-edge h-1.5 lg:col-span-2" aria-hidden="true" />
       <aside className="border-line bg-surface lg:border-r">
-        <div className="lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col">
+        <div className="lg:sticky lg:top-0 lg:flex lg:h-[calc(100dvh-0.375rem)] lg:flex-col">
           <div className="flex items-center gap-3 border-b border-line px-5 py-4 lg:border-b-0 lg:pt-6">
             <div className="flex-1">
               <Brand />

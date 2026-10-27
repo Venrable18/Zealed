@@ -46,9 +46,11 @@ export function Silent() {
             Legacy
           </Link>
         </p>
-        <div className="mt-2 flex items-center gap-3 text-seal">
-          <LetterIcon width={32} height={32} />
-          <h1 className="text-3xl text-ink">If I go silent</h1>
+        <div className="mt-2 flex items-center gap-4">
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-control bg-seal text-seal-ink">
+            <LetterIcon width={26} height={26} />
+          </span>
+          <h1 className="text-4xl text-ink">If I go silent</h1>
         </div>
         <p className="mt-3 max-w-prose text-muted">
           A letter for your heir that opens only if you stop checking in. Trusted guardians each

@@ -1,7 +1,7 @@
 import { useId, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from 'react'
 
 const CONTROL =
-  'block w-full rounded-control border border-line-strong bg-surface px-3 py-2 text-base text-ink placeholder:text-muted'
+  'block w-full rounded-control border border-line-strong bg-surface px-3 py-2 text-base text-ink placeholder:text-line-strong focus:border-seal'
 
 interface FieldFrameProps {
   label: string

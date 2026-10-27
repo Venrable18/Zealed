@@ -158,7 +158,7 @@ export function InboxPanel({ card, wallet }: { card: Card; wallet: UnsignedWalle
         <h3 id="earnings" className="text-lg text-muted">
           Earned through this card
         </h3>
-        <p className="font-display text-3xl font-semibold tabular-nums">
+        <p className="font-display text-3xl font-semibold">
           {formatZec(earnings.totalZat)} <span className="text-lg font-medium text-muted">ZEC</span>
         </p>
         <p className="text-sm text-muted">

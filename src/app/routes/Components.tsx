@@ -35,7 +35,7 @@ export function Components() {
   return (
     <div className="space-y-10 py-10">
       <div>
-        <h1 className="text-3xl">Component gallery</h1>
+        <h1 className="text-4xl">Component gallery</h1>
         <p className="mt-2 text-muted">The shared building blocks, with sample data.</p>
       </div>
 

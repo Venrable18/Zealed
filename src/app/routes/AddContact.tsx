@@ -45,7 +45,7 @@ export function AddContact() {
 
   return (
     <div className="max-w-3xl space-y-6 py-10">
-      <h1 className="text-3xl">{t('add.title')}</h1>
+      <h1 className="text-4xl">{t('add.title')}</h1>
       {existing !== undefined ? (
         <p role="status" className="rounded-control border border-line px-4 py-3">
           {t('add.already', { name: existing.name })}{' '}

@@ -42,7 +42,7 @@ export function CountdownTimer({
 
   return (
     <p>
-      <span aria-hidden="true" className="font-display text-3xl font-semibold tabular-nums">
+      <span aria-hidden="true" className="font-display text-3xl font-semibold">
         {formatCountdown(left)}
       </span>
       <span className="sr-only">{describeCountdown(left)} left</span>

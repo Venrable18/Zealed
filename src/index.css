@@ -1,10 +1,14 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/inter/wght.css';
-@import '@fontsource-variable/fraunces/wght.css';
+@import '@fontsource-variable/schibsted-grotesk/wght.css';
+@import '@fontsource-variable/jetbrains-mono/wght.css';
 
 /*
  * Design tokens. Components use the semantic names (bg-page, text-ink, bg-seal, ...) and never
  * raw colors, so both themes come from this one place.
+ *
+ * The look is airmail: cool letter paper, fountain-pen navy ink, airmail blue for what you do
+ * (`seal`) and airmail red for what is sealed and committed (`stamp`). The red-and-blue edge of an
+ * airmail envelope (`.airmail-edge`) is the one decorative element, used sparingly.
  *
  * Theme: follows the system unless `data-theme="light" | "dark"` is set on <html> (Settings).
  * Contrast targets WCAG AA: ink and muted text >= 4.5:1 on page and surface, seal-ink on seal
@@ -13,68 +17,74 @@
 :root {
   color-scheme: light dark;
 
-  --page: #faf8f5;
+  --page: #eef1f5;
   --surface: #ffffff;
-  --sunken: #f1ede7;
-  --line: #d6d0c7;
-  --line-strong: #8a8277;
-  --ink: #1c1917;
-  --muted: #57534e;
-  --seal: #8c2f39;
-  --seal-hover: #752630;
+  --sunken: #e4e9f0;
+  --line: #cfd6e0;
+  --line-strong: #6f7a8c;
+  --ink: #141c33;
+  --muted: #4a5468;
+  --seal: #1f3fae;
+  --seal-hover: #17318a;
   --seal-ink: #ffffff;
-  --seal-soft: #f7e6e8;
-  --good: #1f6b3a;
-  --good-soft: #e3f3e8;
+  --seal-soft: #e3e9fb;
+  --stamp: #c42638;
+  --stamp-soft: #fbe4e7;
+  --good: #17693d;
+  --good-soft: #e1f3e8;
   --warn: #7a4a00;
-  --warn-soft: #fdf0cf;
-  --bad: #a3262a;
-  --bad-soft: #fbe4e4;
-  --focus: #1d4ed8;
+  --warn-soft: #fcefd0;
+  --bad: #b3261e;
+  --bad-soft: #fbe4e2;
+  --focus: #0a7cff;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --page: #12100f;
-    --surface: #1c1917;
-    --sunken: #0c0a09;
-    --line: #3a3532;
-    --line-strong: #8a8277;
-    --ink: #f5f2ee;
-    --muted: #b0a89e;
-    --seal: #e58c96;
-    --seal-hover: #f0a3ab;
-    --seal-ink: #1c0a0d;
-    --seal-soft: #3a1a1f;
+    --page: #0d1323;
+    --surface: #151d33;
+    --sunken: #0a0f1c;
+    --line: #2a3553;
+    --line-strong: #8190ad;
+    --ink: #eef1f7;
+    --muted: #a8b2c7;
+    --seal: #93aaff;
+    --seal-hover: #aec0ff;
+    --seal-ink: #0b1430;
+    --seal-soft: #1c2752;
+    --stamp: #ff7d89;
+    --stamp-soft: #3a1520;
     --good: #6fcf90;
-    --good-soft: #14301f;
+    --good-soft: #12301f;
     --warn: #f2c14e;
     --warn-soft: #33260a;
     --bad: #ff8b8e;
     --bad-soft: #3a1618;
-    --focus: #8fb1ff;
+    --focus: #7cc4ff;
   }
 }
 
 :root[data-theme='dark'] {
-  --page: #12100f;
-  --surface: #1c1917;
-  --sunken: #0c0a09;
-  --line: #3a3532;
-  --line-strong: #8a8277;
-  --ink: #f5f2ee;
-  --muted: #b0a89e;
-  --seal: #e58c96;
-  --seal-hover: #f0a3ab;
-  --seal-ink: #1c0a0d;
-  --seal-soft: #3a1a1f;
+  --page: #0d1323;
+  --surface: #151d33;
+  --sunken: #0a0f1c;
+  --line: #2a3553;
+  --line-strong: #8190ad;
+  --ink: #eef1f7;
+  --muted: #a8b2c7;
+  --seal: #93aaff;
+  --seal-hover: #aec0ff;
+  --seal-ink: #0b1430;
+  --seal-soft: #1c2752;
+  --stamp: #ff7d89;
+  --stamp-soft: #3a1520;
   --good: #6fcf90;
-  --good-soft: #14301f;
+  --good-soft: #12301f;
   --warn: #f2c14e;
   --warn-soft: #33260a;
   --bad: #ff8b8e;
   --bad-soft: #3a1618;
-  --focus: #8fb1ff;
+  --focus: #7cc4ff;
 }
 
 :root[data-theme='light'] {
@@ -102,10 +112,14 @@
   --color-warn-soft: var(--warn-soft);
   --color-bad: var(--bad);
   --color-bad-soft: var(--bad-soft);
+  --color-stamp: var(--stamp);
+  --color-stamp-soft: var(--stamp-soft);
   --color-focus: var(--focus);
 
-  --font-sans: 'Inter Variable', system-ui, sans-serif;
-  --font-display: 'Fraunces Variable', Georgia, serif;
+  --font-sans: 'Schibsted Grotesk Variable', system-ui, sans-serif;
+  /* One family throughout: headings are the same face, heavier and tighter. */
+  --font-display: 'Schibsted Grotesk Variable', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
 
   --radius-card: 1rem;
   --radius-control: 0.625rem;
@@ -126,8 +140,12 @@
   h2,
   h3 {
     font-family: var(--font-display);
-    font-weight: 600;
-    letter-spacing: -0.01em;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+  h1 {
+    letter-spacing: -0.03em;
   }
   :focus-visible {
     outline: 3px solid var(--focus);
@@ -140,5 +158,34 @@
       animation-duration: 0.01ms !important;
       transition-duration: 0.01ms !important;
     }
+  }
+}
+
+/*
+ * The airmail edge: red and blue bars on letter paper, as on the border of an airmail envelope.
+ * `.airmail-edge` is a thin band; `.airmail-frame` borders a box with it.
+ */
+@layer components {
+  .airmail-edge {
+    background: repeating-linear-gradient(
+      -45deg,
+      var(--stamp) 0 12px,
+      transparent 12px 18px,
+      var(--seal) 18px 30px,
+      transparent 30px 36px
+    );
+  }
+  .airmail-frame {
+    border: 6px solid transparent;
+    background:
+      linear-gradient(var(--surface), var(--surface)) padding-box,
+      repeating-linear-gradient(
+          -45deg,
+          var(--stamp) 0 12px,
+          var(--surface) 12px 18px,
+          var(--seal) 18px 30px,
+          var(--surface) 30px 36px
+        )
+        border-box;
   }
 }

@@ -1,6 +1,10 @@
+![](media/airmail.svg)
+
 # Zealed
 
 **Private money and messages for the moments that matter.**
+
+![Zealed's front page. A letter addressed to Ada turns into ciphertext and is closed with a red wax seal, inside an airmail envelope.](media/screenshots/landing.png)
 
 Most Zcash apps ask why you would send shielded money. Zealed answers with reasons people already
 have: a letter and an inheritance for someone you love, a gift pot where nobody sees who gave, and
@@ -15,7 +19,7 @@ messages, all from the browser, with no application server holding anyone's data
 
 > **Network:** Zcash **testnet** (NU7) only. Zealed does not handle real funds.
 
----
+![](media/airmail.svg)
 
 ## Table of contents
 
@@ -32,7 +36,7 @@ messages, all from the browser, with no application server holding anyone's data
 11. [Acknowledgements](#acknowledgements)
 12. [License](#license)
 
----
+![](media/airmail.svg)
 
 ## Why Zealed exists
 
@@ -48,7 +52,7 @@ When someone dies without a clear, trusted way to pass things on, families fight
 disputed, assets are held by whoever has the password, and heirs can be shut out entirely.
 Digital assets make it worse: if no one else can reach the keys, the money is gone.
 
-**Zealed's answer:** _Legacy_ lets a person seal a letter and money for a named heir. The heir
+**Zealed's answer:** *Legacy* lets a person seal a letter and money for a named heir. The heir
 receives it directly, and nobody in the middle can read, redirect or quietly edit it.
 
 ### 2. Wills fraud and tampering
@@ -64,13 +68,15 @@ instead of one custodian.
 > Zealed is **not** a legal will and does not replace one. It is a tamper-resistant way to deliver
 > wishes and funds. Local law decides what is legally binding.
 
+
+
 ### 3. Donor exposure
 
 Supporting a cause, a protest, a medical campaign or a family event can put the giver at risk:
 retaliation, social pressure, or simply being targeted for more requests. Public fundraising
 pages and bank transfers expose every donor and every amount.
 
-**Zealed's answer:** _Blind Pot_. Guests contribute through a link or QR code, and the host sees
+**Zealed's answer:** *Blind Pot*. Guests contribute through a link or QR code, and the host sees
 only the running total, never who gave or how much. Contributions are split into standard-size
 pieces and spread out in time so amounts and timing are harder to match.
 
@@ -98,24 +104,83 @@ a birthday.
 Journalists, investigators and creators need a way for people to reach them without being
 identified, and without a platform storing the messages.
 
-**Zealed's answer:** _Unsigned_ is an anonymous contact line. The sender stays anonymous, can
+**Zealed's answer:** *Unsigned* is an anonymous contact line. The sender stays anonymous, can
 attach money to prove they are serious, and spam is priced out. No server holds the messages.
 
----
+![](media/airmail.svg)
 
 ## What Zealed does
 
-| Feature       | What it does                                                                                                                                                                                                                                                           | Privacy property                                                                                          |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| **Legacy**    | Seal a letter and optionally ZEC for someone. **Open on a date**, or **Open if I go silent** (released by guardians when the owner stops checking in).                                                                                                                 | Shielded memos, time-lock encryption, threshold key release                                               |
-| **Blind Pot** | An event gift pot. Guests give through a link or QR code, optionally with a wish. The host sees the total and the wishes, never who gave or how much. **Co-hosts** (optional): the pot's key is made by the co-hosts together, and k of n must approve any withdrawal. | Sender hidden from the host, standard-size pieces, spread-out timing, no single person can take the money |
-| **Unsigned**  | An anonymous contact line. Publish a card, receive paid anonymous messages, reply from what arrived.                                                                                                                                                                   | No server holds messages, spam is priced out                                                              |
-| **Dashboard** | Your own numbers, calculated on the device.                                                                                                                                                                                                                            | Nothing leaves the browser                                                                                |
-| **Wallet**    | A real Zcash wallet running in the browser as WebAssembly. Create or restore, sync, receive, send.                                                                                                                                                                     | Keys never leave the device                                                                               |
-| **Contacts**  | Save names for addresses. Share a link or use the native share sheet so someone can add you in one tap.                                                                                                                                                                | Contact data is in the URL fragment, which servers never see                                              |
-| **Languages** | English, Spanish and French.                                                                                                                                                                                                                                           |                                                                                                           |
+Three things, each one a moment where a shielded payment is the point rather than a side effect.
 
----
+### Legacy: a letter that opens on its day
+
+![The Legacy page. A mother's letter to her son Chidi, to open on his eighteenth birthday, with 0.05 ZEC for his first year at university.](media/screenshots/legacy.png)
+
+For a parent, a relative abroad, anyone whose words and money should arrive at the right moment and
+not before.
+
+- **Open on a date.** The letter is encrypted to a future round of the drand network. Nobody can
+open it early: not the recipient, not a server, not you.
+- **Open if I go silent.** Guardians each hold a share of the key and release it only if you stop
+checking in.
+- **What stays private:** the letter, until its day. The gift, from everyone but the recipient.
+
+
+
+### Blind Pot: everyone gives, nobody is exposed
+
+![A Blind Pot for Amara's naming ceremony. The host sees a total that refreshes hourly, a privacy strength and the wishes, with a link and QR code to share with guests.](media/screenshots/blind-pot.png)
+
+For weddings, naming ceremonies, funerals and community causes, where who gave and how much is
+nobody's business.
+
+- Guests give through a link or QR code, with a wish if they like. Each gift is split into
+standard-size pieces sent at different times, and the host's total refreshes only in batches.
+- **Co-hosts** (optional): the pot's key is made by the co-hosts together, and any withdrawal needs
+k of n to sign (FROST threshold signatures). No one, the host included, can take the money alone.
+- **What stays private:** who gave, and how much. The host sees the total and the wishes.
+
+
+
+### Unsigned: a contact line that never learns who called
+
+![An Unsigned contact card for an investigations desk, with a minimum payment of 0.01 ZEC per message, a QR code and a link to share.](media/screenshots/unsigned.png)
+
+For journalists, investigators and anyone who needs to be reachable without making their sources
+reachable too.
+
+- Publish a card as a link. People send a message with a small payment, which prices out spam, and
+you reply from what arrived.
+- The card travels inside the link itself, so no server ever holds it or the messages.
+- **What stays private:** the sender, always. Even you never learn who wrote.
+
+
+
+### Around them
+
+
+| Part          | What it does                                                                      | What stays private                     |
+| ------------- | --------------------------------------------------------------------------------- | -------------------------------------- |
+| **Wallet**    | A real Zcash wallet in the browser, as WebAssembly: create or restore, sync, send | Keys never leave the device            |
+| **Dashboard** | Your own numbers, worked out on the device                                        | Nothing leaves the browser             |
+| **Contacts**  | Names for addresses, shared as a link or through the phone's share sheet          | Contact data rides in the URL fragment |
+| **Languages** | English, Spanish and French                                                       |                                        |
+
+
+
+
+### On a phone, and after dark
+
+
+|                                                                     |                                                                     |                                                                                                                                     |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| ![The Blind Pot page on a phone.](media/screenshots/mobile-pot.png) | ![The Legacy page on a phone.](media/screenshots/mobile-legacy.png) | ![The dashboard in dark mode, with the wallet balance, a pot, letters and the Unsigned card.](media/screenshots/dashboard-dark.png) |
+
+
+The design follows airmail: letter paper, fountain-pen navy, and the red-and-blue edge of an
+envelope sent a long way. It installs as a PWA, its automated accessibility checks (axe, WCAG AA)
+pass in both themes, and phone layouts are tested at 360 pixels wide.
 
 ## How it works
 
@@ -136,9 +201,10 @@ The only servers involved are the public Zcash light-wallet endpoint and the pub
 network. All allowed network destinations are listed in one place (`src/config/network.ts`) and
 enforced by a Content Security Policy.
 
----
+![](media/airmail.svg)
 
 ## Tech stack
+
 
 | Area           | Choice                                                                       |
 | -------------- | ---------------------------------------------------------------------------- |
@@ -152,16 +218,21 @@ enforced by a Content Security Policy.
 | Tests          | Vitest (unit and UI), Playwright (end to end)                                |
 | Tooling        | ESLint (strict), Prettier, GitHub Actions                                    |
 
----
+
+![](media/airmail.svg)
 
 ## Getting started
+
+
 
 ### Prerequisites
 
 - Node.js 22.12 or newer (`.nvmrc` pins 24)
 - npm
 - To rebuild the wallet from source only: `rustup`, `wasm-pack`, and a clang that can target
-  WebAssembly. See [wallet/README.md](wallet/README.md).
+WebAssembly. See [wallet/README.md](wallet/README.md).
+
+
 
 ### Install and run
 
@@ -184,6 +255,7 @@ batching delays, unlock dates and check-in periods so every flow can be tried in
 
 ### Scripts
 
+
 | Command                | What it does                        |
 | ---------------------- | ----------------------------------- |
 | `npm run dev`          | Start the development server        |
@@ -196,12 +268,15 @@ batching delays, unlock dates and check-in periods so every flow can be tried in
 | `npm run format`       | Format with Prettier                |
 | `npm run wallet:build` | Rebuild the WebAssembly wallet      |
 
+
+
+
 ### Getting testnet funds
 
 Create a wallet on the **Wallet** page, copy your address from **Receive**, and request test coins
 (TAZ) from a Zcash testnet faucet. Testnet coins have no value.
 
----
+![](media/airmail.svg)
 
 ## Project structure
 
@@ -217,45 +292,49 @@ src/
   config/       Network allow-list, timers, security headers
 wallet/         Rust sources and patches for the WebAssembly wallet
 tests/e2e/      Playwright tests
+media/          README screenshots and artwork
 ```
 
----
+![](media/airmail.svg)
 
 ## Privacy and security
 
 - **No backend, no analytics, no third-party scripts, fonts or CDNs.** All assets are served by the
-  app itself.
+app itself.
 - **Strict Content Security Policy.** The only outbound destinations are the Zcash light-wallet
-  endpoint and drand.
+endpoint and drand.
 - **Encrypted vault.** Wallet data, contacts and history are stored encrypted in the browser with
-  a key derived from a passphrase (PBKDF2, AES-256-GCM). The key is held only in memory and the
-  vault locks after a period of inactivity.
+a key derived from a passphrase (PBKDF2, AES-256-GCM). The key is held only in memory and the
+vault locks after a period of inactivity.
 - **Nothing sensitive in logs.** Seed phrases, keys, memos, amounts and addresses are never logged.
 - **Shareable data lives in the URL fragment** (`#...`), which browsers never send to a server.
 - **Well-known libraries only.** No home-made cryptographic primitives.
 
+
+
 ### Limits you should know about
 
 - A forgotten passphrase **cannot be recovered**. The only way forward is to wipe the device and
-  restore the wallet from the 24-word recovery phrase. Funds come back; local data such as
-  contacts and sent history does not.
+restore the wallet from the 24-word recovery phrase. Funds come back; local data such as
+contacts and sent history does not.
 - Clearing browser data deletes the local wallet. Back up the recovery phrase.
 - In "if I go silent" mode, guardians act when they open the app; browsers cannot run Zealed in
-  the background. If an heir and enough guardians collude, they can open a letter early.
+the background. If an heir and enough guardians collude, they can open a letter early.
 - Co-hosts need Zealed wallets with a little test money, and must open the app for their part of a
-  withdrawal (browsers cannot run Zealed in the background). Lose too many co-hosts and the pot's
-  money cannot move. A pot with co-hosts shows its total to every co-host.
+withdrawal (browsers cannot run Zealed in the background). Lose too many co-hosts and the pot's
+money cannot move. A pot with co-hosts shows its total to every co-host.
 - A Blind Pot paid from an outside wallet in a single payment has weaker privacy than one given
-  through Zealed.
+through Zealed.
 - The light-wallet server cannot read amounts, addresses or memos, but it does see your IP
-  address, the block range you sync (which hints at when the wallet was created), which of your
-  transactions you fetch to read their memos, and which transactions you send. Using Tor or a
-  light-wallet server you run yourself reduces this; the endpoint is set in `src/config/network.ts`.
+address, the block range you sync (which hints at when the wallet was created), which of your
+transactions you fetch to read their memos, and which transactions you send. Using Tor or a
+light-wallet server you run yourself reduces this; the endpoint is set in `src/config/network.ts`.
 - Zealed cannot protect against a compromised browser, device or extension.
 
----
+![](media/airmail.svg)
 
 ## Project status
+
 
 | Area                                              | Status                                                                                                                                 |
 | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
@@ -268,9 +347,10 @@ tests/e2e/      Playwright tests
 | Dashboard, Contacts, Receive, Settings, languages | Built                                                                                                                                  |
 | Mainnet                                           | Not supported                                                                                                                          |
 
+
 Timelock keys come from the live drand network. Timers are shortened only in demo mode.
 
----
+![](media/airmail.svg)
 
 ## Roadmap
 
@@ -278,13 +358,12 @@ Ideas that follow from the problems above, in rough order:
 
 1. **Encrypted backup** of contacts and history so wiping a device does not lose them.
 2. **Human-readable names** for addresses through a memo-based registry, designed to avoid
-   linking a public name to a single address.
+  linking a public name to a single address.
 3. **Less exposure to the light-wallet server:** fetch decoy transactions alongside real ones,
-   send through a different connection than the one used to sync, and document running Zealed
-   over Tor.
+  send through a different connection than the one used to sync.
 4. **Mainnet**, after an independent security review.
 
----
+![](media/airmail.svg)
 
 ## Hackathon disclosure
 
@@ -292,23 +371,23 @@ Zealed is a submission to **ZECATHON** (window: 28 September to 28 October 2026)
 **Wildcard** track.
 
 - **Existed before the window:** the open-source libraries Zealed builds on, including WebZjs and
-  the Zcash Rust crates, `tlock-js`, drand, and the packages listed in `package.json`.
+the Zcash Rust crates, `tlock-js`, drand, and the packages listed in `package.json`.
 - **Written during the window:** the Zealed application, its three features, the memo protocol, the
-  encrypted vault, the patches that make the WebZjs wallet work on the NU7 testnet, and the FROST
-  co-host signing for Blind Pot (built on the `reddsa` and `frost-rerandomized` crates).
+encrypted vault, the patches that make the WebZjs wallet work on the NU7 testnet, and the FROST
+co-host signing for Blind Pot (built on the `reddsa` and `frost-rerandomized` crates).
 - **Real versus simulated:** the wallet, transactions, memos and time-locks are real on the Zcash
-  testnet and the live drand network. Demo mode only shortens timers. No transaction is faked.
+testnet and the live drand network. Demo mode only shortens timers. No transaction is faked.
 
----
+![](media/airmail.svg)
 
 ## Acknowledgements
 
 - [WebZjs](https://github.com/ZcashCommunityGrants/WebZjs) and the Zcash Community Grants and
-  red.dev teams for the browser wallet
+red.dev teams for the browser wallet
 - [drand](https://drand.love) and `tlock-js` for time-lock encryption
 - The Zcash Foundation and Electric Coin Company ecosystem, and the ZECATHON organisers
 
----
+![](media/airmail.svg)
 
 ## License
 

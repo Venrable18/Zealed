@@ -45,10 +45,14 @@ test.describe('navigation', () => {
     }
   })
 
-  test('the three feature cards on the home page open their pages', async ({ page }) => {
+  test('the three feature cards on the dashboard open their pages', async ({ page }) => {
     for (const name of ['Legacy', 'Blind Pot', 'Unsigned']) {
       await page.goto('/app')
-      await page.getByRole('main').getByRole('link', { name }).click()
+      await page
+        .getByRole('main')
+        .getByRole('region', { name })
+        .getByRole('link', { name: 'Open' })
+        .click()
       await expect(h1(page, name)).toBeVisible()
     }
   })
@@ -67,11 +71,11 @@ test.describe('theme', () => {
     await page.emulateMedia({ colorScheme: 'light' })
     await page.goto('/settings')
     const background = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor)
-    expect(await background()).toBe('rgb(250, 248, 245)')
+    expect(await background()).toBe('rgb(238, 241, 245)')
 
     await page.getByRole('radio', { name: 'Dark' }).check()
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
-    expect(await background()).toBe('rgb(18, 16, 15)')
+    expect(await background()).toBe('rgb(13, 19, 35)')
 
     await page.reload()
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
@@ -82,14 +86,14 @@ test.describe('theme', () => {
       .getByRole('radio', { name: 'Match my device' })
       .check()
     await expect(page.locator('html')).not.toHaveAttribute('data-theme')
-    expect(await background()).toBe('rgb(250, 248, 245)')
+    expect(await background()).toBe('rgb(238, 241, 245)')
   })
 
   test('follows the device setting when left on "Match my device"', async ({ page }) => {
     await page.emulateMedia({ colorScheme: 'dark' })
     await page.goto('/')
     const background = await page.evaluate(() => getComputedStyle(document.body).backgroundColor)
-    expect(background).toBe('rgb(18, 16, 15)')
+    expect(background).toBe('rgb(13, 19, 35)')
   })
 })
 

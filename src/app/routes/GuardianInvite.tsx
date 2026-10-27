@@ -79,7 +79,7 @@ export function GuardianInvite() {
   return (
     <div className="max-w-3xl space-y-8 py-10">
       <div>
-        <h1 className="text-3xl">{t('invite.title')}</h1>
+        <h1 className="text-4xl">{t('invite.title')}</h1>
         {/* The name came from the link, so it is shown as plain text only. */}
         <p className="mt-3 text-lg">
           {invite.owner === undefined
