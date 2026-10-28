@@ -127,6 +127,43 @@ impl<W, T: Clone> Clone for Wallet<W, T> {
     }
 }
 
+/// Labels every real (non-dummy) Ironwood output of a shared-pot withdrawal with the address it
+/// actually goes to, so a co-host's wallet can show it correctly rather than treating the pot's
+/// own change as a payment leaving the pot. The output whose value matches `value` is the
+/// payment; the pczt library does not say which output is change, so any other real output is
+/// taken to be it, which only misreads a payment as change (or the reverse) in the astronomically
+/// unlikely case the change happens to equal the exact amount requested.
+fn label_withdrawal_outputs(
+    pczt: Pczt,
+    value: u64,
+    payment_address: &str,
+    pot_address: &str,
+) -> Result<Pczt, Error> {
+    Ok(Updater::new(pczt)
+        .update_ironwood_with(|mut bundle| {
+            let mut labelled_payment = false;
+            let mut updates: Vec<(usize, String)> = Vec::new();
+            for (index, action) in bundle.bundle().actions().iter().enumerate() {
+                let out_value = action.output().value().map(|v| v.inner());
+                if !labelled_payment && out_value == Some(value) {
+                    labelled_payment = true;
+                    updates.push((index, payment_address.to_string()));
+                } else if out_value != Some(0) {
+                    updates.push((index, pot_address.to_string()));
+                }
+            }
+            for (index, address) in updates {
+                bundle.update_action_with(index, |mut action| {
+                    action.set_output_user_address(address);
+                    Ok(())
+                })?;
+            }
+            Ok(())
+        })
+        .map_err(|e| Error::Generic(format!("could not label the withdrawal's outputs: {e:?}")))?
+        .finish())
+}
+
 impl<P: Parameters, T> Wallet<MemoryWalletDb<P>, T>
 where
     T: GrpcService<tonic::body::Body> + Clone,
@@ -1032,6 +1069,25 @@ where
         to_address: ZcashAddress,
         value: u64,
     ) -> Result<Pczt, Error> {
+        // Captured before the proposal consumes `to_address`, and before the write lock below
+        // (reading the account's address takes a read lock), so every real output can be
+        // labelled afterwards with where it actually goes: the recipient, or the pot itself as
+        // change. Without this, a co-host's wallet cannot tell its own change apart from a
+        // payment, because change goes to an internal address that never equals the pot's own.
+        let payment_address = to_address.encode();
+        let pot_address = self
+            .db
+            .read()
+            .await
+            .get_last_generated_address_matching(
+                account_id,
+                zcash_keys::keys::UnifiedAddressRequest::ALLOW_ALL,
+            )?
+            .map(|address| address.encode(&self.network))
+            .ok_or_else(|| {
+                Error::Generic("the pot has no address to label its own change with".to_string())
+            })?;
+
         let change_strategy = MultiOutputChangeStrategy::new(
             StandardFeeRule::Zip317,
             None,
@@ -1058,7 +1114,7 @@ where
             None,
         )
         .map_err(|e| Error::Generic(format!("could not propose the withdrawal: {e:?}")))?;
-        create_pczt_from_proposal::<
+        let pczt = create_pczt_from_proposal::<
             _,
             _,
             <MemoryWalletDb<Network> as InputSource>::Error,
@@ -1074,7 +1130,9 @@ where
             None,
             zcash_primitives::transaction::builder::BundlePadding::DEFAULT,
         )
-        .map_err(|e| Error::PcztCreate(format!("{e:?}")))
+        .map_err(|e| Error::PcztCreate(format!("{e:?}")))?;
+        drop(db);
+        label_withdrawal_outputs(pczt, value, &payment_address, &pot_address)
     }
 
     ///

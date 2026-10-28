@@ -121,9 +121,7 @@ export function HostViewPanel({ pot, wallet, onClosed }: HostViewPanelProps) {
         )}
       </section>
 
-      {!pot.closed && pot.sharedId !== undefined && (
-        <SharedWithdraw sharedId={pot.sharedId} onSent={onClosed} />
-      )}
+      {!pot.closed && pot.sharedId !== undefined && <SharedWithdraw sharedId={pot.sharedId} />}
       {!pot.closed && pot.sharedId === undefined && (
         <section className="space-y-3">
           <h2 className="text-xl">Close the pot</h2>

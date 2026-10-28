@@ -183,6 +183,10 @@ test('a shared Blind Pot on the NU7 testnet: two co-hosts make the key and both 
   // With two signatures the host's wallet builds, proves and sends the withdrawal.
   await nav(host, 'Blind Pot')
   await host.getByRole('link', { name: potName }).first().click()
-  await expect(host.getByText(/This pot is closed/)).toBeVisible({ timeout: 4 * BLOCKS })
+  // The request is done and the pot stays open for gifts until its deadline.
+  await expect(host.getByText(/Waiting for your co-hosts|Collecting their signatures/)).toBeHidden({
+    timeout: 4 * BLOCKS,
+  })
+  await expect(host.getByText(/This pot is closed/)).toBeHidden()
   stopKeepAwake()
 })

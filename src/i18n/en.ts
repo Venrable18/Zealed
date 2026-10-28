@@ -10,6 +10,37 @@ export const en = {
   'shell.nav': 'Main',
   'shell.menu': 'Menu',
   'shell.lock': 'Lock',
+  'tour.take': 'Take the tour',
+  'tour.aria': 'Guided tour',
+  'tour.step': 'Step {n} of {total}',
+  'tour.next': 'Next',
+  'tour.back': 'Back',
+  'tour.done': 'Start using Zealed',
+  'tour.skip': 'Skip the tour',
+  'tour.welcomeTitle': 'Welcome to Zealed',
+  'tour.welcomeBody':
+    'A one-minute look at what is here. Everything runs in this browser: no account, and no server holding your data.',
+  'tour.dashTitle': 'Your numbers',
+  'tour.dashBody':
+    'The dashboard sums up your wallet, letters, pots and messages. It is worked out on this device, so nobody else can see it.',
+  'tour.legacyTitle': 'Legacy: a letter that opens on its day',
+  'tour.legacyBody':
+    'Seal a letter, and money if you like, for someone. It opens on the date you choose and not before, even if everyone wanted it to.',
+  'tour.potTitle': 'Blind Pot: everyone gives, nobody is exposed',
+  'tour.potBody':
+    'A gift pot for an event. You see the total and the wishes, never who gave what. Add co-hosts and no single person can take the money.',
+  'tour.unsignedTitle': 'Unsigned: a contact line that never learns who called',
+  'tour.unsignedBody':
+    'Publish a card and people can send you a message with a small payment. You never learn who they are, and the payment keeps spam out.',
+  'tour.walletTitle': 'Your wallet',
+  'tour.walletBody':
+    'A real Zcash wallet on the test network, so the money has no value. Your balance shows here once it is set up. Set it up first and add some test money.',
+  'tour.settingsTitle': 'Keep your data safe',
+  'tour.settingsBody':
+    'Choose a passphrase so your letters, pots and wallet are saved on this device, encrypted. Write down your 24 recovery words: they are the only way back.',
+  'tour.endTitle': 'You are ready',
+  'tour.endBody':
+    'Start with the three steps at the top of the page. To try everything in minutes, turn on demo mode in Settings: it shortens the timers. You can take this tour again from the sidebar.',
   'shell.noWallet': 'Set up a wallet',
   'shell.walletOpening': 'Opening the wallet…',
   'shell.syncing': 'Catching up…',
@@ -204,6 +235,8 @@ export const en = {
   'wallet.syncing': 'Catching up with the network…',
   'wallet.syncedAt': 'Up to date. Last checked {time}.',
   'wallet.syncFailed': 'The wallet could not reach the network. It will keep trying.',
+  'wallet.syncHint':
+    'If it keeps failing: turn off any ad blocker, privacy shield or VPN for this site, try a private window, and check that your connection is working. A wallet that has not synced yet shows 0 until it catches up.',
   'wallet.syncNow': 'Check now',
   'wallet.fundTitle': 'Get test money',
   'wallet.fundBody':

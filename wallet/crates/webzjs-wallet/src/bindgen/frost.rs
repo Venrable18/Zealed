@@ -196,18 +196,26 @@ pub fn pczt_signing_request(
                 if output.value().map(|v| v.inner()) == Some(0) {
                     continue;
                 }
-                let address = output.recipient().and_then(|recipient| {
-                    let named = known
-                        .iter()
-                        .find(|(_, ua)| ua.orchard() == Some(&recipient))
-                        .map(|(text, _)| text.clone());
-                    named.or_else(|| {
-                        zcash_keys::address::UnifiedAddress::from_receivers(
-                            Some(recipient),
-                            None,
-                            None,
-                        )
-                        .map(|ua| ua.encode(&network))
+                // A shared-pot withdrawal labels its own outputs (see `label_withdrawal_outputs`
+                // in wallet.rs), which tells apart the recipient from the pot's own change: they
+                // are not the same address even when both are controlled by the pot, because
+                // change goes to an internal address never equal to the pot's advertised one.
+                // Other transactions carry no such label, so fall back to recognising a known
+                // address, or report whatever unified address the raw receiver decodes to.
+                let address = output.user_address().clone().or_else(|| {
+                    output.recipient().and_then(|recipient| {
+                        let named = known
+                            .iter()
+                            .find(|(_, ua)| ua.orchard() == Some(&recipient))
+                            .map(|(text, _)| text.clone());
+                        named.or_else(|| {
+                            zcash_keys::address::UnifiedAddress::from_receivers(
+                                Some(recipient),
+                                None,
+                                None,
+                            )
+                            .map(|ua| ua.encode(&network))
+                        })
                     })
                 });
                 outputs.push(OutputOut {

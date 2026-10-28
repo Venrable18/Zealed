@@ -8,6 +8,37 @@ export const fr: Record<MessageKey, string> = {
   'shell.nav': 'Principale',
   'shell.menu': 'Menu',
   'shell.lock': 'Verrouiller',
+  'tour.take': 'Faire la visite',
+  'tour.aria': 'Visite guidée',
+  'tour.step': 'Étape {n} sur {total}',
+  'tour.next': 'Suivant',
+  'tour.back': 'Précédent',
+  'tour.done': 'Commencer avec Zealed',
+  'tour.skip': 'Passer la visite',
+  'tour.welcomeTitle': 'Bienvenue sur Zealed',
+  'tour.welcomeBody':
+    'Une minute pour voir ce qu’il y a ici. Tout fonctionne dans ce navigateur : pas de compte, et aucun serveur qui garde vos données.',
+  'tour.dashTitle': 'Vos chiffres',
+  'tour.dashBody':
+    'Le tableau de bord résume votre portefeuille, vos lettres, cagnottes et messages. Il est calculé sur cet appareil : personne d’autre ne le voit.',
+  'tour.legacyTitle': 'Legacy : une lettre qui s’ouvre le jour dit',
+  'tour.legacyBody':
+    'Scellez une lettre, et de l’argent si vous voulez, pour quelqu’un. Elle s’ouvre à la date choisie et pas avant, même si tout le monde le voulait.',
+  'tour.potTitle': 'Blind Pot : tout le monde donne, personne n’est exposé',
+  'tour.potBody':
+    'Une cagnotte de cadeaux pour un événement. Vous voyez le total et les vœux, jamais qui a donné quoi. Ajoutez des co-hôtes et personne ne peut prendre l’argent seul.',
+  'tour.unsignedTitle': 'Unsigned : une ligne de contact qui ne sait jamais qui a écrit',
+  'tour.unsignedBody':
+    'Publiez une carte et on pourra vous écrire avec un petit paiement. Vous ne saurez jamais qui, et le paiement tient le spam à distance.',
+  'tour.walletTitle': 'Votre portefeuille',
+  'tour.walletBody':
+    'Un vrai portefeuille Zcash sur le réseau de test : l’argent n’a donc aucune valeur. Votre solde s’affiche ici une fois configuré. Configurez-le d’abord et ajoutez de l’argent de test.',
+  'tour.settingsTitle': 'Protégez vos données',
+  'tour.settingsBody':
+    'Choisissez une phrase secrète pour que vos lettres, cagnottes et portefeuille soient enregistrés, chiffrés, sur cet appareil. Notez vos 24 mots de récupération : c’est le seul moyen de revenir.',
+  'tour.endTitle': 'Vous êtes prêt',
+  'tour.endBody':
+    'Commencez par les trois étapes en haut de la page. Pour tout essayer en quelques minutes, activez le mode démonstration dans les réglages : il raccourcit les minuteurs. Vous pouvez refaire cette visite depuis la barre latérale.',
   'shell.noWallet': 'Configurer un portefeuille',
   'shell.walletOpening': 'Ouverture du portefeuille…',
   'shell.syncing': 'Synchronisation…',
@@ -207,6 +238,8 @@ export const fr: Record<MessageKey, string> = {
   'wallet.syncing': 'Synchronisation avec le réseau…',
   'wallet.syncedAt': 'À jour. Dernière vérification : {time}.',
   'wallet.syncFailed': 'Le portefeuille n’a pas pu joindre le réseau. Il continuera d’essayer.',
+  'wallet.syncHint':
+    'Si cela continue : désactivez le bloqueur de publicités, le bouclier de confidentialité ou le VPN pour ce site, essayez une fenêtre privée et vérifiez votre connexion. Un portefeuille pas encore synchronisé affiche 0 jusqu’à ce qu’il ait rattrapé son retard.',
   'wallet.syncNow': 'Vérifier maintenant',
   'wallet.fundTitle': 'Obtenir de l’argent de test',
   'wallet.fundBody':

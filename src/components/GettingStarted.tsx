@@ -1,6 +1,8 @@
 import { Link, useLocation } from 'react-router'
+import { useT } from '../i18n/index.ts'
 import { useVaultStatus } from '../storage/vaultState.ts'
 import { useBalance } from '../wallet/useBalance.ts'
+import { useTour } from './tourStore.ts'
 import { useWalletData } from '../wallet/walletData.ts'
 
 interface Step {
@@ -17,6 +19,8 @@ interface Step {
  * one thing to do next.
  */
 export function GettingStarted() {
+  const t = useT()
+  const startTour = useTour((state) => state.start)
   const vault = useVaultStatus((state) => state.status)
   const hasSeed = useWalletData((state) => state.seed !== null)
   const balance = useBalance()
@@ -95,6 +99,13 @@ export function GettingStarted() {
         {current !== undefined && (
           <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted">{current.body}</p>
+            <button
+              type="button"
+              onClick={startTour}
+              className="min-h-11 shrink-0 px-2 text-sm font-medium text-seal underline underline-offset-4 hover:text-seal-hover"
+            >
+              {t('tour.take')}
+            </button>
             {!here && (
               <Link
                 to={current.to}

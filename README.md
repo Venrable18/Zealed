@@ -135,6 +135,8 @@ nobody's business.
   standard-size pieces sent at different times, and the host's total refreshes only in batches.
 - **Co-hosts** (optional): the pot's key is made by the co-hosts together, and any withdrawal needs
   k of n to sign (FROST threshold signatures). No one, the host included, can take the money alone.
+  A withdrawal can take everything or a chosen amount, with the rest staying in the pot; every
+  co-host reads what it actually does from the transaction itself before approving.
 - **What stays private:** who gave, and how much. The host sees the total and the wishes.
 
 ### Unsigned: a contact line that never learns who called
@@ -151,12 +153,13 @@ reachable too.
 
 ### Around them
 
-| Part          | What it does                                                                      | What stays private                     |
-| ------------- | --------------------------------------------------------------------------------- | -------------------------------------- |
-| **Wallet**    | A real Zcash wallet in the browser, as WebAssembly: create or restore, sync, send | Keys never leave the device            |
-| **Dashboard** | Your own numbers, worked out on the device                                        | Nothing leaves the browser             |
-| **Contacts**  | Names for addresses, shared as a link or through the phone's share sheet          | Contact data rides in the URL fragment |
-| **Languages** | English, Spanish and French                                                       |                                        |
+| Part              | What it does                                                                        | What stays private                     |
+| ----------------- | ------------------------------------------------------------------------------------ | --------------------------------------- |
+| **Wallet**         | A real Zcash wallet in the browser, as WebAssembly: create or restore, sync, send    | Keys never leave the device             |
+| **Notifications**  | Co-host invitations and approvals, sealed letters, guardian events and anonymous messages, gathered in one place with a link to where each is handled | Worked out on the device from your own wallet; nothing is sent to see it |
+| **Dashboard**      | Your own numbers, worked out on the device                                          | Nothing leaves the browser              |
+| **Contacts**       | Names for addresses, shared as a link or through the phone's share sheet            | Contact data rides in the URL fragment  |
+| **Languages**      | English, Spanish and French                                                         |                                          |
 
 ### On a phone, and after dark
 
@@ -322,8 +325,9 @@ media/          README screenshots and artwork
 | Legacy (open on a date)                           | Real, tested end to end between two wallets on testnet                                                                                 |
 | Legacy (open if I go silent)                      | Built; guardians act only when the app is opened                                                                                       |
 | Blind Pot                                         | Real, tested end to end between two wallets on testnet                                                                                 |
-| Blind Pot with co-hosts (FROST, k of n)           | Real: key made together over memos, withdrawal signed by the co-hosts; tested in the browser (2 of 2) and natively (2 of 3) on testnet |
+| Blind Pot with co-hosts (FROST, k of n)           | Real: key made together over memos, withdrawal signed by the co-hosts, for everything or a chosen amount; tested in the browser (2 of 2) and natively (2 of 3) on testnet |
 | Unsigned                                          | Real, tested end to end between two wallets on testnet                                                                                 |
+| Notifications                                     | Built: a background check gathers co-host, letter, guardian and message events while the app is open                                 |
 | Dashboard, Contacts, Receive, Settings, languages | Built                                                                                                                                  |
 | Mainnet                                           | Not supported                                                                                                                          |
 

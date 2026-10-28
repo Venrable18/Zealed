@@ -274,6 +274,9 @@ function Ready() {
                 ? ''
                 : t('wallet.syncedAt', { time: new Date(syncedAt).toLocaleTimeString() })}
         </p>
+        {problem === 'sync' && (
+          <p className="max-w-prose text-sm text-muted">{t('wallet.syncHint')}</p>
+        )}
         {problem === 'sync' && detail !== null && (
           <details className="text-sm text-muted">
             <summary className="min-h-11 cursor-pointer py-2">{t('wallet.details')}</summary>

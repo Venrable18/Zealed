@@ -26,7 +26,7 @@ function withdrawingText(
 }
 
 /** The host's withdrawal from a shared pot: ask co-hosts, then the money moves once enough approve. */
-export function SharedWithdraw({ sharedId, onSent }: { sharedId: string; onSent: () => void }) {
+export function SharedWithdraw({ sharedId }: { sharedId: string }) {
   const port = useSharedPotPort()
   const push = useToasts((state) => state.push)
   const pot = useSharedPots((state) => state.state.pots.find((p) => p.id === sharedId))
@@ -51,10 +51,13 @@ export function SharedWithdraw({ sharedId, onSent }: { sharedId: string; onSent:
   }, [port, accountId])
   const latest = pot?.withdrawals.at(-1)
   const sent = latest?.status === 'sent'
+  const sentId = sent ? latest.id : undefined
   useEffect(() => {
-    if (sent) onSent()
-  }, [sent, onSent])
-  if (pot === undefined || latest?.status === 'sent') return null
+    // The pot stays open after a withdrawal, until the gift deadline: show what is left.
+    if (port === null || accountId === undefined || sentId === undefined) return
+    void port.potSpendableZat(accountId).then(setInPot, () => undefined)
+  }, [port, accountId, sentId])
+  if (pot === undefined) return null
   const waiting = latest !== undefined && ['pending', 'approved', 'signing'].includes(latest.status)
   const approvals = latest === undefined ? 0 : Object.keys(latest.commitments).length
 

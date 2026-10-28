@@ -94,7 +94,7 @@ describe('the host choosing what to withdraw', () => {
     useSharedPots.setState({ state: { ...EMPTY_SHARED_STATE, pots: [pot] } })
     render(
       <SharedPotContext.Provider value={port}>
-        <SharedWithdraw sharedId={pot.id} onSent={() => undefined} />
+        <SharedWithdraw sharedId={pot.id} />
       </SharedPotContext.Provider>,
     )
   }

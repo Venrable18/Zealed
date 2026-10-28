@@ -8,6 +8,37 @@ export const es: Record<MessageKey, string> = {
   'shell.nav': 'Principal',
   'shell.menu': 'Menú',
   'shell.lock': 'Bloquear',
+  'tour.take': 'Hacer el recorrido',
+  'tour.aria': 'Recorrido guiado',
+  'tour.step': 'Paso {n} de {total}',
+  'tour.next': 'Siguiente',
+  'tour.back': 'Atrás',
+  'tour.done': 'Empezar a usar Zealed',
+  'tour.skip': 'Saltar el recorrido',
+  'tour.welcomeTitle': 'Te damos la bienvenida a Zealed',
+  'tour.welcomeBody':
+    'Un minuto para ver lo que hay. Todo funciona en este navegador: sin cuenta y sin ningún servidor que guarde tus datos.',
+  'tour.dashTitle': 'Tus cifras',
+  'tour.dashBody':
+    'El panel resume tu cartera, cartas, botes y mensajes. Se calcula en este dispositivo, así que nadie más lo ve.',
+  'tour.legacyTitle': 'Legacy: una carta que se abre en su día',
+  'tour.legacyBody':
+    'Sella una carta, y dinero si quieres, para alguien. Se abre en la fecha que elijas y no antes, aunque todos quisieran.',
+  'tour.potTitle': 'Blind Pot: todos dan, nadie queda expuesto',
+  'tour.potBody':
+    'Un bote de regalos para un evento. Ves el total y los deseos, nunca quién dio qué. Añade coanfitriones y nadie podrá llevarse el dinero solo.',
+  'tour.unsignedTitle': 'Unsigned: una línea de contacto que nunca sabe quién llamó',
+  'tour.unsignedBody':
+    'Publica una tarjeta y la gente podrá enviarte un mensaje con un pequeño pago. Nunca sabrás quiénes son, y el pago frena el spam.',
+  'tour.walletTitle': 'Tu cartera',
+  'tour.walletBody':
+    'Una cartera Zcash real en la red de pruebas, así que el dinero no tiene valor. Tu saldo aparece aquí cuando está lista. Configúrala primero y añade dinero de prueba.',
+  'tour.settingsTitle': 'Protege tus datos',
+  'tour.settingsBody':
+    'Elige una contraseña para que tus cartas, botes y cartera se guarden cifrados en este dispositivo. Anota tus 24 palabras de recuperación: son el único camino de vuelta.',
+  'tour.endTitle': 'Todo listo',
+  'tour.endBody':
+    'Empieza con los tres pasos de la parte superior. Para probarlo todo en minutos, activa el modo demostración en Ajustes: acorta los temporizadores. Puedes repetir este recorrido desde la barra lateral.',
   'shell.noWallet': 'Configura una cartera',
   'shell.walletOpening': 'Abriendo la cartera…',
   'shell.syncing': 'Poniéndose al día…',
@@ -207,6 +238,8 @@ export const es: Record<MessageKey, string> = {
   'wallet.syncing': 'Poniéndose al día con la red…',
   'wallet.syncedAt': 'Al día. Última comprobación: {time}.',
   'wallet.syncFailed': 'La cartera no pudo conectarse a la red. Seguirá intentándolo.',
+  'wallet.syncHint':
+    'Si sigue fallando: desactiva el bloqueador de anuncios, el escudo de privacidad o la VPN para este sitio, prueba en una ventana privada y comprueba tu conexión. Una cartera que aún no se ha sincronizado muestra 0 hasta ponerse al día.',
   'wallet.syncNow': 'Comprobar ahora',
   'wallet.fundTitle': 'Conseguir dinero de prueba',
   'wallet.fundBody':

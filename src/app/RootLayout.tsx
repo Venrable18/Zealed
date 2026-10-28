@@ -13,6 +13,8 @@ import {
 } from '../components/Icons.tsx'
 import { GettingStarted } from '../components/GettingStarted.tsx'
 import { Mark } from '../components/Mark.tsx'
+import { Tour } from '../components/Tour.tsx'
+import { useTour } from '../components/tourStore.ts'
 import { ToastViewport } from '../components/Toasts.tsx'
 import { ZCASH_NETWORK } from '../config/network.ts'
 import { useLanguage, useT, type MessageKey } from '../i18n/index.ts'
@@ -66,6 +68,7 @@ function NavList({
           <NavLink
             to={path}
             end={path === '/app'}
+            data-tour={`nav-${path}`}
             className={({ isActive }) =>
               `flex min-h-11 items-center gap-3 rounded-control px-3 text-[0.9375rem] ${
                 isActive
@@ -94,6 +97,7 @@ function NavList({
 /** The wallet at a glance, at the foot of the sidebar: its balance, or the way to get one. */
 function WalletGlance() {
   const t = useT()
+  const startTour = useTour((state) => state.start)
   const status = useWalletRuntime((state) => state.status)
   const syncing = useWalletRuntime((state) => state.syncing)
   const vault = useVaultStatus((state) => state.status)
@@ -102,6 +106,7 @@ function WalletGlance() {
     <div className="space-y-3 border-t border-line pt-4">
       <Link
         to="/wallet"
+        data-tour="wallet-glance"
         className={`block rounded-control border px-3 py-2.5 ${
           status === 'ready'
             ? 'border-line bg-surface hover:border-line-strong'
@@ -123,6 +128,19 @@ function WalletGlance() {
           </span>
         )}
       </Link>
+      <button
+        type="button"
+        onClick={startTour}
+        className="flex min-h-11 w-full items-center gap-3 rounded-control px-3 text-[0.9375rem] text-muted hover:bg-sunken hover:text-ink"
+      >
+        <span
+          aria-hidden="true"
+          className="flex size-5 items-center justify-center rounded-full border border-current text-xs font-bold"
+        >
+          ?
+        </span>
+        {t('tour.take')}
+      </button>
       {vault === 'unlocked' && (
         <button
           type="button"
@@ -185,6 +203,13 @@ export function RootLayout() {
     void initVault()
   }, [])
   const locked = vaultStatus === 'locked'
+  const startTour = useTour((state) => state.start)
+  const { search } = useLocation()
+  // `?tour=1` opens the tour on arrival (for a link, or a screen recording).
+  useEffect(() => {
+    if (!locked && vaultStatus !== 'checking' && new URLSearchParams(search).get('tour') === '1')
+      startTour()
+  }, [locked, vaultStatus, search, startTour])
 
   const skip = (
     <a
@@ -264,6 +289,7 @@ export function RootLayout() {
           </WalletProviders>
         </div>
       </main>
+      <Tour />
       <ToastViewport />
     </div>
   )
