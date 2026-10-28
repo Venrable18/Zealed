@@ -35,6 +35,7 @@ describe('catalogues', () => {
             ![
               'contacts.title',
               'nav.contacts',
+              'nav.notifications',
               'shell.menu',
               'landing.no',
               'landing.colZealed',

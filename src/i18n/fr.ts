@@ -13,6 +13,7 @@ export const fr: Record<MessageKey, string> = {
   'shell.syncing': 'Synchronisation…',
   'nav.dashboard': 'Tableau de bord',
   'nav.contacts': 'Contacts',
+  'nav.notifications': 'Notifications',
   'nav.receive': 'Recevoir',
   'nav.settings': 'Réglages',
 

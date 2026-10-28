@@ -9,6 +9,7 @@ import { useSentMessages, useUnsigned } from '../features/unsigned/stores.ts'
 import { useWalletData, validWalletData } from '../wallet/walletData.ts'
 import { EMPTY_SHARED_STATE } from '../features/blindpot/shared/engine.ts'
 import { useSharedPots, validSharedState } from '../features/blindpot/shared/store.ts'
+import { useNotificationsSeen } from '../features/notifications/notifications.ts'
 import type { Vault } from './vault.ts'
 import type { Contribution } from '../features/blindpot/queue.ts'
 
@@ -145,6 +146,18 @@ export const BINDINGS: readonly Binding[] = [
     subscribe: (listener) => useUnsigned.subscribe(listener),
     reset: () => {
       useUnsigned.setState({ card: null, messages: [], repliedIds: [] })
+    },
+  },
+  {
+    name: 'notificationsSeen.v1',
+    read: () => useNotificationsSeen.getState().seen,
+    write: (data) => {
+      if (Array.isArray(data))
+        useNotificationsSeen.getState().setAll(data.filter((id) => typeof id === 'string'))
+    },
+    subscribe: (listener) => useNotificationsSeen.subscribe(listener),
+    reset: () => {
+      useNotificationsSeen.getState().setAll([])
     },
   },
   {

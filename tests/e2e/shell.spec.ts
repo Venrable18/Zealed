@@ -9,6 +9,7 @@ const ROUTES = [
   { path: '/blind-pot', heading: 'Blind Pot' },
   { path: '/unsigned', heading: 'Unsigned' },
   { path: '/dashboard', heading: 'Dashboard' },
+  { path: '/notifications', heading: 'Notifications' },
   { path: '/contacts', heading: 'Contacts' },
   { path: '/receive', heading: 'Receive' },
   { path: '/wallet', heading: 'Wallet' },

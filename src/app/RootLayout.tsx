@@ -1,6 +1,7 @@
 import { useEffect, useState, type ComponentType, type SVGProps } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router'
 import {
+  BellIcon,
   ChartIcon,
   CloseIcon,
   LockIcon,
@@ -23,6 +24,7 @@ import { WalletProviders } from '../wallet/WalletProviders.tsx'
 import { useWalletBoot, useWalletRuntime } from '../wallet/runtime.ts'
 import { useBalance } from '../wallet/useBalance.ts'
 import { useSharedPotsLoop } from '../features/blindpot/shared/useSharedPotsLoop.ts'
+import { useInboxLoop, useNotifications } from '../features/notifications/useNotifications.ts'
 import { FEATURES } from './features.tsx'
 import { useSettings } from './settingsStore.ts'
 
@@ -41,13 +43,21 @@ const FEATURE_ITEMS: readonly NavItem[] = [
   ...FEATURES.map(({ path, title, Icon }) => ({ path, name: title, Icon })),
 ]
 const ACCOUNT_ITEMS: readonly NavItem[] = [
+  { path: '/notifications', key: 'nav.notifications', Icon: BellIcon },
   { path: '/wallet', key: 'nav.wallet', Icon: WalletIcon },
   { path: '/receive', key: 'nav.receive', Icon: ReceiveIcon },
   { path: '/contacts', key: 'nav.contacts', Icon: PeopleIcon },
   { path: '/settings', key: 'nav.settings', Icon: SlidersIcon },
 ]
 
-function NavList({ items }: { items: readonly NavItem[] }) {
+function NavList({
+  items,
+  counts = {},
+}: {
+  items: readonly NavItem[]
+  /** A number to show beside a page's name, such as unread notifications. */
+  counts?: Record<string, number>
+}) {
   const t = useT()
   return (
     <ul className="space-y-0.5">
@@ -66,6 +76,14 @@ function NavList({ items }: { items: readonly NavItem[] }) {
           >
             <Icon width={20} height={20} className="shrink-0" />
             {key === undefined ? name : t(key)}
+            {(counts[path] ?? 0) > 0 && (
+              <span
+                className="ml-auto min-w-6 rounded-full bg-seal px-2 py-0.5 text-center text-xs font-semibold text-seal-ink"
+                data-testid={`count-${path}`}
+              >
+                {String(counts[path])}
+              </span>
+            )}
           </NavLink>
         </li>
       ))}
@@ -152,6 +170,8 @@ export function RootLayout() {
   useAutoLock()
   useWalletBoot()
   useSharedPotsLoop()
+  useInboxLoop()
+  const { unread } = useNotifications()
   const t = useT()
   const language = useLanguage()
   const { pathname } = useLocation()
@@ -227,7 +247,7 @@ export function RootLayout() {
             <nav aria-label={t('shell.nav')} className="space-y-4 pt-2">
               <NavList items={FEATURE_ITEMS} />
               <div className="border-t border-line pt-4">
-                <NavList items={ACCOUNT_ITEMS} />
+                <NavList items={ACCOUNT_ITEMS} counts={{ '/notifications': unread.size }} />
               </div>
             </nav>
             <div className="mt-auto px-2">

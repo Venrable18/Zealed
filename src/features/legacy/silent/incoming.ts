@@ -12,7 +12,7 @@ export interface IncomingResult {
 
 /** Reads the wallet's received memos once and updates what each role knows. */
 export async function checkIncoming(
-  wallet: LegacyWalletPort,
+  wallet: Pick<LegacyWalletPort, 'receivedMemos'>,
   state: {
     guardians: readonly GuardianRecord[]
     owned: readonly OwnerRecord[]

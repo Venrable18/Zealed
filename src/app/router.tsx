@@ -11,6 +11,7 @@ import { Unsigned } from './routes/Unsigned.tsx'
 import { Send } from './routes/Send.tsx'
 import { AddContact } from './routes/AddContact.tsx'
 import { Contacts } from './routes/Contacts.tsx'
+import { Notifications } from './routes/Notifications.tsx'
 import { GuardianInvite } from './routes/GuardianInvite.tsx'
 import { Receive } from './routes/Receive.tsx'
 import { Wallet } from './routes/Wallet.tsx'
@@ -47,6 +48,7 @@ export const router = createBrowserRouter([
         // Loaded on demand: it reads Legacy's guardian and heir logic, which pulls in the timelock library.
         lazy: async () => ({ Component: (await import('./routes/Dashboard.tsx')).Dashboard }),
       },
+      { path: 'notifications', element: <Notifications /> },
       { path: 'contacts', element: <Contacts /> },
       { path: 'add', element: <AddContact /> },
       { path: 'invite', element: <GuardianInvite /> },

@@ -15,6 +15,7 @@ export const en = {
   'shell.syncing': 'Catching up…',
   'nav.dashboard': 'Dashboard',
   'nav.contacts': 'Contacts',
+  'nav.notifications': 'Notifications',
   'nav.receive': 'Receive',
   'nav.settings': 'Settings',
 

@@ -13,6 +13,7 @@ export const es: Record<MessageKey, string> = {
   'shell.syncing': 'Poniéndose al día…',
   'nav.dashboard': 'Panel',
   'nav.contacts': 'Contactos',
+  'nav.notifications': 'Notificaciones',
   'nav.receive': 'Recibir',
   'nav.settings': 'Ajustes',
 

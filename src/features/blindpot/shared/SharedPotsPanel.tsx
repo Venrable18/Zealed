@@ -143,6 +143,52 @@ function Invitation({ pot }: { pot: SharedPot }) {
   )
 }
 
+/** Where making the pot's key is up to. Each step is a Zcash transaction that must be mined. */
+function KeygenProgress({ pot }: { pot: SharedPot }) {
+  const members = pot.members.length
+  const accepted = Math.min(members, Object.keys(pot.round1).length)
+  const exchanged = Math.min(members - 1, Object.keys(pot.round2).length)
+  const steps = [
+    { label: 'Invitations sent', done: true },
+    {
+      label: `Everyone accepts (${String(accepted)} of ${String(members)})`,
+      done: accepted >= members,
+    },
+    {
+      label: `Swapping key pieces (${String(exchanged)} of ${String(members - 1)})`,
+      done: pot.keyPackage !== undefined,
+    },
+    { label: 'Pot ready', done: false },
+  ]
+  const current = steps.findIndex((step) => !step.done)
+  return (
+    <div className="space-y-2 pt-1">
+      <ol className="flex flex-wrap gap-2 text-sm">
+        {steps.map((step, index) => (
+          <li
+            key={step.label}
+            aria-current={index === current ? 'step' : undefined}
+            className={`rounded-full border px-3 py-1 ${
+              step.done
+                ? 'border-line text-muted'
+                : index === current
+                  ? 'border-seal bg-seal-soft font-semibold text-seal'
+                  : 'border-line text-muted'
+            }`}
+          >
+            {step.done ? '✓ ' : ''}
+            {step.label}
+          </li>
+        ))}
+      </ol>
+      <p className="text-sm text-muted">
+        Each step is a private Zcash transaction, so this takes a few minutes. You can leave this
+        page open or come back; it carries on while Zealed is open.
+      </p>
+    </div>
+  )
+}
+
 const STATUS: Record<SharedPot['status'], string> = {
   invited: 'Invitation',
   keygen: 'Making the pot’s key with the co-hosts…',
@@ -185,10 +231,8 @@ export function SharedPotsPanel() {
             <p className="text-sm text-muted">
               {pot.role === 'cohost' ? 'You co-host this pot. ' : ''}
               {STATUS[pot.status]}
-              {pot.status === 'keygen' && pot.role === 'host'
-                ? ` ${String(Object.keys(pot.round1).length - 1)} of ${String(pot.members.length - 1)} co-hosts have accepted.`
-                : ''}
             </p>
+            {pot.status === 'keygen' && <KeygenProgress pot={pot} />}
             {pot.status === 'ready' && (
               <p className="text-sm">
                 In the pot: <Total pot={pot} />. Any {pot.threshold} of {pot.members.length} must
