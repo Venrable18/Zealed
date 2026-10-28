@@ -178,6 +178,11 @@ export async function startWithdrawal(
   to: string,
   zat: bigint,
   nowMs: number,
+  /**
+   * `exact`: the amount is what the host chose and must not change. By default, when the request
+   * would be too large to send as a message, the amount is lowered to fit (used to take everything).
+   */
+  options: { exact?: boolean } = {},
 ): Promise<{ state: SharedState; zat: bigint }> {
   const pot = state.pots.find((p) => p.id === potId)
   if (
@@ -196,6 +201,8 @@ export async function startWithdrawal(
     const id = randomHex(16)
     const request = message('', 'POT_SIGN_REQUEST', { p: pot.id, w: id, x: toBase64(forSigners) })
     if (new TextEncoder().encode(request.payload).length > MAX_MESSAGE_BYTES) {
+      if (options.exact === true)
+        throw new Error('That withdrawal is too large to send. Try a smaller amount.')
       amount = (amount * 6n) / 10n
       continue
     }

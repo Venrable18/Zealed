@@ -256,6 +256,27 @@ describe('shared pots: withdrawing', () => {
     for (const m of r.members) for (const uses of m.nonceUses.values()) expect(uses).toBe(1)
   })
 
+  it('an exact amount is never lowered; the default lowers it until the request fits', async () => {
+    const r = await readyPot(3, 2)
+    const host = r.members[0]!
+    // A transaction that spends many pieces is too large to send as a message; smaller ones fit.
+    const small = host.potWithdrawalPczt.bind(host)
+    host.potWithdrawalPczt = (account: string, to: string, zat: bigint) =>
+      zat > 500_000n ? Promise.resolve(new Uint8Array(100_000)) : small(account, to, zat)
+
+    await expect(
+      startWithdrawal(host, r.states[0]!, r.potId, 'utest1host', 900_000n, 2, { exact: true }),
+    ).rejects.toThrow(/too large/)
+
+    const lowered = await startWithdrawal(host, r.states[0]!, r.potId, 'utest1host', 900_000n, 2)
+    expect(lowered.zat).toBeLessThan(900_000n)
+
+    const exact = await startWithdrawal(host, r.states[0]!, r.potId, 'utest1host', 400_000n, 2, {
+      exact: true,
+    })
+    expect(exact.zat).toBe(400_000n)
+  })
+
   it('nothing is sent without enough approvals, and enough refusals end the request', async () => {
     const r = await readyPot(3, 3)
     r.states[0] = (

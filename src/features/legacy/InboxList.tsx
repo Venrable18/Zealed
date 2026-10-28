@@ -47,6 +47,7 @@ function InboxCard({
   const [problem, setProblem] = useState<string | undefined>()
   const [busy, setBusy] = useState(false)
   const [swept, setSwept] = useState<bigint | undefined>()
+  const [alreadyCollected, setAlreadyCollected] = useState(false)
 
   async function open() {
     setBusy(true)
@@ -68,6 +69,11 @@ function InboxCard({
       markClaimed(item.bundleIdHex, currentTime())
       setSwept(result.sweptZat)
       push('success', 'The gift was moved into your wallet.')
+    } else if (result.reason === 'nothing-to-sweep') {
+      // The gift wallet is empty: the gift was moved before (for example, before the app kept a
+      // record of it). Nothing is left to do, so the letter is done.
+      markClaimed(item.bundleIdHex, currentTime())
+      setAlreadyCollected(true)
     } else setProblem(SWEEP_ERRORS[result.reason])
   }
 
@@ -78,7 +84,9 @@ function InboxCard({
         <p className="whitespace-pre-wrap break-words">{content.letter}</p>
         {content.giftSeed !== undefined && (
           <div className="space-y-2 rounded-control border border-line p-4">
-            {swept === undefined ? (
+            {swept === undefined && alreadyCollected ? (
+              <p role="status">This gift was already moved into your wallet.</p>
+            ) : swept === undefined ? (
               <>
                 <p>This letter came with a gift of ZEC.</p>
                 <Button

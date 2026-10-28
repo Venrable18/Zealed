@@ -3,6 +3,7 @@ import { Button } from '../../../components/Button.tsx'
 import { useToasts } from '../../../components/toastStore.ts'
 import { formatZec } from '../../../lib/zec.ts'
 import { findContact, useContacts } from '../../contacts/contacts.ts'
+import { summarizeWithdrawal } from './describe.ts'
 import { acceptInvite, approveWithdrawal, declineInvite, declineWithdrawal } from './engine.ts'
 import { actShared, useSharedPotPort, useSharedPots } from './store.ts'
 import type { SharedPot, Withdrawal } from './types.ts'
@@ -25,6 +26,7 @@ function Request({ pot, w }: { pot: SharedPot; w: Withdrawal }) {
   const push = useToasts((state) => state.push)
   const [busy, setBusy] = useState(false)
   const paid = w.request.outputs.filter((o) => o.address !== pot.address)
+  const summary = summarizeWithdrawal(w.request.outputs, pot.address)
   const act = async (approve: boolean) => {
     if (port === null) return
     setBusy(true)
@@ -46,6 +48,17 @@ function Request({ pot, w }: { pot: SharedPot; w: Withdrawal }) {
   return (
     <li className="space-y-3 rounded-card border border-line bg-surface p-4">
       <p className="font-medium">The host asks to move money out of “{pot.name}”.</p>
+      <p>
+        <span
+          className={`inline-block rounded-full px-3 py-1 text-sm font-semibold ${
+            summary.kind === 'all' ? 'bg-bad-soft text-bad' : 'bg-seal-soft text-seal'
+          }`}
+        >
+          {summary.kind === 'all'
+            ? 'Withdraws everything in the pot'
+            : `Withdraws part of the pot: ${formatZec(summary.staysZat)} TAZ stays in it`}
+        </span>
+      </p>
       <ul className="space-y-1 text-sm">
         {paid.map((o, i) => (
           <li key={i}>

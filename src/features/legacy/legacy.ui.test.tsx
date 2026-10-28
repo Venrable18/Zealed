@@ -337,3 +337,33 @@ describe('InboxList', () => {
     expect(container.querySelector('img')).toBeNull()
   })
 })
+
+describe('InboxList: a gift that was already moved', () => {
+  it('counts the letter as unlocked when there is nothing left to move', async () => {
+    const wallet = new FakeLegacyWallet()
+    const result = await sealAndSend(
+      wallet,
+      {
+        recipient: RECIPIENT,
+        letter: 'With a gift.',
+        amountZat: 50_000_000n,
+        unlockMs: UNLOCK_MS,
+      },
+      { nowMs: UNLOCK_MS - 30_000, client: fixtureClient() },
+    )
+    if (!result.ok) throw new Error('expected success')
+    const [found] = await findSealedLetters(wallet.delivered, 1)
+    if (found === undefined) throw new Error('expected a letter')
+    // Opened earlier, and the gift was moved before the app kept a record of it.
+    useLegacy.setState({ inbox: [{ ...found, openedAtMs: 1, hasGift: true }] })
+    wallet.sweepResult = { ok: false, reason: 'nothing-to-sweep' }
+    render(<InboxList wallet={wallet} client={fixtureClient()} />)
+    expect(screen.getByText(/its gift is still waiting/)).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Open letter' }))
+    expect(await screen.findByText('With a gift.')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Move the gift into my wallet' }))
+    expect(await screen.findByText(/already moved into your wallet/)).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Unlocked' }).hasAttribute('disabled')).toBe(true)
+    expect(useLegacy.getState().inbox[0]?.claimedAtMs).toBeDefined()
+  })
+})
