@@ -69,6 +69,8 @@ pub struct ReceivedNoteInfo {
     pub value: u64,
     /// The memo if it is an arbitrary-data memo: all 512 bytes, starting with the 0xFF marker.
     pub memo: Option<[u8; 512]>,
+    /// If the database counts this note as spent: the spending transaction, its state and expiry.
+    pub spent_in: Option<String>,
 }
 
 const BATCH_SIZE: u32 = 10000; // Smaller batches = shorter CPU bursts with I/O pauses between them
@@ -176,12 +178,12 @@ where
         account_id: <MemoryWalletDb<P> as WalletRead>::AccountId,
         only_to: Option<orchard::Address>,
     ) -> Result<Vec<ReceivedNoteInfo>, Error> {
-        let (rows, ufvk) = {
+        let (rows, ufvk, spends) = {
             let db = self.db.read().await;
             let ufvk = db
                 .get_account(account_id)?
                 .and_then(|account| account.ufvk().cloned());
-            (db.received_notes_of(account_id), ufvk)
+            (db.received_notes_of(account_id), ufvk, db.note_spends_of(account_id))
         };
         let mut found = Vec::new();
         for (txid, output_index, mined_height, note, memo) in rows {
@@ -215,11 +217,18 @@ where
                 },
                 _ => None,
             };
+            let spent_in = spends
+                .iter()
+                .find(|(note_tx, index, ..)| *note_tx == txid && *index == output_index)
+                .map(|(_, _, spender, status, expiry)| {
+                    format!("{spender} {status} expiry={expiry:?}")
+                });
             found.push(ReceivedNoteInfo {
                 txid,
                 mined_height: mined_height.map(u32::from),
                 value: note.value().into_u64(),
                 memo: memo_bytes,
+                spent_in,
             });
         }
         Ok(found)

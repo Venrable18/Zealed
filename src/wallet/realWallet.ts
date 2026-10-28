@@ -19,6 +19,19 @@ const hexToBytes = (hex: string): Uint8Array =>
 const bytesToHex = (bytes: Uint8Array): string =>
   Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
 
+/** What the wallet reports about itself. See `RealWallet.diagnostics`. */
+export interface WalletDiagnostics {
+  chainTip: number | null
+  scannedTo: number | null
+  birthday: number | null
+  mainAccountId: number
+  /** The account numbers the saved database holds. The main account must be one of them. */
+  databaseAccountIds: number[]
+  mainInDatabase: boolean
+  /** Every note the wallet has found for the main account, newest first. */
+  notes: { minedHeight: number | null; zat: string; spentIn: string | null }[]
+}
+
 interface Balances {
   spendable: bigint
   pending: bigint
@@ -187,6 +200,40 @@ export class RealWallet
       async () =>
         JSON.parse(await this.wallet.received_notes(accountId, address ?? null)) as NoteRecord[],
     )
+  }
+
+  /**
+   * What the wallet has found, for troubleshooting a balance that looks wrong. Holds no secrets:
+   * no phrase, no memos, only heights, amounts and the accounts the database knows about.
+   */
+  async diagnostics(): Promise<WalletDiagnostics> {
+    const main = this.main
+    return this.exclusive(async () => {
+      const summary = await this.wallet.get_wallet_summary()
+      const rows = (summary?.account_balances ?? []) as [number, WasmBalances][]
+      const result: WalletDiagnostics = {
+        chainTip: summary?.chain_tip_height ?? null,
+        scannedTo: summary?.fully_scanned_height ?? null,
+        birthday: useWalletData.getState().birthday,
+        mainAccountId: main.id,
+        databaseAccountIds: rows.map(([id]) => id),
+        mainInDatabase: rows.some(([id]) => id === main.id),
+        notes: [],
+      }
+      summary?.free()
+      const notes = JSON.parse(await this.wallet.received_notes(main.id, null)) as NoteRecord[]
+      result.notes = notes
+        .map((note) => ({
+          minedHeight: note.minedHeight,
+          zat: note.zat,
+          spentIn: note.spentIn ?? null,
+        }))
+        .sort(
+          (a, b) =>
+            (b.minedHeight ?? Number.MAX_SAFE_INTEGER) - (a.minedHeight ?? Number.MAX_SAFE_INTEGER),
+        )
+      return result
+    })
   }
 
   /** Sends from an account of this wallet. Resolves to the transaction ids. */

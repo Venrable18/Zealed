@@ -453,6 +453,8 @@ impl WebWallet {
             zat: String,
             #[serde(rename = "memoHex")]
             memo_hex: Option<String>,
+            #[serde(rename = "spentIn")]
+            spent_in: Option<String>,
         }
         let only_to = match address {
             None => None,
@@ -499,6 +501,7 @@ impl WebWallet {
                 time_ms,
                 zat: note.value.to_string(),
                 memo_hex: note.memo.map(hex::encode),
+                spent_in: note.spent_in,
             });
         }
         serde_json::to_string(&out)

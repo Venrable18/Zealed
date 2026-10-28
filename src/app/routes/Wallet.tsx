@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { Button } from '../../components/Button.tsx'
 import { EmptyState } from '../../components/EmptyState.tsx'
@@ -7,6 +7,7 @@ import { formatZec } from '../../lib/zec.ts'
 import { useT } from '../../i18n/index.ts'
 import { useVaultStatus } from '../../storage/vaultState.ts'
 import { loadWasm } from '../../wallet/loadWasm.ts'
+import type { WalletDiagnostics } from '../../wallet/realWallet.ts'
 import { syncNow, useWalletRuntime } from '../../wallet/runtime.ts'
 import { useWalletData } from '../../wallet/walletData.ts'
 import { useBalance } from '../../wallet/useBalance.ts'
@@ -164,6 +165,76 @@ function Start() {
   )
 }
 
+/** What the wallet has found, for when a balance looks wrong. Nothing in it is secret. */
+function WalletDetails() {
+  const wallet = useWalletRuntime((state) => state.wallet)
+  const syncedAt = useWalletRuntime((state) => state.syncedAt)
+  const [info, setInfo] = useState<WalletDiagnostics | undefined>()
+  const [open, setOpen] = useState(false)
+  useEffect(() => {
+    if (!open || wallet === null) return
+    let cancelled = false
+    wallet.diagnostics().then(
+      (value) => {
+        if (!cancelled) setInfo(value)
+      },
+      () => undefined,
+    )
+    return () => {
+      cancelled = true
+    }
+  }, [open, wallet, syncedAt])
+  const total = info?.notes.reduce((sum, note) => sum + BigInt(note.zat), 0n) ?? 0n
+  return (
+    <details
+      className="text-sm"
+      onToggle={(event) => {
+        setOpen(event.currentTarget.open)
+      }}
+    >
+      <summary className="min-h-11 cursor-pointer py-2 text-muted">Wallet details</summary>
+      {info === undefined ? (
+        <p className="text-muted">Reading the wallet…</p>
+      ) : (
+        <dl
+          className="grid max-w-prose grid-cols-[auto_1fr] gap-x-6 gap-y-1"
+          data-testid="wallet-details"
+        >
+          <dt className="text-muted">Latest block</dt>
+          <dd>{info.chainTip ?? 'unknown'}</dd>
+          <dt className="text-muted">Scanned up to</dt>
+          <dd>{info.scannedTo ?? 'nothing yet'}</dd>
+          <dt className="text-muted">Starting block</dt>
+          <dd>{info.birthday ?? 'not set'}</dd>
+          <dt className="text-muted">Main account</dt>
+          <dd>
+            {String(info.mainAccountId)}
+            {info.mainInDatabase ? '' : ' (not in the saved database)'}
+          </dd>
+          <dt className="text-muted">Accounts in the database</dt>
+          <dd>
+            {info.databaseAccountIds.length === 0 ? 'none' : info.databaseAccountIds.join(', ')}
+          </dd>
+          <dt className="text-muted">Payments found (spent ones too)</dt>
+          <dd>
+            {info.notes.length}
+            {info.notes.length === 0 ? '' : `, ${formatZec(total)} TAZ received in all`}
+          </dd>
+          {info.notes.slice(0, 6).map((note, index) => (
+            <Fragment key={index}>
+              <dt className="text-muted">Block {note.minedHeight ?? 'not mined yet'}</dt>
+              <dd>
+                {formatZec(BigInt(note.zat))} TAZ
+                {note.spentIn === null ? ', unspent' : `, counted as spent by ${note.spentIn}`}
+              </dd>
+            </Fragment>
+          ))}
+        </dl>
+      )}
+    </details>
+  )
+}
+
 function Ready() {
   const t = useT()
   const syncing = useWalletRuntime((state) => state.syncing)
@@ -221,6 +292,8 @@ function Ready() {
           {t('wallet.syncNow')}
         </Button>
       </section>
+
+      <WalletDetails />
 
       <section aria-labelledby="fund-title" className="space-y-3">
         <h2 id="fund-title" className="text-xl">

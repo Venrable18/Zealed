@@ -99,4 +99,6 @@ export interface NoteRecord {
   zat: string
   /** The 512-byte memo in hex, when it is an arbitrary-data memo (first byte 0xFF). */
   memoHex: string | null
+  /** If the wallet counts the note as spent: the spending transaction, its state and expiry. */
+  spentIn?: string | null
 }

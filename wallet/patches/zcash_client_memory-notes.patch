@@ -1,6 +1,6 @@
 --- a/src/types/memory_wallet/mod.rs	2026-10-10 14:28:00
-+++ b/src/types/memory_wallet/mod.rs	2026-10-26 00:17:50
-@@ -157,6 +157,37 @@
++++ b/src/types/memory_wallet/mod.rs	2026-10-28 14:48:01
+@@ -157,6 +157,62 @@
  }
  
  impl<P: consensus::Parameters> MemoryWalletDb<P> {
@@ -35,10 +35,35 @@
 +            .collect()
 +    }
 +
++    /// For every note `account` has received that the database counts as spent: the note's
++    /// transaction and output index, the transaction that spent it, that transaction's status and
++    /// its expiry height. (Added for Zealed, to show why a balance can be lower than expected.)
++    pub fn note_spends_of(
++        &self,
++        account: AccountId,
++    ) -> Vec<(TxId, u32, TxId, String, Option<u32>)> {
++        self.received_notes
++            .0
++            .iter()
++            .filter(|note| note.account_id == account)
++            .filter_map(|note| {
++                let spender = self.received_note_spends.get(&note.note_id())?;
++                let (status, expiry) = match self.tx_table.get(spender) {
++                    Some(entry) => (
++                        format!("{:?}", entry.status()),
++                        entry.expiry_height().map(u32::from),
++                    ),
++                    None => ("missing".to_string(), None),
++                };
++                Some((note.txid, note.output_index, *spender, status, expiry))
++            })
++            .collect()
++    }
++
      pub fn new(params: P, max_checkpoints: usize) -> Self {
          Self {
              accounts: Accounts::new(),
-@@ -1599,11 +1630,24 @@
+@@ -1599,11 +1655,24 @@
                  entry.get_mut().txout = output.txout().clone();
              }
              Entry::Vacant(entry) => {
@@ -65,8 +90,28 @@
                      max_observed_unspent.unwrap_or(BlockHeight::from(0)),
                  ));
 --- a/src/wallet_read.rs	2026-10-10 14:28:00
-+++ b/src/wallet_read.rs	2026-10-26 00:17:50
-@@ -803,12 +803,9 @@
++++ b/src/wallet_read.rs	2026-10-28 14:48:01
+@@ -240,9 +240,16 @@
+                     continue; // note is in an unscanned range. Skip it
+                 }
+             }
+-            // don't count notes in unmined transactions or that have expired
+-            if let Ok(Some(note_tx)) = self.get_transaction(note.txid) {
+-                if note_tx.expiry_height() < BlockHeight::from(target_height) {
++            // Don't count notes in a transaction that was never mined and has expired. (Zealed) A
++            // mined transaction's expiry height no longer matters: the original code skipped its
++            // notes once that height passed, so a wallet's own change vanished from its balance
++            // about 40 blocks after each send. An expiry height of 0 means "never expires".
++            if let Some(entry) = self.tx_table.get(&note.txid) {
++                let mined = matches!(entry.status(), TransactionStatus::Mined(_));
++                let expired = entry.expiry_height().is_some_and(|h| {
++                    h > BlockHeight::from(0) && h < BlockHeight::from(target_height)
++                });
++                if !mined && expired {
+                     continue;
+                 }
+             }
+@@ -803,12 +810,9 @@
              .get_account(account_id)?
              .ok_or(Error::AccountUnknown(account_id))?;
  
@@ -82,7 +127,7 @@
  
          let t_addresses = account
              .addresses()
-@@ -832,6 +829,30 @@
+@@ -832,6 +836,30 @@
          Ok(t_addresses)
      }
  
@@ -113,7 +158,7 @@
      /// Returns a mapping from each transparent receiver associated with the specified account
      /// to its not-yet-shielded UTXO balance, including only the effects of transactions mined
      /// at a block height less than or equal to `summary_height`.
-@@ -913,15 +934,23 @@
+@@ -913,15 +941,23 @@
  
      fn get_last_generated_address_matching(
          &self,
@@ -142,7 +187,7 @@
  
      fn get_received_outputs(
 --- a/src/wallet_write.rs	2026-10-10 14:28:00
-+++ b/src/wallet_write.rs	2026-10-26 00:17:50
++++ b/src/wallet_write.rs	2026-10-28 14:48:01
 @@ -984,7 +984,8 @@
                      );
                  }
