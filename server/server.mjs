@@ -72,7 +72,9 @@ const COMPRESSIBLE = new Set([
 
 function cacheControl(path) {
   if (path.startsWith('/assets/')) return 'public, max-age=31536000, immutable'
-  if (path.startsWith('/wallet/')) return 'public, max-age=3600'
+  // The wallet's files keep their names across builds, and its .js and .wasm must come from the same
+  // one, so the browser asks each time (a 304 when nothing changed).
+  if (path.startsWith('/wallet/')) return 'no-cache'
   return 'no-cache'
 }
 
@@ -92,12 +94,20 @@ function locate(urlPath) {
 
 function send(req, res, file, path, status = 200) {
   const ext = extname(file)
-  const size = statSync(file).size
+  const { size, mtimeMs } = statSync(file)
+  const etag = `"${size.toString(16)}-${Math.floor(mtimeMs).toString(16)}"`
   const headers = {
     ...SECURITY_HEADERS,
     'Content-Type': TYPES[ext] ?? 'application/octet-stream',
     'Cache-Control': cacheControl(path),
+    ETag: etag,
     Vary: 'Accept-Encoding',
+  }
+  if (status === 200 && req.headers['if-none-match'] === etag) {
+    delete headers['Content-Type']
+    res.writeHead(304, headers)
+    res.end()
+    return
   }
   const gzip = COMPRESSIBLE.has(ext) && /\bgzip\b/.test(req.headers['accept-encoding'] ?? '')
   if (gzip) headers['Content-Encoding'] = 'gzip'
