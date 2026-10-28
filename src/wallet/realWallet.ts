@@ -65,6 +65,7 @@ export class RealWallet
 
   private queue: Promise<unknown> = Promise.resolve()
   private running = 0
+  private disposed = false
   private lastSync = 0
 
   private readonly wasm: WasmModule
@@ -105,14 +106,27 @@ export class RealWallet
     return real
   }
 
+  /**
+   * Releases the wallet. A sync or send in progress holds it, and freeing it then throws ("attempted
+   * to take ownership of Rust value while it was borrowed"), so it is freed once the queue is idle.
+   */
   dispose(): void {
-    this.wallet.free()
+    if (this.disposed) return
+    this.disposed = true
+    void this.queue.then(() => {
+      try {
+        this.wallet.free()
+      } catch {
+        // Nothing left to release.
+      }
+    })
   }
 
   // --- plumbing -----------------------------------------------------------------------------
 
   /** Runs `task` after everything queued before it. A failure does not block what comes next. */
   private exclusive<T>(task: () => Promise<T>): Promise<T> {
+    if (this.disposed) return Promise.reject(new Error('The wallet was closed.'))
     this.running++
     const run = this.queue.then(task, task).finally(() => {
       this.running--

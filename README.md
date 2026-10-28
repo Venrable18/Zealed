@@ -136,7 +136,8 @@ nobody's business.
 - **Co-hosts** (optional): the pot's key is made by the co-hosts together, and any withdrawal needs
   k of n to sign (FROST threshold signatures). No one, the host included, can take the money alone.
   A withdrawal can take everything or a chosen amount, with the rest staying in the pot; every
-  co-host reads what it actually does from the transaction itself before approving.
+  co-host reads what it actually does from the transaction itself before approving. A withdrawal
+  never closes the pot: guests can keep giving until the gift deadline.
 - **What stays private:** who gave, and how much. The host sees the total and the wishes.
 
 ### Unsigned: a contact line that never learns who called
@@ -159,6 +160,7 @@ reachable too.
 | **Notifications**  | Co-host invitations and approvals, sealed letters, guardian events and anonymous messages, gathered in one place with a link to where each is handled | Worked out on the device from your own wallet; nothing is sent to see it |
 | **Dashboard**      | Your own numbers, worked out on the device                                          | Nothing leaves the browser              |
 | **Contacts**       | Names for addresses, shared as a link or through the phone's share sheet            | Contact data rides in the URL fragment  |
+| **Guided tour**    | An 8-step walkthrough of the app, opened from the Getting started bar or the wallet panel; it never starts by itself | Nothing is stored or sent               |
 | **Languages**      | English, Spanish and French                                                         |                                          |
 
 ### On a phone, and after dark
