@@ -73,11 +73,23 @@ describe('validatePotInput', () => {
       expect(Object.keys(result.errors).sort()).toEqual(['cover', 'endDate', 'eventDate', 'name'])
   })
 
-  it('checks date order and that the last day is not in the past', () => {
-    expect(validatePotInput({ ...goodInput, endDate: '2026-11-30' }, '2026-10-14')).toMatchObject({
-      ok: false,
-      errors: { endDate: expect.stringContaining('before the event') as string },
-    })
+  it('lets the last day for gifts be before, on or after the event, but not in the past', () => {
+    const today = '2026-10-14'
+    for (const endDate of ['2026-10-20', goodInput.eventDate, '2027-12-31']) {
+      expect(validatePotInput({ ...goodInput, eventDate: '2026-12-01', endDate }, today).ok).toBe(
+        true,
+      )
+    }
+    // Before the event is fine; today is fine; yesterday is not.
+    expect(
+      validatePotInput({ ...goodInput, eventDate: '2026-12-01', endDate: '2026-11-30' }, today).ok,
+    ).toBe(true)
+    expect(
+      validatePotInput({ ...goodInput, eventDate: '2026-12-01', endDate: today }, today).ok,
+    ).toBe(true)
+    expect(
+      validatePotInput({ ...goodInput, eventDate: '2026-12-01', endDate: '2026-10-13' }, today),
+    ).toMatchObject({ ok: false, errors: { endDate: expect.stringContaining('past') as string } })
     expect(
       validatePotInput(
         { ...goodInput, eventDate: '2026-09-01', endDate: '2026-10-01' },

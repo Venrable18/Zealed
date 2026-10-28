@@ -43,7 +43,10 @@ export function todayString(nowMs: number): string {
 // eslint-disable-next-line no-control-regex
 const CONTROL_CHARS = /[\u0000-\u001f\u007f-\u009f]/
 
-/** Checks what a host typed. `today` is YYYY-MM-DD; the end date may not be earlier than it. */
+/**
+ * Checks what a host typed. `today` is YYYY-MM-DD. The last day for gifts may be before, on or
+ * after the event (a host may want gifts in before the day), but it may not be in the past.
+ */
 export function validatePotInput(input: PotInput, today: string): ValidatePotResult {
   const errors: Partial<Record<PotInputField, string>> = {}
   const name = input.name.trim()
@@ -63,9 +66,7 @@ export function validatePotInput(input: PotInput, today: string): ValidatePotRes
 
   if (!isValidDate(input.eventDate)) errors.eventDate = 'Choose the event date.'
   if (!isValidDate(input.endDate)) errors.endDate = 'Choose the last day for gifts.'
-  else if (errors.eventDate === undefined && input.endDate < input.eventDate) {
-    errors.endDate = 'The last day for gifts cannot be before the event.'
-  } else if (input.endDate < today) errors.endDate = 'The last day for gifts cannot be in the past.'
+  else if (input.endDate < today) errors.endDate = 'The last day for gifts cannot be in the past.'
 
   if (Object.keys(errors).length > 0) return { ok: false, errors }
   return { ok: true, value: { name, cover, eventDate: input.eventDate, endDate: input.endDate } }

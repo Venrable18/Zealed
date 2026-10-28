@@ -1,4 +1,5 @@
 import type { Pot, PrivacyStrength, HostView } from '../blindpot/types.ts'
+import { letterStage } from '../legacy/types.ts'
 import type { InboxItem, SentItem } from '../legacy/types.ts'
 import { guardStatus, type GuardianRecord } from '../legacy/silent/guardian.ts'
 import { shareCount, type HeirItem } from '../legacy/silent/heir.ts'
@@ -50,7 +51,7 @@ export interface DashboardStats {
   legacy: {
     sent: number
     notDelivered: number
-    sealedForYou: { total: number; ready: number; locked: number }
+    sealedForYou: { total: number; ready: number; locked: number; unlocked: number }
     silent: {
       active: number
       revoked: number
@@ -119,8 +120,12 @@ export function computeDashboard(input: DashboardInput): DashboardStats {
       notDelivered: input.legacySent.filter((item) => item.status === 'failed').length,
       sealedForYou: {
         total: input.legacyInbox.length,
-        ready: input.legacyInbox.filter((item) => item.unlockMs <= input.nowMs).length,
-        locked: input.legacyInbox.filter((item) => item.unlockMs > input.nowMs).length,
+        ready: input.legacyInbox.filter((item) => letterStage(item, input.nowMs) === 'ready')
+          .length,
+        locked: input.legacyInbox.filter((item) => letterStage(item, input.nowMs) === 'locked')
+          .length,
+        unlocked: input.legacyInbox.filter((item) => letterStage(item, input.nowMs) === 'unlocked')
+          .length,
       },
       silent: {
         active: active.length,

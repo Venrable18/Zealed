@@ -86,7 +86,7 @@ describe('Dashboard', () => {
 
     const legacy = card('Legacy')
     expect(legacy.textContent).toContain('Letters sealed and sent')
-    expect(within(legacy).getByText('2 (1 ready, 1 locked)')).toBeTruthy()
+    expect(within(legacy).getByText('2 (1 ready, 1 locked, 0 unlocked)')).toBeTruthy()
     expect(within(legacy).getByText('2 (1 ready to open)')).toBeTruthy()
     expect(within(legacy).getByText('Not delivered yet')).toBeTruthy()
     expect(

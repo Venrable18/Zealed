@@ -201,6 +201,8 @@ export const fr: Record<MessageKey, string> = {
   'wallet.balance': 'Solde',
   'wallet.spendable': 'Disponible',
   'wallet.pending': 'En attente de confirmations',
+  'wallet.pendingHint':
+    'Après un envoi, le reste de votre argent vous revient sous forme de monnaie rendue. Il apparaît ici jusqu’à ce que le réseau le confirme, une à deux minutes, puis il est de nouveau disponible. Rien n’est perdu.',
   'wallet.syncing': 'Synchronisation avec le réseau…',
   'wallet.syncedAt': 'À jour. Dernière vérification : {time}.',
   'wallet.syncFailed': 'Le portefeuille n’a pas pu joindre le réseau. Il continuera d’essayer.',

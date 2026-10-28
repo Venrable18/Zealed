@@ -10,7 +10,7 @@ import { formatZec } from '../../lib/zec.ts'
 import { formatDateTime } from './format.ts'
 import { findSealedLetters, openLetter, sweepGift } from './inbox.ts'
 import { useLegacy } from './stores.ts'
-import type { InboxItem } from './types.ts'
+import { letterStage, type InboxItem } from './types.ts'
 import type { LegacyWalletPort } from './walletPort.ts'
 
 function currentTime(): number {
@@ -40,6 +40,8 @@ function InboxCard({
   client?: ChainClient
 }) {
   const push = useToasts((state) => state.push)
+  const markOpened = useLegacy((state) => state.markOpened)
+  const markClaimed = useLegacy((state) => state.markClaimed)
   const [ready, setReady] = useState(() => currentTime() >= item.unlockMs)
   const [content, setContent] = useState<LegacyContent | undefined>()
   const [problem, setProblem] = useState<string | undefined>()
@@ -51,8 +53,10 @@ function InboxCard({
     setProblem(undefined)
     const result = await openLetter(item, client === undefined ? {} : { client })
     setBusy(false)
-    if (result.ok) setContent(result.content)
-    else setProblem(OPEN_ERRORS[result.reason])
+    if (result.ok) {
+      setContent(result.content)
+      markOpened(item.bundleIdHex, result.content.giftSeed !== undefined, currentTime())
+    } else setProblem(OPEN_ERRORS[result.reason])
   }
 
   async function sweep(seed: string, birthday?: number) {
@@ -61,6 +65,7 @@ function InboxCard({
     const result = await trackWork(() => sweepGift(wallet, seed, birthday))
     setBusy(false)
     if (result.ok) {
+      markClaimed(item.bundleIdHex, currentTime())
       setSwept(result.sweptZat)
       push('success', 'The gift was moved into your wallet.')
     } else setProblem(SWEEP_ERRORS[result.reason])
@@ -101,6 +106,21 @@ function InboxCard({
             {problem}
           </p>
         )}
+        {letterStage(item, currentTime()) === 'unlocked' && <Button disabled>Unlocked</Button>}
+      </li>
+    )
+  }
+
+  if (letterStage(item, currentTime()) === 'unlocked') {
+    return (
+      <li className="space-y-3 rounded-card border border-line bg-surface p-5">
+        <h3 className="text-lg">Unlocked</h3>
+        <p className="text-sm text-muted">
+          Sealed until {formatDateTime(item.unlockMs)}. You opened it
+          {item.openedAtMs === undefined ? '' : ` on ${formatDateTime(item.openedAtMs)}`}.
+          {item.claimedAtMs === undefined ? '' : ' Its gift was moved into your wallet.'}
+        </p>
+        <Button disabled>Unlocked</Button>
       </li>
     )
   }
@@ -108,7 +128,9 @@ function InboxCard({
   return (
     <li className="space-y-3 rounded-card border border-line bg-surface p-5">
       <h3 className="text-lg">Sealed until {formatDateTime(item.unlockMs)}</h3>
-      {ready ? (
+      {ready && item.openedAtMs !== undefined ? (
+        <p>You opened it, and its gift is still waiting. Open it again to move the gift.</p>
+      ) : ready ? (
         <p>It is time. You can open it now.</p>
       ) : (
         <div>

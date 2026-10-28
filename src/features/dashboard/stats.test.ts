@@ -46,7 +46,7 @@ describe('computeDashboard after the earlier scenarios', () => {
     const { legacy } = computeDashboard(await fullScenario())
     expect(legacy.sent).toBe(1)
     expect(legacy.notDelivered).toBe(1)
-    expect(legacy.sealedForYou).toEqual({ total: 2, ready: 1, locked: 1 })
+    expect(legacy.sealedForYou).toEqual({ total: 2, ready: 1, locked: 1, unlocked: 0 })
   })
 
   it('knows the next check-in due and whether it is overdue', async () => {
@@ -100,10 +100,32 @@ describe('computeDashboard after the earlier scenarios', () => {
     })
   })
 
+  it('counts an opened letter as unlocked, once any gift is moved into the wallet', async () => {
+    const input = await fullScenario()
+    const [due] = input.legacyInbox.filter((item) => item.unlockMs <= input.nowMs)
+    expect(due).toBeDefined()
+    if (due === undefined) return
+    const withInbox = (changed: typeof due) => ({
+      ...input,
+      legacyInbox: input.legacyInbox.map((item) => (item === due ? changed : item)),
+    })
+    // Opened, with no gift: done.
+    const noGift = computeDashboard(withInbox({ ...due, openedAtMs: NOW, hasGift: false }))
+    expect(noGift.legacy.sealedForYou).toMatchObject({ ready: 0, unlocked: 1 })
+    // Opened, gift still waiting: it still has something to do, so it stays ready.
+    const waiting = computeDashboard(withInbox({ ...due, openedAtMs: NOW, hasGift: true }))
+    expect(waiting.legacy.sealedForYou).toMatchObject({ ready: 1, unlocked: 0 })
+    // Opened and the gift moved: done.
+    const claimed = computeDashboard(
+      withInbox({ ...due, openedAtMs: NOW, hasGift: true, claimedAtMs: NOW }),
+    )
+    expect(claimed.legacy.sealedForYou).toMatchObject({ ready: 0, unlocked: 1 })
+  })
+
   it('moves with the clock: a locked letter becomes ready, a due check-in becomes overdue', async () => {
     const input = await fullScenario()
     const later = computeDashboard({ ...input, nowMs: NOW + 25 * 60 * MINUTE })
-    expect(later.legacy.sealedForYou).toEqual({ total: 2, ready: 2, locked: 0 })
+    expect(later.legacy.sealedForYou).toEqual({ total: 2, ready: 2, locked: 0, unlocked: 0 })
     expect(later.legacy.silent.overdue).toBe(true)
   })
 })
@@ -130,7 +152,7 @@ describe('computeDashboard with nothing', () => {
       legacy: {
         sent: 0,
         notDelivered: 0,
-        sealedForYou: { total: 0, ready: 0, locked: 0 },
+        sealedForYou: { total: 0, ready: 0, locked: 0, unlocked: 0 },
         silent: { active: 0, revoked: 0, nextCheckInMs: null, overdue: false, pendingSends: 0 },
         guarding: { total: 0, ok: 0, overdue: 0, releasing: 0, released: 0, revoked: 0 },
         waitingForYou: { total: 0, ready: 0 },

@@ -221,6 +221,61 @@ describe('InboxList', () => {
     expect(wallet.swept).toHaveLength(1)
   })
 
+  it('shows a letter as unlocked, with a disabled button, once it is opened and its gift moved, and after a reload', async () => {
+    const wallet = new FakeLegacyWallet()
+    await sealedFor(wallet)
+    const view = render(
+      <>
+        <InboxList wallet={wallet} client={fixtureClient()} />
+        <ToastViewport />
+      </>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Check for sealed letters' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Open letter' }))
+    expect(await screen.findByText(/I hope this finds you well/)).toBeTruthy()
+    // Opened, but the gift is still waiting: not unlocked yet.
+    expect(screen.queryByRole('button', { name: 'Unlocked' })).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Move the gift into my wallet' }))
+    expect(await screen.findByText(/Moved 0\.49975 ZEC into your wallet/)).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Unlocked' }).hasAttribute('disabled')).toBe(true)
+
+    // After a reload the screen starts again from what was saved: still unlocked, and nothing to open.
+    view.unmount()
+    render(<InboxList wallet={wallet} client={fixtureClient()} />)
+    expect(screen.getByRole('heading', { name: 'Unlocked' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Unlocked' }).hasAttribute('disabled')).toBe(true)
+    expect(screen.queryByRole('button', { name: 'Open letter' })).toBeNull()
+  })
+
+  it('keeps an opened letter openable while its gift has not been moved', async () => {
+    const wallet = new FakeLegacyWallet()
+    await sealedFor(wallet)
+    const view = render(<InboxList wallet={wallet} client={fixtureClient()} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Check for sealed letters' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Open letter' }))
+    expect(await screen.findByText(/I hope this finds you well/)).toBeTruthy()
+    view.unmount()
+    render(<InboxList wallet={wallet} client={fixtureClient()} />)
+    expect(screen.getByText(/its gift is still waiting/)).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Open letter' }).hasAttribute('disabled')).toBe(false)
+  })
+
+  it('a letter with no gift is unlocked as soon as it is opened', async () => {
+    const wallet = new FakeLegacyWallet()
+    const result = await sealAndSend(
+      wallet,
+      { recipient: RECIPIENT, letter: 'Just words.', amountZat: null, unlockMs: UNLOCK_MS },
+      { nowMs: UNLOCK_MS - 30_000, client: fixtureClient() },
+    )
+    if (!result.ok) throw new Error('expected success')
+    useLegacy.setState({ inbox: await findSealedLetters(wallet.delivered, 1) })
+    render(<InboxList wallet={wallet} client={fixtureClient()} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Open letter' }))
+    expect(await screen.findByText('Just words.')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Unlocked' }).hasAttribute('disabled')).toBe(true)
+  })
+
   it('cannot be opened before the unlock time, and shows a countdown', async () => {
     const wallet = new FakeLegacyWallet()
     const item = await sealedFor(wallet)

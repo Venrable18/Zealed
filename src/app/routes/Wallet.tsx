@@ -191,6 +191,9 @@ function Ready() {
             </dd>
           </div>
         </dl>
+        {balance !== undefined && balance.pendingZat > 0n && (
+          <p className="max-w-prose text-sm text-muted">{t('wallet.pendingHint')}</p>
+        )}
         <p role="status" className="text-sm text-muted">
           {syncing
             ? t('wallet.syncing')

@@ -33,4 +33,23 @@ export interface InboxItem {
   /** Unix ms of the drand round it opens at. */
   unlockMs: number
   receivedAtMs: number
+  /** When the person opened it. Set once; the letter is then "unlocked". */
+  openedAtMs?: number
+  /** Whether the letter came with a gift, known once it has been opened. */
+  hasGift?: boolean
+  /** When the gift was moved into the wallet. */
+  claimedAtMs?: number
+}
+
+/** Where a letter in the inbox is: waiting for its date, ready to open, or opened and done with. */
+export type LetterStage = 'locked' | 'ready' | 'unlocked'
+
+/**
+ * "Unlocked" means opened, and any gift moved into the wallet. A letter that is opened but whose
+ * gift is still waiting stays "ready", because it still has something to do.
+ */
+export function letterStage(item: InboxItem, nowMs: number): LetterStage {
+  if (item.openedAtMs !== undefined && (item.hasGift !== true || item.claimedAtMs !== undefined))
+    return 'unlocked'
+  return item.unlockMs <= nowMs ? 'ready' : 'locked'
 }

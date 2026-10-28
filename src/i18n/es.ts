@@ -201,6 +201,8 @@ export const es: Record<MessageKey, string> = {
   'wallet.balance': 'Saldo',
   'wallet.spendable': 'Disponible',
   'wallet.pending': 'Esperando confirmaciones',
+  'wallet.pendingHint':
+    'Después de enviar algo, el resto de tu dinero vuelve a ti como cambio. Aparece aquí hasta que la red lo confirma, uno o dos minutos, y luego puedes gastarlo de nuevo. No se pierde nada.',
   'wallet.syncing': 'Poniéndose al día con la red…',
   'wallet.syncedAt': 'Al día. Última comprobación: {time}.',
   'wallet.syncFailed': 'La cartera no pudo conectarse a la red. Seguirá intentándolo.',

@@ -132,7 +132,7 @@ export function DashboardView({ data }: { data: DashboardData }) {
             )}
             <Stat
               label="Sealed for you"
-              value={`${String(legacy.sealedForYou.total)} (${String(legacy.sealedForYou.ready)} ready, ${String(legacy.sealedForYou.locked)} locked)`}
+              value={`${String(legacy.sealedForYou.total)} (${String(legacy.sealedForYou.ready)} ready, ${String(legacy.sealedForYou.locked)} locked, ${String(legacy.sealedForYou.unlocked)} unlocked)`}
             />
             <Stat label="Letters if you go silent" value={legacy.silent.active} />
             <Stat label="People you guard" value={legacy.guarding.total} />

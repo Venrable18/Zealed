@@ -7,6 +7,10 @@ interface LegacyState {
   addSent: (item: SentItem) => void
   replaceSent: (item: SentItem) => void
   addInbox: (items: InboxItem[]) => void
+  /** Records that a letter was opened, and whether it came with a gift. */
+  markOpened: (bundleIdHex: string, hasGift: boolean, nowMs: number) => void
+  /** Records that a letter's gift was moved into the wallet. */
+  markClaimed: (bundleIdHex: string, nowMs: number) => void
 }
 
 /**
@@ -23,6 +27,24 @@ export const useLegacy = create<LegacyState>()((set) => ({
   replaceSent: (item) => {
     set((state) => ({
       sent: state.sent.map((existing) => (existing.id === item.id ? item : existing)),
+    }))
+  },
+  markOpened: (bundleIdHex, hasGift, nowMs) => {
+    set((state) => ({
+      inbox: state.inbox.map((item) =>
+        item.bundleIdHex === bundleIdHex && item.openedAtMs === undefined
+          ? { ...item, openedAtMs: nowMs, hasGift }
+          : item,
+      ),
+    }))
+  },
+  markClaimed: (bundleIdHex, nowMs) => {
+    set((state) => ({
+      inbox: state.inbox.map((item) =>
+        item.bundleIdHex === bundleIdHex && item.claimedAtMs === undefined
+          ? { ...item, claimedAtMs: nowMs }
+          : item,
+      ),
     }))
   },
   addInbox: (items) => {

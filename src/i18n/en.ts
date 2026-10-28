@@ -198,6 +198,8 @@ export const en = {
   'wallet.balance': 'Balance',
   'wallet.spendable': 'Spendable',
   'wallet.pending': 'Waiting for confirmations',
+  'wallet.pendingHint':
+    'After you send something, the rest of your money comes back to you as change. It shows here until the network has confirmed it, about a minute or two, and then it is spendable again. None of it is lost.',
   'wallet.syncing': 'Catching up with the network…',
   'wallet.syncedAt': 'Up to date. Last checked {time}.',
   'wallet.syncFailed': 'The wallet could not reach the network. It will keep trying.',
