@@ -1,0 +1,13 @@
+# Render blueprint: Zealed as a web service. It serves the built app (dist/) with the security
+# headers the app needs. Nothing runs server-side beyond that; there is no database.
+services:
+  - type: web
+    name: zealed
+    runtime: node
+    plan: free
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_VERSION
+        value: 24.11.1

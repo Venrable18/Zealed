@@ -30,5 +30,6 @@ npm-debug.log*
 wallet/target
 wallet/.deps
 wallet/pkg
-public/wallet
+# public/wallet (the built wallet, 61 MB) is committed on purpose: a deploy host builds the app from
+# the repository and cannot compile the Rust. Rebuild it with `npm run wallet:build`.
 docs/
