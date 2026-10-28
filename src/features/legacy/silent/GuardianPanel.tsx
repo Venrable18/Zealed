@@ -185,12 +185,16 @@ export function GuardianPanel({ wallet, autoRelease }: GuardianPanelProps) {
         title="Release your share?"
         confirmLabel="Release"
         danger
+        busy={busy !== undefined}
+        busyLabel="Releasing…"
         onCancel={() => {
           setConfirming(undefined)
         }}
         onConfirm={() => {
-          setConfirming(undefined)
-          if (target !== undefined) void release(target)
+          if (target === undefined) return
+          void release(target).finally(() => {
+            setConfirming(undefined)
+          })
         }}
       >
         Your key share goes to the heir. With enough other guardians doing the same, they can open

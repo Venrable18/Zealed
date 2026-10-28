@@ -9,6 +9,12 @@ interface ConfirmDialogProps {
   cancelLabel?: string
   /** Styles the confirm button as destructive. */
   danger?: boolean
+  /**
+   * Working on it: the dialog stays open, the buttons are locked and the confirm button says
+   * `busyLabel`, until the caller closes it (done) or clears `busy` (a problem to show).
+   */
+  busy?: boolean
+  busyLabel?: string
   onConfirm: () => void
   onCancel: () => void
 }
@@ -21,6 +27,8 @@ export function ConfirmDialog({
   confirmLabel = 'Confirm',
   cancelLabel = 'Cancel',
   danger = false,
+  busy = false,
+  busyLabel = 'Working…',
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -40,7 +48,7 @@ export function ConfirmDialog({
       aria-labelledby={titleId}
       onCancel={(event) => {
         event.preventDefault()
-        onCancel()
+        if (!busy) onCancel()
       }}
       className="m-auto w-[calc(100%-2rem)] max-w-md rounded-card border border-line bg-surface p-6 text-ink backdrop:bg-black/60"
     >
@@ -48,12 +56,17 @@ export function ConfirmDialog({
         {title}
       </h2>
       <div className="mt-2 text-muted">{children}</div>
+      {busy && (
+        <p role="status" className="mt-4 text-sm text-muted">
+          This can take a little while. Keep this page open.
+        </p>
+      )}
       <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-        <Button variant="secondary" onClick={onCancel}>
+        <Button variant="secondary" disabled={busy} onClick={onCancel}>
           {cancelLabel}
         </Button>
-        <Button variant={danger ? 'danger' : 'primary'} onClick={onConfirm}>
-          {confirmLabel}
+        <Button variant={danger ? 'danger' : 'primary'} busy={busy} onClick={onConfirm}>
+          {busy ? busyLabel : confirmLabel}
         </Button>
       </div>
     </dialog>

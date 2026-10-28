@@ -207,7 +207,9 @@ export function SharedWithdraw({ sharedId }: { sharedId: string }) {
       <ConfirmDialog
         open={confirming}
         title="Ask your co-hosts?"
-        confirmLabel={busy ? 'Sending…' : 'Send the request'}
+        confirmLabel="Send the request"
+        busy={busy}
+        busyLabel="Preparing the request…"
         onCancel={() => {
           if (!busy) setConfirming(false)
         }}

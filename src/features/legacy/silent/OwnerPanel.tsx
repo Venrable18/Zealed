@@ -27,10 +27,15 @@ function OwnerCard({ record, wallet }: { record: OwnerRecord; wallet: LegacyWall
   ) {
     if (wallet === null) return
     setBusy(true)
-    const result = await run(wallet)
-    setBusy(false)
-    upsertOwned(result.record)
-    push(result.ok ? 'success' : 'error', result.ok ? success : failure)
+    try {
+      const result = await run(wallet)
+      upsertOwned(result.record)
+      push(result.ok ? 'success' : 'error', result.ok ? success : failure)
+    } catch {
+      push('error', failure)
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
@@ -126,16 +131,19 @@ function OwnerCard({ record, wallet }: { record: OwnerRecord; wallet: LegacyWall
         title="Revoke this letter?"
         confirmLabel="Revoke"
         danger
+        busy={busy}
+        busyLabel="Revoking…"
         onCancel={() => {
           setRevoking(false)
         }}
         onConfirm={() => {
-          setRevoking(false)
           void act(
             (w) => ownerRevoke(w, record, currentTime()),
             'Revoked.',
             'Some guardians were not told. Use Retry.',
-          )
+          ).finally(() => {
+            setRevoking(false)
+          })
         }}
       >
         Guardians discard their shares and the heir can never open this letter. To change it, seal a

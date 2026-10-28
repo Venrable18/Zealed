@@ -100,11 +100,11 @@ export function SetupSilent({ wallet, defaultPeriodMs, defaultGraceMs }: SetupSi
   const maxThreshold = Math.max(2, guardians.length)
 
   async function send() {
-    setConfirming(false)
     setBusy(true)
     setProblem(undefined)
     const result = await trackWork(() => setupSilentLetter(wallet, input, { nowMs: currentTime() }))
     setBusy(false)
+    setConfirming(false)
     if (result.ok) {
       upsertOwned(result.record)
       push('success', 'Your letter is sealed. Remember to check in.')
@@ -310,6 +310,8 @@ export function SetupSilent({ wallet, defaultPeriodMs, defaultGraceMs }: SetupSi
         open={confirming}
         title="Seal this letter?"
         confirmLabel="Seal and send"
+        busy={busy}
+        busyLabel="Sealing and sending…"
         onCancel={() => {
           setConfirming(false)
         }}

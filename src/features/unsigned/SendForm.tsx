@@ -67,7 +67,6 @@ export function SendForm({ card, wallet }: { card: Card; wallet: UnsignedWalletP
   }, [wallet, body, amount, memoCount])
 
   async function send() {
-    setConfirming(false)
     setBusy(true)
     setProblem(undefined)
     const result = await trackWork(() =>
@@ -77,6 +76,7 @@ export function SendForm({ card, wallet }: { card: Card; wallet: UnsignedWalletP
       }),
     )
     setBusy(false)
+    setConfirming(false)
     if (result.ok) {
       addSent(result.sent)
       setDone(result.sent)
@@ -240,6 +240,8 @@ export function SendForm({ card, wallet }: { card: Card; wallet: UnsignedWalletP
         open={confirming}
         title="Send this message?"
         confirmLabel="Pay and send"
+        busy={busy}
+        busyLabel="Sending…"
         onCancel={() => {
           setConfirming(false)
         }}

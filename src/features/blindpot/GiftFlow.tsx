@@ -52,6 +52,7 @@ export function GiftFlow({
   const [amount, setAmount] = useState<bigint | null>(null)
   const [wish, setWish] = useState('')
   const [confirming, setConfirming] = useState(false)
+  const [starting, setStarting] = useState(false)
   const [problem, setProblem] = useState<string | undefined>()
   const [contribution, setContribution] = useState<Contribution | undefined>()
   const latest = useRef<Contribution | undefined>(undefined)
@@ -126,14 +127,19 @@ export function GiftFlow({
 
   async function startGift() {
     if (wallet === null || split?.ok !== true) return
-    setConfirming(false)
+    // The balance check can wait behind a sync: the dialog says it is working until it is done.
+    setStarting(true)
     let spendable: bigint
     try {
       spendable = await wallet.spendableZat()
     } catch {
+      setStarting(false)
+      setConfirming(false)
       setProblem('Your balance could not be read. Nothing was sent. Try again.')
       return
     }
+    setStarting(false)
+    setConfirming(false)
     if (spendable < split.totalZat) {
       setProblem(
         `You have ${formatZec(spendable)} ZEC to spend, and this gift needs ${formatZec(split.totalZat)} ZEC plus a small fee for each piece.`,
@@ -186,7 +192,13 @@ export function GiftFlow({
         <progress value={sent} max={total} className="h-3 w-full accent-seal">
           {sent} of {total}
         </progress>
-        <p role="status">
+        <p role="status" className="flex items-center gap-2">
+          {queueState === 'running' && (
+            <span
+              aria-hidden="true"
+              className="size-4 animate-spin rounded-full border-2 border-seal border-t-transparent motion-reduce:animate-none"
+            />
+          )}
           {String(sent)} of {String(total)} pieces sent
         </p>
         {queueState === 'running' && (
@@ -340,6 +352,8 @@ export function GiftFlow({
         open={confirming}
         title={split?.ok === true ? `Send ${formatZec(split.totalZat)} ZEC?` : 'Send gift?'}
         confirmLabel="Send"
+        busy={starting}
+        busyLabel="Checking your balance…"
         onCancel={() => {
           setConfirming(false)
         }}

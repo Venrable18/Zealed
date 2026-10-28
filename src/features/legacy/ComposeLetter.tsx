@@ -82,7 +82,6 @@ export function ComposeLetter({
   }, [wallet, recipient, letter, giftZat, unlockMs])
 
   async function send() {
-    setConfirming(false)
     setBusy(true)
     setProblem(undefined)
     // Locking waits for the send, or its record would be lost (see storage/inflight.ts).
@@ -97,6 +96,7 @@ export function ComposeLetter({
       ),
     )
     setBusy(false)
+    setConfirming(false)
 
     if (result.ok) {
       addSent(result.item)
@@ -244,6 +244,8 @@ export function ComposeLetter({
             : 'Seal this letter?'
         }
         confirmLabel="Seal and send"
+        busy={busy}
+        busyLabel="Sealing and sending…"
         onCancel={() => {
           setConfirming(false)
         }}

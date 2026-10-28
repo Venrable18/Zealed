@@ -140,7 +140,9 @@ export function HostViewPanel({ pot, wallet, onClosed }: HostViewPanelProps) {
           <ConfirmDialog
             open={confirming}
             title="Close this pot?"
-            confirmLabel={closing ? 'Closing…' : 'Close and withdraw'}
+            confirmLabel="Close and withdraw"
+            busy={closing}
+            busyLabel="Closing…"
             danger
             onCancel={() => {
               if (!closing) setConfirming(false)
