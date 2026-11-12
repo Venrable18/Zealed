@@ -548,7 +548,15 @@ export class RealWallet
     }
     const { spendable, pending } = await this.balances(gift.id)
     if (spendable <= 0n) {
-      return { ok: false, reason: pending > 0n ? 'not-ready' : 'nothing-to-sweep' }
+      if (pending > 0n) return { ok: false, reason: 'not-ready' }
+      // An empty gift wallet only means "already collected" if the gift was seen arriving and then
+      // leaving. If nothing was ever received, the gift has not reached this wallet yet (it was
+      // sent moments ago, or the sync is behind), so it is not ready: the letter must stay open.
+      const seen = await this.exclusive(async () => {
+        const notes = JSON.parse(await this.wallet.received_notes(gift.id, null)) as NoteRecord[]
+        return notes.length > 0
+      })
+      return { ok: false, reason: seen ? 'nothing-to-sweep' : 'not-ready' }
     }
     try {
       // What arrives is the gift less the network fee, which is what the person is told.

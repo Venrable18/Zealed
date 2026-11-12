@@ -14,9 +14,9 @@ interface SilentState {
 }
 
 /**
- * Held in memory only for now: lost on reload. These hold secrets (the owner's check-in private
- * key, a guardian's key share, the heir's collected shares), so they must only ever be persisted
- * encrypted. Encrypted wallet storage (Phase 3) will do that.
+ * Held in memory, and saved only to the encrypted vault (src/storage/persistence.ts). These hold
+ * secrets (the owner's check-in private key, a guardian's key share, the heir's collected shares),
+ * so they must never be persisted any other way.
  */
 export const useSilent = create<SilentState>()((set) => ({
   owned: [],

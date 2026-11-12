@@ -18,7 +18,8 @@ const OPEN_ERRORS = {
 
 const SWEEP_ERRORS = {
   'nothing-to-sweep': 'There is nothing left to move. The gift may already have been collected.',
-  'not-ready': 'The gift is not ready to move yet. Wait a moment and try again.',
+  'not-ready':
+    'The gift has not reached your wallet yet. It can take a few minutes after a letter is sealed. Wait a moment and try again.',
   failed: 'The funds could not be moved. Try again.',
 } as const
 

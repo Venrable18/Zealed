@@ -26,7 +26,8 @@ const OPEN_ERRORS = {
 
 const SWEEP_ERRORS = {
   'nothing-to-sweep': 'There is nothing left to move. The gift may already have been collected.',
-  'not-ready': 'The gift is not ready to move yet. Wait a moment and try again.',
+  'not-ready':
+    'The gift has not reached your wallet yet. It can take a few minutes after a letter is sealed. Wait a moment and try again.',
   failed: 'The funds could not be moved. Try again.',
 } as const
 
@@ -47,7 +48,8 @@ function InboxCard({
   const [problem, setProblem] = useState<string | undefined>()
   const [busy, setBusy] = useState(false)
   const [swept, setSwept] = useState<bigint | undefined>()
-  const [alreadyCollected, setAlreadyCollected] = useState(false)
+  // Read again after the gift was moved: there is nothing to offer, the gift is already in the wallet.
+  const [alreadyCollected, setAlreadyCollected] = useState(() => item.claimedAtMs !== undefined)
 
   async function open() {
     setBusy(true)
@@ -128,7 +130,27 @@ function InboxCard({
           {item.openedAtMs === undefined ? '' : ` on ${formatDateTime(item.openedAtMs)}`}.
           {item.claimedAtMs === undefined ? '' : ' Its gift was moved into your wallet.'}
         </p>
-        <Button disabled>Unlocked</Button>
+        <div className="flex flex-wrap gap-3">
+          <Button disabled>Unlocked</Button>
+          {/* Zealed keeps no copy of the letter: reading it again opens the sealed one once more. */}
+          <Button
+            variant="secondary"
+            busy={busy}
+            onClick={() => {
+              void open()
+            }}
+          >
+            Read the letter again
+          </Button>
+        </div>
+        {problem !== undefined && (
+          <p
+            role="alert"
+            className="rounded-control border border-warn bg-warn-soft px-4 py-3 text-sm"
+          >
+            {problem}
+          </p>
+        )}
       </li>
     )
   }

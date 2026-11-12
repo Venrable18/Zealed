@@ -14,9 +14,9 @@ interface LegacyState {
 }
 
 /**
- * Held in memory only for now: lost on reload. Sent items can hold a gift wallet's seed while
- * delivery has failed, so they must never go to plaintext storage. Encrypted wallet storage
- * (Phase 3) will persist them.
+ * Held in memory, and saved only to the encrypted vault (src/storage/persistence.ts). Sent items
+ * can hold a gift wallet's seed while delivery has failed, so they must never go to plaintext
+ * storage.
  */
 export const useLegacy = create<LegacyState>()((set) => ({
   sent: [],

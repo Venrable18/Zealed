@@ -13,9 +13,8 @@ interface UnsignedState {
 }
 
 /**
- * Held in memory only for now: lost on reload. Messages are private and the card is not meant to
- * be tracked, so neither is written to plaintext storage. Encrypted wallet storage (Phase 3) will
- * persist them.
+ * Held in memory, and saved only to the encrypted vault (src/storage/persistence.ts). Messages are
+ * private and the card is not meant to be tracked, so neither is ever written to plaintext storage.
  */
 export const useUnsigned = create<UnsignedState>()((set) => ({
   card: null,

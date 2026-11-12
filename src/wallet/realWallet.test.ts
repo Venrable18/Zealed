@@ -368,13 +368,28 @@ describe('gift wallets', () => {
   it('restores a gift wallet it does not know from its seed, from the start of NU7', async () => {
     const { wallet, state } = await open()
     state.balances.set(2, { spendable: 0, pending: 0 })
+    // Nothing was ever received: the gift has not arrived yet, which is not the same as collected.
     expect(await wallet.sweepGiftWallet('another seed')).toEqual({
       ok: false,
-      reason: 'nothing-to-sweep',
+      reason: 'not-ready',
     })
     expect(state.accounts[1]).toMatchObject({
       seed: 'another seed',
       birthday: NU7_TESTNET_ACTIVATION,
+    })
+  })
+
+  it('says nothing is left only when the gift was seen arriving and leaving', async () => {
+    const { wallet, state } = await open()
+    const gift = await wallet.createGiftWallet()
+    state.balances.set(2, { spendable: 0, pending: 0 })
+    expect(await wallet.sweepGiftWallet(gift.seed)).toEqual({ ok: false, reason: 'not-ready' })
+    state.notes.set(2, [
+      { txid: 'in', minedHeight: 10, timeMs: null, zat: '50000', memoHex: null, spentIn: 'out' },
+    ])
+    expect(await wallet.sweepGiftWallet(gift.seed)).toEqual({
+      ok: false,
+      reason: 'nothing-to-sweep',
     })
   })
 

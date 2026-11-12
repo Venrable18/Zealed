@@ -8,9 +8,9 @@ interface PotState {
 }
 
 /**
- * Pots the host has created. Held in memory only for now: they are lost on reload. Wallet
- * storage (Phase 3) will persist them encrypted. They are deliberately not written to
- * localStorage, because the pot's name and dates are private.
+ * Pots the host has created. Held in memory, and saved only to the encrypted vault
+ * (src/storage/persistence.ts). They are deliberately not written to localStorage, because the
+ * pot's name and dates are private.
  */
 export const usePots = create<PotState>()((set) => ({
   pots: [],

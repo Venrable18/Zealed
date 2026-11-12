@@ -261,6 +261,40 @@ describe('InboxList', () => {
     expect(screen.getByRole('button', { name: 'Open letter' }).hasAttribute('disabled')).toBe(false)
   })
 
+  it('lets an unlocked letter be read again, and does not offer its gift twice', async () => {
+    const wallet = new FakeLegacyWallet()
+    await sealedFor(wallet)
+    const view = render(<InboxList wallet={wallet} client={fixtureClient()} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Check for sealed letters' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Open letter' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Move the gift into my wallet' }))
+    expect(await screen.findByText(/Moved 0\.49975 ZEC into your wallet/)).toBeTruthy()
+
+    // After a reload the letter text is gone from the page; it can be opened again from the sealed copy.
+    view.unmount()
+    render(<InboxList wallet={wallet} client={fixtureClient()} />)
+    expect(screen.queryByText(/I hope this finds you well/)).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Read the letter again' }))
+    expect(await screen.findByText(/I hope this finds you well/)).toBeTruthy()
+    expect(screen.getByText('This gift was already moved into your wallet.')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Move the gift into my wallet' })).toBeNull()
+    expect(wallet.swept).toHaveLength(1)
+  })
+
+  it('keeps the letter open when its gift has not reached the wallet yet', async () => {
+    const wallet = new FakeLegacyWallet()
+    await sealedFor(wallet)
+    wallet.sweepResult = { ok: false, reason: 'not-ready' }
+    render(<InboxList wallet={wallet} client={fixtureClient()} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Check for sealed letters' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Open letter' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Move the gift into my wallet' }))
+    expect(await screen.findByText(/has not reached your wallet yet/)).toBeTruthy()
+    // Not counted as collected: the button stays, so it can be tried again.
+    expect(useLegacy.getState().inbox[0]?.claimedAtMs).toBeUndefined()
+    expect(screen.getByRole('button', { name: 'Move the gift into my wallet' })).toBeTruthy()
+  })
+
   it('a letter with no gift is unlocked as soon as it is opened', async () => {
     const wallet = new FakeLegacyWallet()
     const result = await sealAndSend(

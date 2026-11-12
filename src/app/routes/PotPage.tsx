@@ -23,7 +23,8 @@ export function PotPage() {
             </Link>
           }
         >
-          Pots are kept in memory for now, so a pot disappears when the page is reloaded.
+          Pots are saved in this browser’s encrypted storage, so a pot only appears where it was
+          created, and only after you unlock. Without a passphrase, nothing is saved across reloads.
         </EmptyState>
       </div>
     )
